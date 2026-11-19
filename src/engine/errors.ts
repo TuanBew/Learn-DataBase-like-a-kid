@@ -1,0 +1,180 @@
+import type { Dialect } from './types';
+import { friendly } from './messages.vi';
+
+export type ErrorKind = 'syntax' | 'name' | 'unsupported' | 'runtime';
+
+export interface Span {
+  s: number;
+  e: number;
+}
+
+/** Lỗi mà người học nhìn thấy. Luôn có mã lỗi thật của dialect và lời giải thích dễ hiểu. */
+export class SqlError extends Error {
+  kind: ErrorKind;
+  /** '1064', 'ORA-00933', hoặc 'CHUA-HOC' cho phần khóa học chưa dạy. */
+  code: string;
+  /** Nguyên văn dòng lỗi mà DBMS thật in ra. */
+  dbMessage: string;
+  /** Lời giải thích tiếng Việt. */
+  friendly: string;
+  /** Chỗ sai trong câu query, để gạch chân. */
+  span: Span;
+  /** Gợi ý sửa, ví dụ tên gần đúng. */
+  tip?: string;
+  /** Tên tình huống, dùng trong test. */
+  hint: string;
+
+  constructor(kind: ErrorKind, code: string, dbMessage: string, hint: string, text: string, span: Span, tip?: string) {
+    super(dbMessage);
+    this.kind = kind;
+    this.code = code;
+    this.dbMessage = dbMessage;
+    this.hint = hint;
+    this.friendly = text;
+    this.span = span;
+    this.tip = tip;
+  }
+}
+
+const ORA: Record<string, string> = {
+  '00900': 'invalid SQL statement',
+  '00903': 'invalid table name',
+  '00904': 'invalid identifier',
+  '00905': 'missing keyword',
+  '00906': 'missing left parenthesis',
+  '00907': 'missing right parenthesis',
+  '00908': 'missing NULL keyword',
+  '00909': 'invalid number of arguments',
+  '00911': 'invalid character',
+  '00920': 'invalid relational operator',
+  '00923': 'FROM keyword not found where expected',
+  '00924': 'missing BY keyword',
+  '00933': 'SQL command not properly ended',
+  '00936': 'missing expression',
+  '00942': 'table or view does not exist',
+  '01476': 'divisor is equal to zero',
+  '01722': 'invalid number',
+  '01756': 'quoted string not properly terminated',
+  '01861': 'literal does not match format string',
+};
+
+export type OraCode = keyof typeof ORA | string;
+
+type Params = Record<string, string | number | undefined>;
+
+function say(hint: string, p: Params): string {
+  const f = friendly[hint] ?? friendly.unexpected;
+  return f(p);
+}
+
+/** Dòng lỗi 1064 của MySQL: trích phần query từ chỗ sai tới hết. */
+function mysql1064(sql: string, at: number): string {
+  const line = sql.slice(0, at).split('\n').length;
+  const near = sql.slice(at).replace(/\s+$/, '').slice(0, 80);
+  return `ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '${near}' at line ${line}`;
+}
+
+export function oraMessage(code: OraCode, ident?: string): string {
+  const text = ORA[code] ?? 'error';
+  return ident ? `ORA-${code}: ${ident}: ${text}` : `ORA-${code}: ${text}`;
+}
+
+/** Lỗi cú pháp. MySQL luôn là 1064. Oracle dùng mã `ora`. */
+export function syntaxError(
+  dialect: Dialect,
+  sql: string,
+  span: Span,
+  ora: OraCode,
+  hint: string,
+  p: Params = {},
+  tip?: string,
+): SqlError {
+  if (dialect === 'mysql') {
+    return new SqlError('syntax', '1064', mysql1064(sql, span.s), hint, say(hint, p), span, tip);
+  }
+  return new SqlError('syntax', `ORA-${ora}`, oraMessage(ora), hint, say(hint, p), span, tip);
+}
+
+export function unknownTable(dialect: Dialect, dbName: string, name: string, span: Span, tip?: string): SqlError {
+  const text = say('unknown-table', { name });
+  if (dialect === 'mysql') {
+    return new SqlError('name', '1146', `ERROR 1146 (42S02): Table '${dbName}.${name}' doesn't exist`, 'unknown-table', text, span, tip);
+  }
+  return new SqlError('name', 'ORA-00942', oraMessage('00942'), 'unknown-table', text, span, tip);
+}
+
+export type MysqlWhere = 'field list' | 'where clause' | 'order clause' | 'group statement' | 'having clause' | 'on clause';
+
+export function unknownColumn(
+  dialect: Dialect,
+  shown: string,
+  oraIdent: string,
+  where: MysqlWhere,
+  span: Span,
+  hint: string,
+  p: Params,
+  tip?: string,
+): SqlError {
+  if (dialect === 'mysql') {
+    return new SqlError('name', '1054', `ERROR 1054 (42S22): Unknown column '${shown}' in '${where}'`, hint, say(hint, p), span, tip);
+  }
+  return new SqlError('name', 'ORA-00904', oraMessage('00904', oraIdent), hint, say(hint, p), span, tip);
+}
+
+export function unknownFunction(dialect: Dialect, dbName: string, name: string, span: Span, hint: string, p: Params): SqlError {
+  if (dialect === 'mysql') {
+    return new SqlError('name', '1305', `ERROR 1305 (42000): FUNCTION ${dbName}.${name} does not exist`, hint, say(hint, p), span);
+  }
+  return new SqlError('name', 'ORA-00904', oraMessage('00904', `"${name.toUpperCase()}"`), hint, say(hint, p), span);
+}
+
+/** Lỗi lúc chạy. `mysql` là [mã, sqlstate, nguyên văn]. */
+export function runtimeError(
+  dialect: Dialect,
+  mysql: [string, string, string],
+  ora: OraCode,
+  span: Span,
+  hint: string,
+  p: Params = {},
+): SqlError {
+  if (dialect === 'mysql') {
+    return new SqlError('runtime', mysql[0], `ERROR ${mysql[0]} (${mysql[1]}): ${mysql[2]}`, hint, say(hint, p), span);
+  }
+  return new SqlError('runtime', `ORA-${ora}`, oraMessage(ora), hint, say(hint, p), span);
+}
+
+/** Phần nằm ngoài khóa học. Không có mã lỗi thật vì DBMS thật vẫn chạy được. */
+export function unsupported(feature: string, span: Span, hint: 'unsupported' | 'not-yet' = 'unsupported'): SqlError {
+  return new SqlError('unsupported', 'CHUA-HOC', '', hint, say(hint, { feature }), span);
+}
+
+/** Khoảng cách sửa chữ, để gợi ý tên gần đúng. */
+export function nearest(name: string, candidates: string[]): string | undefined {
+  const a = name.toLowerCase();
+  let best: string | undefined;
+  let bestD = Infinity;
+  for (const c of candidates) {
+    const b = c.toLowerCase();
+    const d = lev(a, b);
+    if (d < bestD) {
+      bestD = d;
+      best = c;
+    }
+  }
+  const limit = Math.max(2, Math.floor(a.length / 3));
+  return best !== undefined && bestD <= limit && bestD > 0 ? best : undefined;
+}
+
+function lev(a: string, b: string): number {
+  const dp = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = dp[j];
+      dp[j] = Math.min(dp[j] + 1, dp[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = tmp;
+    }
+  }
+  return dp[b.length];
+}

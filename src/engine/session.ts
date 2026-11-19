@@ -217,6 +217,10 @@ export function createSession(source: Database, dialect: Dialect, env: FnEnv = D
         E.check(e, 'field list', 'no');
         row[target[k]] = store(E.ev(e, { cells: [] }), t.columns[target[k]], e.span);
       });
+      // Column tự tăng: không đưa mã thì database tự sinh mã kế tiếp.
+      t.columns.forEach((c, ci) => {
+        if (c.identity && row[ci] === null) row[ci] = rows.reduce((max, x) => (typeof x[ci] === 'number' && x[ci] > max ? x[ci] : max), 0) + 1;
+      });
       rows.push(row);
       ids.push(rows.length - 1);
       touched.push(rows.length - 1);
@@ -283,7 +287,7 @@ export function createSession(source: Database, dialect: Dialect, env: FnEnv = D
     }
     const table: TableDef = {
       name: stmt.name,
-      columns: stmt.columns.map((c) => ({ name: c.name, type: c.type, pk: c.pk, notNull: c.notNull, unique: c.unique, fk: c.fk })),
+      columns: stmt.columns.map((c) => ({ name: c.name, type: c.type, pk: c.pk, notNull: c.notNull, unique: c.unique, fk: c.fk, identity: c.identity })),
       checks: [...stmt.columns.flatMap((c) => (c.check ? [c.check] : [])), ...stmt.checks],
       rows: [],
     };

@@ -11,6 +11,10 @@ const lessonPage = () => import('./pages/LessonPage');
 const exercisePage = () => import('./pages/ExercisePage');
 const LessonPage = lazy(lessonPage);
 const ExercisePage = lazy(exercisePage);
+const NextStepsPage = lazy(() => import('./pages/NextStepsPage'));
+const SourcesPage = lazy(() => import('./pages/SourcesPage'));
+const ProgressPage = lazy(() => import('./pages/ProgressPage'));
+const CertificatePage = lazy(() => import('./pages/CertificatePage'));
 
 /**
  * Tải trang và nội dung của route đang mở trước khi React vẽ lần đầu.
@@ -48,6 +52,10 @@ export function App() {
               <Route path="/" component={Home} />
               <Route path="/bai/:id">{(p) => <LessonPage id={p.id} />}</Route>
               <Route path="/tap/:id">{(p) => <ExercisePage id={p.id} />}</Route>
+              <Route path="/hoc-tiep" component={NextStepsPage} />
+              <Route path="/nguon" component={SourcesPage} />
+              <Route path="/tien-trinh" component={ProgressPage} />
+              <Route path="/chung-nhan" component={CertificatePage} />
               <Route component={Home} />
             </Switch>
           </Suspense>

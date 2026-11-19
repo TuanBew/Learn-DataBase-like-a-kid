@@ -11,9 +11,8 @@ import { type Frame, type Phase, buildFrames, firstFrameOf } from './frames';
 import { Stage } from './Stage';
 import './theater.css';
 
-const MOOD: Record<Phase, Mood> = { written: 'idle', run: 'wow', from: 'happy', where: 'think', select: 'idle', order: 'think', limit: 'idle', done: 'cheer' };
+const MOOD: Record<Phase, Mood> = { written: 'idle', run: 'wow', from: 'happy', where: 'think', group: 'wow', having: 'think', select: 'idle', order: 'think', limit: 'idle', done: 'cheer' };
 const SPEEDS = [0.5, 1, 2];
-const FALLING = new Set(['fail', 'dup', 'cut', 'skip']);
 
 const TONE: Record<ClauseKind, string> = {
   FROM: 'sky',
@@ -120,7 +119,10 @@ export function Theater({ trace, autoPlay = true, onEnd }: Props) {
   };
 
   const ordered = useMemo(() => [...trace.clauses].sort((a, b) => (frame.rail === 'written' ? a.written - b.written : a.run - b.run)), [trace, frame.rail]);
-  const liveRows = frame.rows.filter((r) => !(r.mark && FALLING.has(r.mark))).length;
+  const liveRows = frame.count;
+  const sideFrame: Frame | null = frame.side
+    ? { ...frame, cols: frame.side.cols, rows: frame.side.rows, count: frame.side.rows.length, more: frame.side.more > 0 ? { count: frame.side.more, text: T.more(frame.side.more) } : null, boxes: [], gate: null, scan: null, side: null }
+    : null;
   const liveCols = frame.cols.filter((c) => c.state !== 'dim').length;
 
   /* Trên màn hình hẹp, clause đang chạy luôn nằm trong tầm nhìn. */
@@ -161,6 +163,12 @@ export function Theater({ trace, autoPlay = true, onEnd }: Props) {
         <div className="qt-floor">
           <div className="qt-stagewrap" ref={stageRef}>
             {width > 0 && <Stage frame={frame} width={width} focus={focus} speed={speed} reduced={reduced} emptyText={T.empty} />}
+            {width > 0 && sideFrame && frame.side && (
+              <div className="qt-sidetable">
+                <span className="chip qt-sidetable__name">{frame.side.title}</span>
+                <Stage frame={sideFrame} width={width} focus={focus} speed={speed} reduced={reduced} emptyText={T.empty} />
+              </div>
+            )}
           </div>
         </div>
       </div>

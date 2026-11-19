@@ -1,0 +1,63 @@
+.pg {
+  display: grid;
+  gap: var(--s4);
+  min-width: 0;
+}
+.pg__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s3);
+  flex-wrap: wrap;
+}
+.pg__schema {
+  display: grid;
+  gap: 8px;
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.pg__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s4);
+}
+.pg__tries {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.pg__trylabel {
+  width: 100%;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+/* Mỗi gợi ý là một mẩu giấy, bấm vào thì query đổi theo và chạy luôn */
+.pg__try {
+  min-height: 44px;
+  padding: 6px 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--sheet);
+  border: 2px dashed var(--ink);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform 120ms var(--ease-out),
+    background-color 120ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.pg__try:hover {
+  background: var(--mango);
+  transform: translateY(-2px);
+}
+.pg__try:active {
+  transform: translateY(1px);
+}
+.pg__say .says__bubble {
+  font-size: 0.98rem;
+}

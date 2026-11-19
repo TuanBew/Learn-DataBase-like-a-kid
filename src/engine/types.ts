@@ -29,6 +29,8 @@ export interface ColumnDef {
   fk?: { table: string; column: string };
   notNull?: boolean;
   unique?: boolean;
+  /** Column tự sinh mã tăng dần: AUTO_INCREMENT ở MySQL, GENERATED AS IDENTITY ở Oracle. */
+  identity?: boolean;
 }
 
 export interface TableDef {

@@ -358,6 +358,113 @@
   font-size: 0.95rem;
 }
 
+/* Màu của từng nhóm */
+.qt-tone-n0 { --gtone: var(--sky); --gdeep: var(--sky-deep); }
+.qt-tone-n1 { --gtone: var(--mango); --gdeep: var(--mango-deep); }
+.qt-tone-n2 { --gtone: var(--taro); --gdeep: var(--taro-deep); }
+.qt-tone-n3 { --gtone: var(--matcha); --gdeep: var(--matcha-deep); }
+.qt-tone-n4 { --gtone: var(--peach); --gdeep: var(--peach-deep); }
+.qt-tone-n5 { --gtone: var(--milk); --gdeep: var(--milk-deep); }
+.qt-row--tone {
+  box-shadow:
+    inset 7px 0 0 var(--gdeep),
+    0 3px 0 var(--edge);
+}
+.qt-row--tone .qt-td:first-of-type {
+  padding-left: 14px;
+}
+/* Hộp nhóm của GROUP BY */
+.qt-box {
+  position: absolute;
+  left: -8px;
+  right: -8px;
+  top: 0;
+  border: 2px dashed var(--gdeep);
+  border-radius: 12px;
+  background: var(--gtone);
+  opacity: 0.55;
+  transition:
+    transform calc(var(--t) * 560ms) var(--ease-out),
+    height calc(var(--t) * 560ms) var(--ease-out);
+}
+.qt-box__label {
+  position: absolute;
+  left: 10px;
+  top: -11px;
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--sheet);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  white-space: nowrap;
+  max-width: 80%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Một row thay cho cả chồng row */
+.qt-row--stack {
+  box-shadow:
+    inset 7px 0 0 var(--gdeep, var(--edge)),
+    0 3px 0 var(--edge),
+    0 6px 0 var(--ink-line);
+}
+.qt-stack {
+  position: absolute;
+  right: 8px;
+  top: -10px;
+  z-index: 4;
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.6;
+  background: var(--mango);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+}
+/* Chế độ gọn: các row không vẽ ra gom thành một khối */
+.qt-more {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  background: var(--paper-2);
+  border: 2px dashed var(--edge);
+  border-radius: 9px;
+  box-shadow:
+    0 4px 0 var(--ink-line),
+    0 8px 0 var(--paper-2);
+  transition: transform calc(var(--t) * 450ms) var(--ease-out);
+}
+.qt-more__n {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  color: var(--ink);
+}
+/* Table thứ hai bay vào để ghép */
+.qt-sidetable {
+  margin-top: 6px;
+  padding-top: 20px;
+  border-top: 2px dashed var(--edge);
+  position: relative;
+}
+.qt-sidetable__name {
+  position: absolute;
+  left: 0;
+  top: -14px;
+  background: var(--sky);
+}
+
 /* Máy soi */
 .qt-scan {
   position: absolute;

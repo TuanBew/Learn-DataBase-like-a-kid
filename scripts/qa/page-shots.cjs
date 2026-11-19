@@ -26,6 +26,8 @@ const { chromium } = require('playwright');
   await page.goto(base + '/bai/c1-b1', { waitUntil: 'networkidle' });
   await page.waitForTimeout(600);
   await page.screenshot({ path: `${out}/lesson-top-${width}.png` });
+  // Ảnh chụp riêng từng cảnh: cho đầu trang đứng yên để không che cảnh.
+  await page.addStyleTag({ content: '.hdr{position:static!important}.lesson-bar{display:none!important}' });
   for (const b of await page.locator('.place__btn').all()) {
     await b.click();
     await page.waitForTimeout(250);

@@ -524,7 +524,10 @@ class Parser {
     }
     // Không có gì để đọc ở chỗ cần một giá trị.
     if (this.prev.type === 'op' && this.prev.value === ',' && (this.isW('FROM') || t.type === 'eof')) {
-      throw this.fail('00936', 'trailing-comma', { tok: this.show() }, this.prev);
+      // DBMS thật báo lỗi ở chữ đứng sau dấu phẩy. Site gạch chân dấu phẩy thừa cho dễ sửa.
+      const err = this.fail('00936', 'trailing-comma', { tok: this.show() });
+      err.span = { s: this.prev.s, e: this.prev.e };
+      throw err;
     }
     if (t.type === 'eof' || this.isOp(';')) throw this.fail('00936', 'unexpected-end', { after: this.ctx });
     if (this.isOp(')') || this.isOp(',') || (t.type === 'word' && STOP.has(t.value))) {

@@ -88,7 +88,7 @@ export const lesson: Lesson = {
             caption: 'Trường vừa ghi một điểm: học sinh, môn và số điểm.',
           },
         ],
-        done: 'Bạn thấy chưa? Nơi nào cũng ghi dữ liệu, và nơi nào cũng ghi theo cùng một kiểu: mỗi lần một row, mỗi row đủ các ô.',
+        done: 'Bạn thấy chưa? Nơi nào cũng ghi dữ liệu theo cùng một kiểu. Mỗi lần ghi một row, mỗi row đủ các ô.',
       },
     },
     {
@@ -166,7 +166,7 @@ export const lesson: Lesson = {
       title: 'GitHub cất dữ liệu trong MySQL',
       paragraphs: [
         'GitHub dùng MySQL làm kho dữ liệu chính cho mọi thứ ngoài git.',
-        'Website, API và phần đăng nhập của GitHub đều lưu dữ liệu ở đó.',
+        'Website, API và phần đăng nhập của GitHub đều cần truy cập database.',
         'MySQL là một phần mềm database. Khóa này dùng chính MySQL để học nền.',
       ],
       source: {
@@ -187,6 +187,7 @@ export const lesson: Lesson = {
       type: 'sources',
       items: [
         { name: 'Harvard CS50 SQL', url: 'https://cs50.harvard.edu/sql', note: 'CC BY-NC-SA 4.0' },
+        { name: 'Harvard CS50 SQL, Lecture 0', url: 'https://cs50.harvard.edu/sql/notes/0/', note: 'CC BY-NC-SA 4.0' },
         { name: 'Khan Academy: Intro to SQL', url: 'https://www.khanacademy.org/computing/computer-programming/sql' },
       ],
     },

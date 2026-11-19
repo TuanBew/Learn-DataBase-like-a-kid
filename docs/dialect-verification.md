@@ -2,6 +2,8 @@
 
 Ngày: 2026-11-19. Trạng thái: **chưa kiểm được dòng nào**.
 
+Lần thử lại (cùng ngày): WebFetch tới `dev.mysql.com` và `docs.oracle.com` vẫn lỗi `getaddrinfo ENOTFOUND`, nên chưa đọc được trang nào. Hai host chưa nằm trong danh sách mạng cho phép của session này.
+
 Lý do: sandbox không phân giải được `dev.mysql.com` và `docs.oracle.com` (lỗi `getaddrinfo ENOTFOUND`, host nằm ngoài danh sách mạng cho phép). WebSearch chỉ trả danh sách link và một bản tóm tắt thứ cấp, không có nguyên văn. Theo luật của việc này, không điền từ trí nhớ. Cần cho phép hai host trên trong cài đặt mạng của session rồi chạy lại.
 
 Ghi chú duy nhất từ WebSearch (tóm tắt thứ cấp, chưa đọc nguyên văn): utf8mb4_0900_ai_ci là mặc định của MySQL 8.0, không phân biệt hoa thường và dấu, và có PAD_ATTRIBUTE là NO PAD.

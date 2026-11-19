@@ -9,7 +9,7 @@ export const glossary: Record<string, GlossaryEntry> = {
   dbms: {
     term: 'DBMS',
     short: 'Phần mềm quản lý database: nhận lệnh, ghi dữ liệu, trả dữ liệu về.',
-    example: 'Thủ kho là DBMS: bạn nói cần gì, thủ kho vào kho lấy và ghi sổ.',
+    example: 'Người giữ kho là DBMS: bạn nói cần gì, người giữ kho vào kho lấy và ghi sổ.',
   },
   table: {
     term: 'table',
@@ -64,7 +64,7 @@ export const glossary: Record<string, GlossaryEntry> = {
   query: {
     term: 'query',
     short: 'Câu lệnh bạn gửi cho database để lấy hoặc đổi dữ liệu.',
-    example: 'Bạn hỏi thủ kho: cho mình các đơn trên 40.000. Câu hỏi đó là một query.',
+    example: 'Bạn hỏi người giữ kho xem các đơn trên 40.000. Câu hỏi đó là một query.',
   },
   clause: {
     term: 'clause',
@@ -119,7 +119,7 @@ export const glossary: Record<string, GlossaryEntry> = {
   sql: {
     term: 'SQL',
     short: 'Ngôn ngữ để nói chuyện với database: hỏi, thêm, sửa, xóa dữ liệu.',
-    example: 'Bạn dặn thủ kho bằng vài từ cố định: lấy gì, lọc gì, xếp ra sao.',
+    example: 'Bạn dặn người giữ kho bằng vài từ cố định: lấy gì, lọc gì, xếp ra sao.',
   },
   select: {
     term: 'SELECT',

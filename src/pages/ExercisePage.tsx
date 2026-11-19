@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useMemo, useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { Chau, Says } from '../components/Chau';
 import { Confetti } from '../components/Confetti';
@@ -7,7 +7,6 @@ import { Icon } from '../components/Icon';
 import { ResultCompare } from '../components/ResultCompare';
 import { ResultTable } from '../components/ResultTable';
 import { Rich } from '../components/Rich';
-import SqlEditor from '../components/SqlEditor';
 import { exercises } from '../content/exercises';
 import type { Exercise } from '../content/types';
 import { uiApp } from '../content/ui-app';
@@ -21,6 +20,11 @@ import { Theater } from '../theater/Theater';
 import './exercise.css';
 
 const U = uiApp.exercise;
+
+/* CodeMirror nặng nhất trang, nên tải riêng và tải ngay từ đầu, song song với phần còn lại. */
+const loadEditor = () => import('../components/SqlEditor');
+const SqlEditor = lazy(loadEditor);
+void loadEditor();
 
 const TYPE_NAME: Record<Dialect, Record<ColumnType, string>> = {
   mysql: { int: 'INT', decimal: 'DECIMAL', text: 'VARCHAR', date: 'DATE', datetime: 'DATETIME' },
@@ -40,8 +44,16 @@ export default function ExercisePage({ id }: { id: string }) {
       </div>
     );
   }
-  if (!exercise || !db) return <div className="wrap" style={{ minHeight: '70vh' }} />;
-  return <ExerciseView exercise={exercise} db={db} />;
+  if (!exercise) return <div className="wrap" style={{ minHeight: '70vh' }} />;
+  return (
+    <div className="wrap ex">
+      <header className="ex-top">
+        <p className="ex-kicker">{U.kicker(exercise.chapter)}</p>
+        <h1 className="ex-title">{exercise.title}</h1>
+      </header>
+      {db ? <ExerciseView exercise={exercise} db={db} /> : <div style={{ minHeight: '60vh' }} />}
+    </div>
+  );
 }
 
 type Outcome =
@@ -132,12 +144,6 @@ function ExerciseView({ exercise, db }: { exercise: Exercise; db: Database }) {
   const other = exercise.dialects.find((d) => d !== dialect);
 
   return (
-    <div className="wrap ex">
-      <header className="ex-top">
-        <p className="ex-kicker">{U.kicker(exercise.chapter)}</p>
-        <h1 className="ex-title">{exercise.title}</h1>
-      </header>
-
       <div className="ex-grid">
         <div className="ex-left">
           <section className="ex-task sheet" aria-labelledby="ex-task">
@@ -188,16 +194,18 @@ function ExerciseView({ exercise, db }: { exercise: Exercise; db: Database }) {
                 ))}
               </div>
             </div>
-            <SqlEditor
-              key={dialect}
-              value={text}
-              onChange={(v) => setTexts((t) => ({ ...t, [dialect]: v }))}
-              dialect={dialect}
-              schema={schema}
-              onRun={() => doRun(texts[dialect], false)}
-              error={error ? error.span : null}
-              label={U.editor}
-            />
+            <Suspense fallback={<pre className="ex-editor__wait">{text}</pre>}>
+              <SqlEditor
+                key={dialect}
+                value={text}
+                onChange={(v) => setTexts((t) => ({ ...t, [dialect]: v }))}
+                dialect={dialect}
+                schema={schema}
+                onRun={() => doRun(texts[dialect], false)}
+                error={error ? error.span : null}
+                label={U.editor}
+              />
+            </Suspense>
             <div className="ex-actions">
               <button type="button" className="btn ex-run" onClick={() => doRun(text, false)}>
                 <Icon name="play" />
@@ -296,6 +304,5 @@ function ExerciseView({ exercise, db }: { exercise: Exercise; db: Database }) {
           )}
         </div>
       </div>
-    </div>
   );
 }

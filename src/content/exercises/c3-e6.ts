@@ -28,7 +28,7 @@ export const exercise: Exercise = {
   check: { orderMatters: true },
   why: 'WHERE loại các món từ 30.000 đồng trở xuống. ORDER BY xếp món rẻ lên trước. Bước cuối chỉ giữ 3 row đầu.',
   hints: {
-    light: 'Bài này cần ba việc theo thứ tự: lọc row, sắp xếp, rồi lấy vài row đầu.',
+    light: 'Bài này cần ba bước theo thứ tự: lọc row, sắp xếp, rồi lấy vài row đầu.',
     specific: 'Lọc bằng WHERE với dấu `>`. Sắp bằng ORDER BY price. MySQL lấy 3 row đầu bằng LIMIT, Oracle dùng FETCH FIRST.',
     skeleton: {
       mysql: 'SELECT name, price\nFROM products\nWHERE price > ____\nORDER BY ____\nLIMIT ____;',

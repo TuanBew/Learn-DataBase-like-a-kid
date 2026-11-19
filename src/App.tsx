@@ -2,10 +2,31 @@ import { Suspense, lazy, useEffect } from 'react';
 import { LazyMotion, MotionConfig, domMax } from 'motion/react';
 import { Route, Switch, useLocation } from 'wouter';
 import { Header } from './components/Header';
+import { exercises } from './content/exercises';
+import { lessons } from './content/lessons';
+import { databases } from './data';
 import { Home } from './pages/Home';
 
-const LessonPage = lazy(() => import('./pages/LessonPage'));
-const ExercisePage = lazy(() => import('./pages/ExercisePage'));
+const lessonPage = () => import('./pages/LessonPage');
+const exercisePage = () => import('./pages/ExercisePage');
+const LessonPage = lazy(lessonPage);
+const ExercisePage = lazy(exercisePage);
+
+/**
+ * Tải sớm trang và nội dung của route đang mở, song song với lúc React khởi động.
+ * Nhờ vậy trang bài học và trang bài tập không phải chờ ba lượt tải nối đuôi nhau.
+ */
+function preloadRoute(path: string): void {
+  const [, kind, id] = path.split('/');
+  if (kind === 'bai') {
+    void lessonPage();
+    void lessons[id]?.();
+  } else if (kind === 'tap') {
+    void exercisePage();
+    void exercises[id]?.().then((ex) => databases[ex.database]());
+  }
+}
+preloadRoute(window.location.pathname);
 
 /** Về đầu trang khi đổi trang, hoặc cuộn tới mục có dấu #. */
 function ScrollManager() {

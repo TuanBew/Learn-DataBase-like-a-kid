@@ -24,7 +24,7 @@ export const uiApp = {
     youWrite: 'Bạn viết',
     dbRuns: 'Database chạy',
     tocTitle: 'Bạn sẽ học',
-    tocLead: 'Bảy chương, đi từ "database là gì" tới một báo cáo hoàn chỉnh bằng Oracle SQL. Bạn học theo tốc độ của mình.',
+    tocLead: 'Bảy chương, đi từ "database là gì" tới một báo cáo hoàn chỉnh bằng Oracle SQL. Bạn học theo tốc độ của bạn.',
     chapter: (n: number) => `Chương ${n}`,
     soon: 'Sắp có',
     done: 'Đã xong',

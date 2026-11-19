@@ -29,7 +29,7 @@ export function DmlView({ dml, labels }: { dml: DmlTrace; labels: { more: (n: nu
           <thead>
             <tr>
               {dml.columns.map((c) => (
-                <th key={c.key} scope="col" className={dml.changed.includes(c.key) ? 'is-set' : ''}>
+                <th key={c.key} scope="col" className={`${dml.changed.includes(c.key) ? 'is-set' : ''} ${c.type === 'int' || c.type === 'decimal' ? 'is-num' : ''}`}>
                   {c.header}
                 </th>
               ))}

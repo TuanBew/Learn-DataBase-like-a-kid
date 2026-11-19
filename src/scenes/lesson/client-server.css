@@ -1,0 +1,288 @@
+.cs__stage {
+  padding: 18px 8px 12px;
+  overflow: hidden;
+}
+.cs__nodes,
+.cs__labels {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.cs-node {
+  display: grid;
+  place-items: center;
+  min-height: 156px;
+}
+.cs-art {
+  width: 84px;
+  height: 96px;
+}
+.cs-node > .cs-art,
+.cs-db,
+.cs-phone {
+  transition: transform 260ms var(--ease-out);
+}
+.cs-node.is-lit > .cs-art,
+.cs-node.is-lit .cs-db,
+.cs-node.is-lit .cs-phone {
+  transform: translateY(-4px);
+}
+.cs-led {
+  fill: var(--ink-line);
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+.cs-node.is-lit .cs-led {
+  fill: var(--matcha-deep);
+  animation: cs-blink 700ms steps(2) infinite;
+}
+.cs-node.is-lit .cs-led:nth-of-type(1) {
+  animation-delay: 120ms;
+}
+@keyframes cs-blink {
+  50% {
+    fill: var(--mango);
+  }
+}
+
+/* Điện thoại */
+.cs-phone {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  width: 112px;
+  min-height: 148px;
+  padding: 16px 7px 8px;
+  background: var(--sheet);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 5px 0 var(--ink);
+}
+.cs-phone__notch {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 30px;
+  height: 5px;
+  margin-left: -15px;
+  border-radius: 3px;
+  background: var(--ink);
+}
+.cs-phone__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.82rem;
+  line-height: 1.1;
+  text-align: center;
+}
+.cs-phone__btn {
+  padding: 5px 4px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  background: var(--mango);
+  border: 2px solid var(--ink);
+  border-radius: 7px;
+}
+.cs-phone__wait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.64rem;
+  color: var(--ink-soft);
+}
+.cs-phone__wait i {
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--ink-line);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: cs-spin 800ms linear infinite;
+}
+@keyframes cs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.cs-phone__menu {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.cs-phone__menu li {
+  padding: 3px 5px;
+  background: var(--matcha);
+  border: 1.5px solid var(--ink);
+  border-radius: 5px;
+  animation: cs-pop 320ms var(--ease-out) backwards;
+}
+.cs-phone__menu li:nth-child(2) {
+  animation-delay: 70ms;
+}
+.cs-phone__menu li:nth-child(3) {
+  animation-delay: 140ms;
+}
+.cs-phone__menu .cs-phone__more {
+  background: none;
+  border: 0;
+  padding: 0 2px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  animation-delay: 210ms;
+}
+@keyframes cs-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* Database và Bi */
+.cs-db {
+  position: relative;
+}
+.cs-db__bi {
+  position: absolute;
+  right: -30px;
+  bottom: -8px;
+}
+
+/* Dây nối */
+.cs__wire {
+  position: absolute;
+  top: 96px;
+  height: 0;
+  border-top: 3px dashed var(--ink);
+}
+.cs__wire--a {
+  left: 16.667%;
+  width: 33.333%;
+}
+.cs__wire--b {
+  left: 50%;
+  width: 33.333%;
+}
+.cs__wire span {
+  position: absolute;
+  left: 50%;
+  top: -27px;
+  translate: -50% 0;
+  padding: 0 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border-radius: 6px;
+}
+.cs-label {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 6px 4px 0;
+  text-align: center;
+}
+.cs-label b {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+}
+.cs-label span {
+  font-size: 0.8rem;
+  line-height: 1.3;
+  color: var(--ink-2);
+}
+
+/* Gói tin */
+.cs-packet {
+  position: absolute;
+  top: 96px;
+  z-index: 2;
+  translate: -50% -50%;
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+  background: var(--mango);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 3px 0 var(--ink);
+}
+.cs-packet--query {
+  background: var(--taro);
+}
+.cs-packet--rows {
+  background: var(--matcha);
+}
+
+.cs__sql {
+  display: grid;
+  gap: 4px;
+  transition: opacity 250ms;
+}
+.cs__sql.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+.cs__next {
+  --bg: var(--matcha);
+}
+.cs__done {
+  margin-top: 6px;
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-node.is-lit .cs-led,
+  .cs-phone__wait i,
+  .cs-phone__menu li {
+    animation: none;
+  }
+}
+@media (max-width: 560px) {
+  .cs__stage {
+    padding: 14px 2px 10px;
+  }
+  .cs-phone {
+    width: 92px;
+    padding: 15px 5px 6px;
+  }
+  .cs-art {
+    width: 66px;
+    height: 76px;
+  }
+  .cs-db__bi {
+    right: -16px;
+    width: 36px;
+    height: 36px;
+  }
+  .cs-db {
+    margin-right: 14px;
+  }
+  .cs-label b {
+    font-size: 0.82rem;
+  }
+  .cs-label span {
+    font-size: 0.7rem;
+  }
+  .cs-packet {
+    font-size: 0.68rem;
+    padding: 2px 7px;
+  }
+  .cs__wire span {
+    display: none;
+  }
+  .cs-node {
+    min-height: 176px;
+  }
+  .cs__wire,
+  .cs-packet {
+    top: 102px;
+  }
+}

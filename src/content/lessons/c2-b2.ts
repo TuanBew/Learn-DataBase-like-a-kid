@@ -29,7 +29,7 @@ export const lesson: Lesson = {
       type: 'scene',
       scene: 'fk-rope',
       title: 'Sợi dây giữa đơn và khách',
-      intro: 'Chọn một khách rồi bấm Xóa. Xem sợi dây phản ứng thế nào.',
+      intro: 'Chọn một khách rồi bấm Xóa khách này. Xem sợi dây phản ứng thế nào.',
     },
     {
       type: 'text',

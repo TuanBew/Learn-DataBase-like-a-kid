@@ -37,7 +37,7 @@
   border-bottom: 0;
 }
 .dmlv__table td.is-num,
-.dmlv__table th:has(+ th:empty) {
+.dmlv__table th.is-num {
   text-align: right;
 }
 .dmlv__table td.is-num {

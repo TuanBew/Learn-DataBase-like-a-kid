@@ -1,0 +1,126 @@
+.pkb__form {
+  display: grid;
+  gap: 6px;
+}
+.pkb__stage {
+  display: grid;
+  gap: 10px;
+}
+.pkb__pad {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 62px;
+  padding: 8px 10px;
+  background: var(--paper-2);
+  border: 2px dashed var(--edge);
+  border-radius: 10px;
+}
+.pkb-new {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  background: var(--taro);
+  box-shadow: 0 3px 0 var(--ink);
+}
+.pkb-new.is-bad {
+  background: var(--red-soft);
+  border-color: var(--red);
+  box-shadow: 0 3px 0 var(--red-ink);
+}
+.pkb-new.is-bonk {
+  animation: pkb-bonk 720ms var(--ease-out);
+}
+@keyframes pkb-bonk {
+  0% {
+    transform: translateY(0);
+  }
+  32% {
+    transform: translateY(46px) scale(0.98);
+  }
+  52% {
+    transform: translateY(-10px) rotate(-5deg);
+  }
+  68% {
+    transform: translateY(0) translateX(8px) rotate(3deg);
+  }
+  84% {
+    transform: translateX(-5px);
+  }
+  100% {
+    transform: none;
+  }
+}
+.pkb__add {
+  --bg: var(--matcha);
+}
+.pkb__tname {
+  background: var(--sky);
+}
+.pkb__pk {
+  background: var(--mango);
+}
+.pkb__thead .chip {
+  font-size: 0.76rem;
+}
+.pkb-id {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.pkb-id--glow {
+  justify-self: start;
+  min-width: 46px;
+  padding: 1px 8px;
+  text-align: center;
+  background: var(--mango);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  animation: pkb-glow 2.4s ease-in-out infinite;
+}
+@keyframes pkb-glow {
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(255, 210, 94, 0.55),
+      0 0 0 8px rgba(255, 210, 94, 0.22);
+  }
+}
+.pkb .sk-tr.is-clash {
+  border-color: var(--red);
+  background: var(--red-soft);
+  box-shadow: 0 3px 0 var(--red-ink);
+  animation: pkb-clash 420ms 240ms var(--ease-out);
+}
+@keyframes pkb-clash {
+  30% {
+    transform: translateX(-6px);
+  }
+  60% {
+    transform: translateX(6px);
+  }
+}
+.pkb__foot {
+  align-items: flex-end;
+}
+.pkb__more {
+  margin-top: 6px;
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pkb-id--glow,
+  .pkb .sk-tr.is-clash {
+    animation: none;
+  }
+  .pkb-id--glow {
+    box-shadow: 0 0 0 4px rgba(255, 210, 94, 0.55);
+  }
+}
+@media (max-width: 560px) {
+  .pkb__pad {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .pkb-id--glow {
+    min-width: 38px;
+    padding: 0 6px;
+  }
+}

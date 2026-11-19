@@ -1,0 +1,180 @@
+/* Bộ khối dùng chung của các cảnh motion. Tiền tố: sk- */
+.sk {
+  display: grid;
+  gap: var(--s4);
+  min-width: 0;
+}
+.sk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.sk-bar__end {
+  margin-left: auto;
+}
+.sk-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: var(--ink-2);
+}
+
+/* Sân khấu: một mảnh vở ô ly có viền mực */
+.sk-stage {
+  position: relative;
+  padding: 12px;
+  border: var(--line);
+  border-radius: var(--r-md);
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 8px 8px;
+  min-width: 0;
+}
+
+/* Nút chọn một trong nhiều */
+.sk-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sk-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 12px;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
+  text-align: left;
+  background: var(--sheet);
+  border: 2px solid var(--ink-line);
+  border-radius: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.sk-pick:hover {
+  border-color: var(--edge);
+}
+.sk-pick[aria-checked='true'],
+.sk-pick[aria-pressed='true'] {
+  background: var(--mango);
+  border-color: var(--ink);
+}
+.sk-pick:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.sk-pick--mono {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.86rem;
+}
+
+/* Table nhỏ: mỗi row là một thanh giấy */
+.sk-table {
+  display: grid;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  min-width: 0;
+}
+.sk-tr {
+  display: grid;
+  grid-template-columns: var(--cols);
+  gap: 6px;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 9px;
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: 8px;
+  box-shadow: 0 3px 0 var(--edge);
+}
+.sk-tr > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sk-tr--head {
+  min-height: 0;
+  padding: 0 9px 1px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--ink-2);
+  background: none;
+  border-color: transparent;
+  box-shadow: none;
+}
+.sk-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.sk-key {
+  font-weight: 800;
+}
+.sk-null {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+/* Một câu SQL */
+.sk-sql {
+  margin: 0;
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #fff;
+  background: var(--ink);
+  border-radius: 10px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Mã lỗi của hai dialect */
+.sk-codes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--red-ink);
+}
+.sk-codes .chip {
+  color: var(--red-ink);
+  border-color: var(--red);
+  background: var(--red-soft);
+  font-size: 0.78rem;
+}
+
+.sk-say .says__bubble {
+  font-size: 0.98rem;
+}
+
+@media (max-width: 560px) {
+  .sk-stage {
+    padding: 8px;
+  }
+  .sk-table {
+    font-size: 0.72rem;
+  }
+  .sk-tr {
+    gap: 4px;
+    padding: 0 7px;
+  }
+  .sk-tr--head {
+    font-size: 0.62rem;
+    padding: 0 7px 1px;
+  }
+  .sk-sql {
+    font-size: 0.74rem;
+    padding: 8px 10px;
+  }
+}

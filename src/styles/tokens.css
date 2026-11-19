@@ -1,0 +1,76 @@
+/*
+ * Design token. Hướng visual: "Vở ô ly, mực tím, bút đỏ".
+ * Nền là trang vở ô ly của học sinh tiểu học. Chữ viết bằng mực tím.
+ * Dấu chấm bài của cô giáo dùng bút đỏ. Màu khối lấy từ quầy trà sữa.
+ */
+:root {
+  /* Giấy và mực */
+  --paper: #fbfbf5;
+  --paper-2: #f3f1e6;
+  --sheet: #ffffff;
+  --grid: rgba(46, 148, 160, 0.13);
+  --grid-strong: rgba(46, 148, 160, 0.26);
+  --ink: #2b1f6b;
+  --ink-2: #4b4192;
+  --ink-soft: #6a6399;
+  --ink-line: #d9d4f2;
+  --edge: #b7aee8;
+
+  /* Bút đỏ của cô giáo */
+  --red: #e0392d;
+  --red-ink: #b8261c;
+  --red-soft: #fde4e0;
+
+  /* Quầy trà sữa: mỗi màu có bản nhạt, bản đậm và bản chữ */
+  --milk: #f1d9b5;
+  --milk-deep: #c8975e;
+  --matcha: #c6e4a9;
+  --matcha-deep: #6ba44b;
+  --matcha-ink: #2c6b22;
+  --taro: #dccdf7;
+  --taro-deep: #9379d9;
+  --mango: #ffd25e;
+  --mango-deep: #e59e00;
+  --peach: #ffc9b3;
+  --peach-deep: #ee7448;
+  --sky: #bfe6ec;
+  --sky-deep: #3f9dab;
+  --pearl: #3a2623;
+
+  /* Chữ */
+  --font-display: 'Baloo 2', 'Be Vietnam Pro', system-ui, sans-serif;
+  --font-body: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --font-hand: 'Patrick Hand', 'Be Vietnam Pro', cursive;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.625rem;
+  --text-2xl: 2.25rem;
+  --text-3xl: clamp(2.4rem, 5.2vw, 4.25rem);
+
+  /* Khoảng cách: bội số của một ô ly 8px */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 72px;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+
+  /* Khối có chiều sâu: viền mực và một mặt bên cứng, không dùng bóng mờ */
+  --line: 2px solid var(--ink);
+  --depth-sm: 0 3px 0 var(--ink);
+  --depth-md: 0 5px 0 var(--ink);
+  --depth-card: 0 6px 0 var(--edge);
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --page: 1180px;
+}

@@ -1,0 +1,187 @@
+.ophone {
+  display: grid;
+  grid-template-columns: 236px minmax(0, 1fr);
+  gap: var(--s5);
+  align-items: start;
+}
+.ophone__phone {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding: 26px 12px 14px;
+  background: var(--sheet);
+  border: 3px solid var(--ink);
+  border-radius: 26px;
+  box-shadow: 0 6px 0 var(--ink);
+}
+.ophone__notch {
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  width: 54px;
+  height: 7px;
+  margin-left: -27px;
+  border-radius: 4px;
+  background: var(--ink);
+}
+.ophone__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.15rem;
+  text-align: center;
+}
+.ophone__menu {
+  display: grid;
+  gap: 6px;
+}
+.ophone__drink {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 10px;
+  text-align: left;
+  background: var(--paper);
+  border: 2px solid var(--ink-line);
+  border-radius: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ophone__drink[aria-checked='true'] {
+  background: var(--mango);
+  border-color: var(--ink);
+}
+.ophone__dot {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--sheet);
+}
+.ophone__drink[aria-checked='true'] .ophone__dot {
+  background: radial-gradient(circle, var(--ink) 0 4px, var(--sheet) 4.5px);
+}
+.ophone__name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.ophone__price {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.ophone__order {
+  --bg: var(--matcha);
+}
+.ophone__db {
+  display: grid;
+  gap: var(--s3);
+  min-width: 0;
+}
+.ophone__tablehead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ophone__tname {
+  background: var(--sky);
+}
+.ophone__reset {
+  margin-left: auto;
+  min-height: 36px;
+  padding: 0 6px;
+  background: none;
+  border: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.otable {
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  padding: 10px;
+  border: var(--line);
+  border-radius: var(--r-md);
+  background: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+.otable__head,
+.otable__row {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 68px 56px;
+  gap: 6px;
+  align-items: center;
+}
+.otable__head {
+  padding: 0 10px 6px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--ink-2);
+}
+.otable__rows {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-height: 228px;
+}
+.otable__row {
+  height: 32px;
+  padding: 0 10px;
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: 8px;
+  box-shadow: 0 3px 0 var(--edge);
+}
+.otable__row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.otable__id {
+  font-weight: 800;
+}
+.otable__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.otable__head span:nth-child(3) {
+  text-align: right;
+}
+.ophone__say .says__bubble {
+  font-size: 0.98rem;
+}
+@media (max-width: 700px) {
+  .ophone {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ophone__phone {
+    max-width: 300px;
+    width: 100%;
+    justify-self: center;
+  }
+  .otable {
+    font-size: 0.74rem;
+    padding: 8px;
+  }
+  .otable__head,
+  .otable__row {
+    grid-template-columns: 58px minmax(0, 1fr) 54px 44px;
+    gap: 4px;
+  }
+  .otable__head {
+    font-size: 0.66rem;
+    padding: 0 8px 6px;
+  }
+  .otable__row {
+    padding: 0 8px;
+  }
+  .otable__rows {
+    min-height: 152px;
+  }
+}

@@ -1,0 +1,74 @@
+.sqled {
+  border: var(--line);
+  border-radius: var(--r-md);
+  background: var(--sheet);
+  overflow: hidden;
+}
+.sqled .cm-editor {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  min-height: 168px;
+  background: transparent;
+}
+.sqled .cm-editor.cm-focused {
+  outline: 3px solid var(--ink);
+  outline-offset: -3px;
+}
+.sqled .cm-scroller {
+  font-family: inherit;
+  line-height: 1.75;
+  padding: 8px 0;
+}
+.sqled .cm-content {
+  caret-color: var(--ink);
+  padding-right: 12px;
+}
+.sqled .cm-gutters {
+  background: transparent;
+  border-right: 2px solid var(--red-soft);
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+.sqled .cm-cursor {
+  border-left: 2px solid var(--ink);
+}
+.sqled .cm-selectionBackground,
+.sqled .cm-focused .cm-selectionBackground {
+  background: var(--mango) !important;
+}
+.sqled .cm-sqlerr {
+  position: relative;
+  text-decoration: underline wavy var(--red);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  background: var(--red-soft);
+  border-radius: 3px;
+}
+/* Mũi tên chỉ vào chỗ sai */
+.sqled .cm-sqlerr::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  margin: 3px 0 0 -7px;
+  border: 7px solid transparent;
+  border-top: 0;
+  border-bottom: 9px solid var(--red);
+  pointer-events: none;
+  z-index: 2;
+}
+.cm-tooltip.cm-tooltip-autocomplete {
+  border: var(--line);
+  border-radius: var(--r-sm);
+  background: var(--sheet);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  overflow: hidden;
+}
+.cm-tooltip.cm-tooltip-autocomplete > ul > li {
+  padding: 4px 10px;
+}
+.cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected] {
+  background: var(--ink);
+  color: #fff;
+}

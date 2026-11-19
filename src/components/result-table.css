@@ -1,0 +1,92 @@
+.rtab {
+  margin: 0;
+  min-width: 0;
+}
+.rtab__scroll {
+  overflow-x: auto;
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--depth-sm);
+}
+.rtab__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.rtab__caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.rtab__table th,
+.rtab__table td {
+  padding: var(--s2) var(--s3);
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--ink-line);
+}
+.rtab__table th {
+  position: sticky;
+  top: 0;
+  background: var(--paper-2);
+  color: var(--ink);
+  font-weight: 800;
+  border-bottom: var(--line);
+}
+.rtab__table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.rtab__table .rtab__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.rtab__null {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+/* Row thừa: nền đỏ nhạt và vạch đỏ bên trái */
+.rtab__row--extra td {
+  background: var(--red-soft);
+}
+.rtab__row--extra td:first-child {
+  box-shadow: inset 4px 0 0 var(--red);
+}
+
+/* Row thiếu: nền xoài nhạt và viền nét đứt */
+.rtab__row--missing td {
+  background: color-mix(in srgb, var(--mango) 28%, var(--sheet));
+  border-top: 2px dashed var(--mango-deep);
+  border-bottom: 2px dashed var(--mango-deep);
+}
+.rtab__row--missing td:first-child {
+  border-left: 2px dashed var(--mango-deep);
+}
+.rtab__row--missing td:last-child {
+  border-right: 2px dashed var(--mango-deep);
+}
+
+.rtab__empty {
+  margin: 0;
+  padding: var(--s4);
+  font-family: var(--font-hand);
+  font-size: var(--text-lg);
+  color: var(--ink-soft);
+}
+.rtab__count {
+  margin-top: var(--s2);
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+}
+
+.rtab__scroll:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}

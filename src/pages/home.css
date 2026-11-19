@@ -1,0 +1,293 @@
+/* ---------- Trang chủ ---------- */
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s5);
+  padding-block: var(--s5) var(--s7);
+}
+.home-hero h1 {
+  font-size: clamp(2.3rem, 5vw, 3.7rem);
+}
+.home-hero h1 span {
+  display: block;
+  text-wrap: balance;
+}
+.home-hero__text {
+  display: contents;
+}
+.home-hero__lead {
+  max-width: 52ch;
+  font-size: 1.125rem;
+}
+.home-hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s4);
+}
+.home-hero__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.home-hero__play {
+  position: relative;
+  order: -1;
+  min-width: 0;
+}
+.home-hero h1 {
+  order: -1;
+}
+.home-hero__pen {
+  display: none;
+}
+@media (min-width: 980px) {
+  .home-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 540px);
+    gap: var(--s7);
+    align-items: center;
+    padding-block: var(--s7) var(--s8);
+  }
+  .home-hero__text {
+    display: grid;
+    gap: var(--s5);
+    justify-items: start;
+  }
+  .home-hero__play {
+    order: 0;
+  }
+  .home-hero__pen {
+    position: absolute;
+    left: -150px;
+    top: -14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    font-size: 1.5rem;
+    transform: rotate(-5deg);
+    white-space: nowrap;
+  }
+  .home-hero__pen svg {
+    margin-top: 14px;
+  }
+}
+
+/* Query Theater: thứ tự viết và thứ tự chạy */
+.home-theater {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s5);
+  align-items: center;
+  padding-block: var(--s6);
+}
+.home-theater__text {
+  display: grid;
+  gap: var(--s4);
+  justify-items: start;
+}
+.home-theater__text p {
+  max-width: 54ch;
+}
+.home-order {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(48px, 14vw, 120px) minmax(0, 1fr);
+  padding: 18px 18px 22px;
+  max-width: 520px;
+  width: 100%;
+}
+.home-order__col {
+  display: grid;
+  grid-auto-rows: 46px;
+  align-items: center;
+}
+.home-order__label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  align-self: start;
+}
+.home-order__item {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: var(--line);
+  border-radius: 8px;
+  background: var(--sheet);
+  white-space: nowrap;
+}
+.home-order__item--run {
+  justify-self: start;
+  background: var(--tone);
+  box-shadow: var(--depth-sm);
+  padding-left: 5px;
+}
+.home-order__item--run span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+}
+.home-tone-sky { --tone: var(--sky); }
+.home-tone-mango { --tone: var(--mango); }
+.home-tone-taro { --tone: var(--taro); }
+.home-tone-matcha { --tone: var(--matcha); }
+.home-tone-peach { --tone: var(--peach); }
+.home-order__lines {
+  width: 100%;
+  height: 230px;
+  margin-top: 46px;
+}
+.home-order__lines path {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+  vector-effect: non-scaling-stroke;
+}
+@media (min-width: 980px) {
+  .home-theater {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
+    gap: var(--s7);
+    padding-block: var(--s7);
+  }
+}
+
+/* Mục lục: một trang vở có lề đỏ và dòng chấm chấm */
+.home-toc {
+  padding-block: var(--s6) var(--s7);
+}
+.home-toc__head {
+  display: grid;
+  gap: var(--s2);
+  margin-bottom: var(--s5);
+}
+.home-toc__head p {
+  max-width: 60ch;
+}
+.home-toc__page {
+  list-style: none;
+  margin: 0;
+  padding: var(--s5) var(--s5) var(--s5) 0;
+  display: grid;
+  gap: var(--s6);
+  background-image: linear-gradient(90deg, transparent 67px, var(--red) 67px, var(--red) 69px, transparent 69px);
+}
+.toc-ch {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: var(--s4);
+}
+.toc-ch__num {
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  font-size: 1.9rem;
+  line-height: 1;
+  border: 2.5px solid var(--red);
+  border-radius: 50% 44% 52% 46%;
+  transform: rotate(-6deg);
+}
+.toc-ch__body h3 {
+  padding-top: 4px;
+}
+.toc-ch__about {
+  color: var(--ink-2);
+  font-size: 1rem;
+  margin: 2px 0 10px;
+  max-width: 64ch;
+}
+.toc-ch ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.toc-l__link {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-height: 44px;
+  padding: 9px 0;
+  text-decoration: none;
+  color: var(--ink);
+  border-bottom: 1.5px solid var(--ink-line);
+}
+.toc-l__title {
+  font-weight: 600;
+}
+.toc-l__dots {
+  flex: 1;
+  min-width: 16px;
+  border-bottom: 2px dotted var(--ink-soft);
+  transform: translateY(-4px);
+}
+.toc-l__go {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 0 10px;
+  background: var(--mango);
+  border: var(--line);
+  border-radius: 8px;
+  box-shadow: var(--depth-sm);
+  align-self: center;
+  line-height: 1.7;
+}
+.toc-l__go--done {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  font-size: 1.25rem;
+  padding: 0;
+}
+a.toc-l__link:hover .toc-l__title {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.toc-l--soon .toc-l__title {
+  font-weight: 400;
+  color: var(--ink-2);
+}
+.toc-l__soon {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.home-foot {
+  padding-block: var(--s5) var(--s7);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  border-top: 2px dashed var(--ink-line);
+}
+@media (max-width: 560px) {
+  .home-toc__page {
+    padding-right: var(--s4);
+    background-image: linear-gradient(90deg, transparent 47px, var(--red) 47px, var(--red) 49px, transparent 49px);
+  }
+  .toc-ch {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: var(--s3);
+  }
+  .toc-ch__num {
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+  }
+  .toc-l__dots {
+    min-width: 8px;
+  }
+}

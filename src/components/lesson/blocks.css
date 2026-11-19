@@ -1,0 +1,183 @@
+.lb {
+  max-width: 100%;
+  margin-block: var(--s6);
+}
+.lb-p {
+  max-width: 68ch;
+  line-height: 1.7;
+}
+.lb-p + .lb-p {
+  margin-top: var(--s3);
+}
+.rich-code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 1px 6px;
+  background: var(--paper-2);
+  border: 1.5px solid var(--ink-line);
+  border-radius: 6px;
+}
+.lb-link {
+  color: var(--ink);
+  font-weight: 600;
+}
+.lb-link:hover {
+  background: var(--mango);
+}
+.lb-note {
+  color: var(--ink-soft);
+}
+
+/* Truyện mở bài */
+.lb-story__title {
+  font-size: var(--text-xl);
+  margin-bottom: var(--s3);
+}
+.lb-story__body {
+  padding-left: var(--s4);
+  border-left: 4px solid var(--red);
+}
+.lb-story__body .lb-p {
+  font-size: 1.125rem;
+}
+
+/* Khối chữ thường */
+.lb-text__title {
+  margin-bottom: var(--s2);
+}
+
+/* Mẩu giấy ghim */
+.lb-real {
+  position: relative;
+  max-width: 560px;
+  padding: var(--s5) var(--s5) var(--s4);
+  background: var(--mango);
+  background: color-mix(in srgb, var(--mango) 35%, var(--sheet));
+  border: var(--line);
+  border-radius: var(--r-sm);
+  box-shadow: var(--depth-sm);
+  transform: rotate(-0.6deg);
+}
+.lb-real__pin {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  background: var(--red);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+}
+.lb-real__tag {
+  margin: 0;
+  font-size: 1.3rem;
+}
+.lb-real__title {
+  font-size: var(--text-lg);
+  margin-bottom: var(--s2);
+}
+.lb-real__src {
+  margin-top: var(--s3);
+  font-size: var(--text-sm);
+}
+
+/* Ý chính */
+.lb-key {
+  padding: var(--s5);
+  background: var(--taro);
+  background: color-mix(in srgb, var(--taro) 40%, var(--sheet));
+  box-shadow: var(--depth-md);
+}
+.lb-key__title {
+  font-size: var(--text-xl);
+  margin-bottom: var(--s3);
+}
+.lb-key__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s3);
+}
+.lb-key__item {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: var(--s3);
+  align-items: start;
+  max-width: 68ch;
+  font-size: 1.125rem;
+  line-height: 1.55;
+}
+.lb-tick {
+  margin-top: 2px;
+}
+
+/* Oracle */
+.lb-oracle {
+  padding: var(--s4) var(--s5);
+  background: var(--sheet);
+  border: 2px dashed var(--ink);
+  border-radius: var(--r-md);
+}
+.lb-oracle__title {
+  margin-bottom: var(--s2);
+}
+.lb-oracle__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--s4);
+  margin-top: var(--s4);
+}
+.lb-code {
+  margin: 0;
+  min-width: 0;
+  border: var(--line);
+  border-radius: var(--r-sm);
+  background: var(--paper-2);
+  overflow: hidden;
+}
+.lb-code__cap {
+  padding: 2px var(--s3);
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: var(--text-sm);
+  background: var(--sky);
+  border-bottom: var(--line);
+}
+.lb-code--oracle .lb-code__cap {
+  background: var(--peach);
+}
+.lb-code__pre {
+  margin: 0;
+  padding: var(--s3);
+  overflow-x: auto;
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  tab-size: 2;
+}
+
+/* Nguồn */
+.lb-sources {
+  margin-top: var(--s6);
+  padding-top: var(--s3);
+  border-top: 1.5px dashed var(--edge);
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+.lb-sources__label {
+  font-weight: 700;
+}
+.lb-sources .lb-link {
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
+@media (max-width: 480px) {
+  .lb-real,
+  .lb-key,
+  .lb-oracle {
+    padding-inline: var(--s4);
+  }
+}

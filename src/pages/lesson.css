@@ -1,0 +1,136 @@
+.lesson {
+  padding-block: var(--s6) var(--s8);
+}
+.lesson-missing {
+  padding-block: var(--s8);
+  display: grid;
+  gap: var(--s5);
+  justify-items: start;
+}
+.lesson-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 60px;
+  height: 5px;
+  z-index: 40;
+  background: transparent;
+}
+.lesson-bar span {
+  display: block;
+  height: 100%;
+  background: var(--red);
+  transform-origin: left;
+}
+.lesson-top {
+  display: grid;
+  gap: var(--s2);
+  margin-bottom: var(--s6);
+}
+.lesson-kicker {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.lesson-lead {
+  font-size: 1.2rem;
+  max-width: 56ch;
+}
+.lesson-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s5);
+  align-items: start;
+}
+.lesson-main {
+  display: grid;
+  gap: var(--s6);
+  min-width: 0;
+}
+.lesson-goals {
+  padding: var(--s4);
+  display: grid;
+  gap: var(--s3);
+  justify-items: start;
+  background: var(--sheet);
+}
+.lesson-goals h2 {
+  font-size: 1.35rem;
+}
+.lesson-goals ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.lesson-goals li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+.lesson-goals li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.38em;
+  width: 13px;
+  height: 13px;
+  border: var(--line);
+  border-radius: 50%;
+  background: var(--mango);
+}
+@media (min-width: 1020px) {
+  .lesson-grid {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: var(--s7);
+  }
+  .lesson-side {
+    order: 2;
+    position: sticky;
+    top: 88px;
+  }
+}
+
+/* Khung của một cảnh motion */
+.scene {
+  padding: var(--s5);
+  display: grid;
+  gap: var(--s3);
+  min-width: 0;
+}
+.scene__title {
+  font-size: var(--text-xl);
+}
+.scene__intro {
+  max-width: 62ch;
+  margin-bottom: var(--s2);
+}
+.lesson-quiz {
+  display: grid;
+  gap: var(--s5);
+}
+.lesson-quiz > h2 {
+  font-size: var(--text-xl);
+}
+.lesson-end {
+  position: relative;
+  padding: var(--s5);
+  display: grid;
+  gap: var(--s4);
+  justify-items: start;
+}
+.lesson-end__btn {
+  --bg: var(--matcha);
+  min-width: 200px;
+}
+.lesson-end__note {
+  color: var(--ink-2);
+}
+@media (max-width: 560px) {
+  .scene {
+    padding: var(--s4) var(--s3);
+  }
+}

@@ -1,0 +1,77 @@
+.rcmp {
+  display: grid;
+  gap: var(--s4);
+}
+.rcmp__problems {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--s1);
+}
+.rcmp__ok {
+  margin: 0;
+  color: var(--matcha-ink);
+}
+.rcmp__tables {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s5);
+  align-items: start;
+}
+.rcmp__side {
+  min-width: 0;
+}
+/* Tên mỗi bên hiện trên đầu table, chữ thường, không in hoa */
+.rcmp__side .rtab__caption {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  display: block;
+  padding: var(--s2) var(--s3);
+  text-align: left;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+  color: var(--ink);
+  caption-side: top;
+}
+.rcmp__legend {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s5);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.rcmp__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 24px;
+}
+.rcmp__swatch {
+  flex: none;
+  width: 22px;
+  height: 14px;
+  border-radius: 3px;
+}
+.rcmp__swatch--extra {
+  background: var(--red-soft);
+  box-shadow: inset 4px 0 0 var(--red);
+}
+.rcmp__swatch--missing {
+  background: color-mix(in srgb, var(--mango) 28%, var(--sheet));
+  border: 2px dashed var(--mango-deep);
+}
+
+@media (max-width: 719px) {
+  .rcmp__tables {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s4);
+  }
+}

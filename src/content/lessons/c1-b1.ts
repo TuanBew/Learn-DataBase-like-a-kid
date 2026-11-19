@@ -1,9 +1,6 @@
 import type { Lesson } from '../types';
 
-/**
- * Chương 1, bài 1. KHUNG BÀI: cấu trúc và các khóa đã chốt, chữ cần viết lại.
- * Mọi chuỗi 'TODO ...' là chỗ cần viết.
- */
+/** Chương 1, bài 1. Sửa chữ ngay trong file này, giữ nguyên các khóa `id`, `scene`, `type`. */
 export const lesson: Lesson = {
   id: 'c1-b1',
   chapter: 1,
@@ -166,7 +163,7 @@ export const lesson: Lesson = {
     },
     {
       type: 'realworld',
-      title: 'Ngoài đời',
+      title: 'GitHub cất dữ liệu trong MySQL',
       paragraphs: [
         'GitHub dùng MySQL làm kho dữ liệu chính cho mọi thứ ngoài git.',
         'Website, API và phần đăng nhập của GitHub đều lưu dữ liệu ở đó.',

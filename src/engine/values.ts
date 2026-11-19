@@ -129,9 +129,14 @@ export function toText(v: Value): string {
   return v.iso;
 }
 
-/** Số nguyên từ 10.000 trở lên được chấm ngăn nghìn cho dễ đọc: 25.000. */
+/**
+ * Số tiền được chấm ngăn nghìn cho dễ đọc: 8.000, 25.000.
+ * Áp cho số nguyên từ 10.000 trở lên, và số tròn 500 từ 1.000 trở lên.
+ * Mã như 1001 hay năm 2026 thì giữ nguyên.
+ */
 export function niceNumber(n: number): string {
-  if (Number.isInteger(n) && Math.abs(n) >= 10000) return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const a = Math.abs(n);
+  if (Number.isInteger(n) && (a >= 10000 || (a >= 1000 && a % 500 === 0))) return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   return String(n);
 }
 

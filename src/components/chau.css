@@ -1,0 +1,66 @@
+.chau {
+  flex: none;
+  overflow: visible;
+}
+.chau__eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chau-blink 5s infinite;
+}
+@keyframes chau-blink {
+  0%,
+  46%,
+  50%,
+  100% {
+    transform: scaleY(1);
+  }
+  48% {
+    transform: scaleY(0.1);
+  }
+}
+.chau--panic {
+  animation: chau-shake 0.28s linear infinite;
+}
+@keyframes chau-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px) rotate(-2deg);
+  }
+  75% {
+    transform: translateX(2px) rotate(2deg);
+  }
+}
+
+.says {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s3);
+}
+.says__bubble {
+  position: relative;
+  padding: 10px 14px;
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: var(--r-md);
+  border-bottom-left-radius: 2px;
+  font-size: 1rem;
+  line-height: 1.5;
+  max-width: 46ch;
+  margin-bottom: 14px;
+}
+.says__bubble::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  bottom: -2px;
+  width: 14px;
+  height: 14px;
+  background: var(--sheet);
+  border-left: var(--line);
+  border-bottom: var(--line);
+  transform: skewX(38deg);
+  border-bottom-left-radius: 2px;
+}

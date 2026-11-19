@@ -1,0 +1,38 @@
+export const uiProgress = {
+  title: 'Tiến trình',
+  bi: 'Mình nhớ bạn đã học tới đâu. Số liệu dưới đây tính từ những gì bạn đã làm trên máy này.',
+  lessonsLabel: 'Bài đã xong',
+  exercisesLabel: 'Bài tập đã xong',
+  of: 'trên',
+  chaptersTitle: 'Từng chương',
+  chapterWord: 'Chương',
+  chapterDone: (done: number, total: number) => `${done} trên ${total} mục`,
+  empty: 'Bạn chưa xong mục nào. Bài đầu tiên ở Chương 1 đang chờ bạn.',
+
+  transfer: {
+    title: 'Mang tiến trình sang máy khác',
+    lead: 'Tiến trình chỉ lưu trên máy này, trong browser này. Đổi máy hoặc xóa dữ liệu browser thì tiến trình mất. Tạo mã để mang theo.',
+    make: 'Tạo mã',
+    codeLabel: 'Mã tiến trình của bạn',
+    copy: 'Sao chép',
+    copied: 'Đã sao chép mã.',
+    copyFail: 'Không sao chép được. Chọn mã trong ô rồi bấm Ctrl+C.',
+    pasteLabel: 'Dán mã vào đây',
+    pastePlaceholder: 'LDB1-…',
+    import: 'Nhập mã',
+    emptyCode: 'Ô đang trống. Dán mã vào ô rồi bấm Nhập mã.',
+    ok: (n: number) => (n > 0 ? `Xong. Mình đã thêm ${n} mục vào tiến trình của bạn.` : 'Mã này hợp lệ, nhưng máy này đã có hết các mục trong mã. Mình không cần thêm gì.'),
+    errFormat: 'Mã này sai dạng. Mã đúng bắt đầu bằng LDB1- và bạn cần dán đủ, không thiếu ký tự. Hãy tạo mã mới ở máy cũ rồi dán lại.',
+    errVersion: 'Mã này do một bản mới hơn của site tạo ra, nên mình chưa đọc được. Tải lại trang để lấy bản mới nhất, rồi nhập lại.',
+  },
+
+  reset: {
+    title: 'Xóa tiến trình',
+    lead: 'Nút này xóa mọi bài và bài tập bạn đã xong trên máy này. Bạn không lấy lại được. Tạo mã trước nếu muốn giữ bản sao.',
+    ask: 'Xóa hết tiến trình',
+    confirm: 'Bạn chắc chứ? Bấm lần nữa để xóa.',
+    confirmBtn: 'Xóa thật',
+    cancel: 'Hủy',
+    done: 'Đã xóa tiến trình.',
+  },
+} as const;

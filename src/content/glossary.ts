@@ -1,6 +1,6 @@
 import type { GlossaryEntry } from './types';
 
-export const glossary: Record<string, GlossaryEntry> = {
+const base: Record<string, GlossaryEntry> = {
   database: {
     term: 'database',
     short: 'Nơi cất dữ liệu có sắp xếp, để nhiều người cùng ghi và tìm lại nhanh.',
@@ -152,3 +152,11 @@ export const glossary: Record<string, GlossaryEntry> = {
     example: 'Ghi sổ cho nhanh, bạn gọi "Trà sữa trân châu" là "TSTC".',
   },
 };
+
+/**
+ * Thuật ngữ bổ sung của từng chương nằm ở `glossary-extra/<tên>.ts`, mỗi file `export const entries`.
+ * Thêm file là thuật ngữ tự có mặt, không cần sửa file này.
+ */
+const extra = import.meta.glob<{ entries: Record<string, GlossaryEntry> }>('./glossary-extra/*.ts', { eager: true });
+
+export const glossary: Record<string, GlossaryEntry> = Object.assign({}, base, ...Object.values(extra).map((m) => m.entries));

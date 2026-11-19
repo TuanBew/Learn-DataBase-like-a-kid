@@ -1,0 +1,107 @@
+.ns {
+  display: grid;
+  gap: var(--s6);
+  padding-block: var(--s6) var(--s8);
+}
+.ns__head {
+  display: grid;
+  gap: var(--s5);
+}
+.ns__head h1 {
+  font-size: clamp(2.2rem, 5vw, 3.25rem);
+}
+
+.ns-free {
+  display: grid;
+  gap: var(--s3);
+  justify-items: start;
+  padding: var(--s5);
+  background: var(--mango);
+  max-width: 760px;
+  box-shadow: 0 6px 0 var(--mango-deep);
+}
+.ns-free__pen {
+  font-size: 1.5rem;
+}
+.ns-free__lead {
+  font-size: 1.125rem;
+  max-width: 56ch;
+}
+.ns-free__points {
+  margin: 0 0 var(--s2);
+  padding-left: 1.2em;
+  display: grid;
+  gap: var(--s1);
+  max-width: 56ch;
+}
+.ns-free .btn {
+  --bg: var(--sheet);
+}
+
+.ns-path__title {
+  font-size: var(--text-xl);
+  margin-bottom: var(--s4);
+}
+/* Con đường: đường kẻ đỏ bên trái như lề vở, mỗi mốc là một số khoanh tròn */
+.ns-path__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  display: grid;
+}
+.ns-path__list::before {
+  content: '';
+  position: absolute;
+  left: 21px;
+  top: 22px;
+  bottom: 22px;
+  border-left: 3px dotted var(--red);
+}
+.ns-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: var(--s4);
+  padding-block: var(--s3);
+}
+.ns-step__num {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  font-family: var(--font-hand);
+  font-size: 1.75rem;
+  line-height: 1;
+  color: var(--red-ink);
+  background: var(--paper);
+  border: 2.5px solid var(--red);
+  border-radius: 50% 44% 52% 46%;
+  transform: rotate(-6deg);
+}
+.ns-step__body {
+  display: grid;
+  gap: 2px;
+  padding-bottom: var(--s3);
+  border-bottom: 1.5px solid var(--ink-line);
+}
+.ns-step__body h3 a {
+  display: inline-block;
+  min-height: 44px;
+  line-height: 44px;
+  overflow-wrap: anywhere;
+}
+.ns-step__body h3 {
+  line-height: 1.2;
+}
+.ns-step__body p {
+  max-width: 62ch;
+  color: var(--ink-2);
+}
+@media (min-width: 760px) {
+  .ns-step:nth-child(even) {
+    margin-left: var(--s7);
+  }
+}

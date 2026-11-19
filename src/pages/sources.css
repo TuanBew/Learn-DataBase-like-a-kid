@@ -1,0 +1,124 @@
+.src {
+  display: grid;
+  gap: var(--s7);
+  padding-block: var(--s6) var(--s8);
+}
+.src__head {
+  display: grid;
+  gap: var(--s5);
+}
+.src__head h1 {
+  font-size: clamp(2.1rem, 5vw, 3.25rem);
+}
+.src section {
+  display: grid;
+  gap: var(--s3);
+  align-content: start;
+}
+.src section > h2 {
+  font-size: var(--text-xl);
+}
+.src__lead {
+  max-width: 64ch;
+}
+.src a {
+  display: inline-block;
+  min-height: 24px;
+  overflow-wrap: anywhere;
+}
+
+.src__scroll {
+  min-width: 0;
+}
+.src-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: var(--r-md);
+  font-size: 1rem;
+}
+.src-table th,
+.src-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--s3) var(--s4);
+  border-bottom: 1.5px solid var(--ink-line);
+}
+.src-table thead th {
+  font-family: var(--font-display);
+  font-weight: 700;
+  background: var(--paper-2);
+  border-bottom: var(--line);
+}
+.src-table tbody th {
+  font-weight: 700;
+}
+.src-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+/* Màn hẹp: mỗi row thành một khối, nhãn column hiện bên cạnh giá trị */
+@media (max-width: 719px) {
+  .src-table--stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .src-table--stack,
+  .src-table--stack tbody,
+  .src-table--stack tr,
+  .src-table--stack th,
+  .src-table--stack td {
+    display: block;
+  }
+  .src-table--stack tr {
+    padding: var(--s3) var(--s4);
+    border-bottom: 1.5px solid var(--ink-line);
+  }
+  .src-table--stack tbody tr:last-child {
+    border-bottom: 0;
+  }
+  .src-table--stack th,
+  .src-table--stack td {
+    padding: 2px 0;
+    border: 0;
+  }
+  .src-table--stack td::before {
+    content: attr(data-label) ': ';
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+}
+
+.src-license {
+  padding: var(--s5);
+  background: var(--taro);
+  max-width: 760px;
+}
+.src-license p {
+  max-width: 62ch;
+}
+
+.src-defs {
+  margin: 0;
+  display: grid;
+  gap: var(--s3);
+}
+.src-defs__row {
+  padding: var(--s3) var(--s4);
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: var(--r-md);
+  max-width: 760px;
+}
+.src-defs dt {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-lg);
+}
+.src-defs dd {
+  margin: 0;
+}

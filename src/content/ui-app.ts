@@ -5,7 +5,7 @@ export const uiApp = {
     toc: 'Mục lục',
     soundOn: 'Tắt tiếng',
     soundOff: 'Bật tiếng',
-    home: 'Về trang chủ',
+    home: 'Learn Database, về trang chủ',
     skip: 'Tới nội dung chính',
     progress: 'Tiến trình',
     next: 'Học tiếp',

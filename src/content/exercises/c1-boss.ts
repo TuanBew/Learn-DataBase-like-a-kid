@@ -5,7 +5,7 @@ export const exercise: QuizExercise = {
   chapter: 1,
   kind: 'quiz',
   title: 'Boss: Ôn Chương 1',
-  prompt: 'Năm câu ôn lại cả chương. Làm chậm cũng được, và sai một câu thì mình giải thích ngay.',
+  prompt: 'Năm câu ôn lại cả chương. Làm chậm cũng được. Câu nào sai, mình giải thích ngay.',
   asks: [],
   items: [
     {

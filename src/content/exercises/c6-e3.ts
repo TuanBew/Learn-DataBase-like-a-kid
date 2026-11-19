@@ -25,7 +25,7 @@ export const exercise: SqlExercise = {
   check: { orderMatters: true },
   why: 'LEFT JOIN giữ mọi món, món chưa bán có phần `order_items` là NULL. WHERE ... IS NULL giữ đúng các món đó.',
   hints: {
-    light: 'Cần một cách nối vẫn giữ lại row không có cặp. Row không có cặp sẽ mang NULL ở phía table bên phải.',
+    light: 'Cần kiểu nối vẫn giữ lại row không có cặp. Row không có cặp sẽ mang NULL ở phía table bên phải.',
     specific: 'Nối `products` với `order_items` bằng LEFT JOIN. Sau đó lọc `oi.item_id IS NULL` để giữ các món không khớp.',
     skeleton: {
       mysql: 'SELECT p.product_id, p.name\nFROM products p\n____ JOIN order_items oi ON p.product_id = oi.product_id\nWHERE oi.item_id ____\nORDER BY p.product_id;',

@@ -9,7 +9,7 @@ export const exercise: SqlExercise = {
   asks: [
     'Hiện `store_id`, `payment` và doanh thu, đặt tên column doanh thu là `revenue`.',
     'Doanh thu là tổng `quantity * unit_price`, chỉ tính đơn `done`.',
-    'Mỗi cặp tiệm và cách trả tiền một row, doanh thu cao đứng trước.',
+    'Mỗi cặp tiệm và cách trả tiền một row, doanh thu cao đứng trước. Doanh thu bằng nhau thì `store_id` nhỏ đứng trước.',
     'Chỉ lấy 3 row đầu.',
   ],
   database: 'teashop-big',

@@ -117,8 +117,15 @@ function LessonView({ lesson }: { lesson: Lesson }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Bài đứng ngay sau bài này trong khóa học, và bài này có phải bài cuối chương không.
+  const order = chapters.flatMap((c) => c.lessons.map((l) => ({ ...l, chapter: c.id })));
+  const at = order.findIndex((l) => l.id === lesson.id);
+  const next = at >= 0 ? order[at + 1] : undefined;
+  const lastOfChapter = !next || next.chapter !== lesson.chapter;
+  const left = (exerciseMap[lesson.id] ?? []).filter((id) => progress.exercises[id] === undefined).length;
+
   const finish = () => {
-    play('lesson');
+    play(lastOfChapter ? 'chapter' : 'lesson');
     markLesson(lesson.id);
     setJustDone(true);
   };
@@ -157,16 +164,35 @@ function LessonView({ lesson }: { lesson: Lesson }) {
           {extra.length > 0 && <ExerciseLinks ids={extra} />}
 
           <section className="lesson-end sheet">
-            {justDone && <Confetti count={34} />}
+            {justDone && <Confetti count={lastOfChapter ? 64 : 34} />}
             {done ? (
               <>
-                <Says mood="cheer" size={72}>
-                  {U.finishSay}
+                <Says mood="cheer" size={lastOfChapter ? 96 : 72}>
+                  {!next ? U.courseSay : lastOfChapter && chapter ? U.chapterSay(chapter.id, chapter.title) : U.finishSay}
                 </Says>
-                <p className="lesson-end__note">{U.nextSoon}</p>
-                <Link href="/#muc-luc" className="btn btn--paper">
-                  {U.backHome}
-                </Link>
+                {left > 0 && <p className="lesson-end__note">{U.exercisesLeft(left)}</p>}
+                <div className="lesson-end__links">
+                  {next ? (
+                    <Link href={`/bai/${next.id}`} className="btn lesson-end__btn">
+                      {lastOfChapter ? U.nextChapter(next.chapter) : U.nextLesson}
+                      <Icon name="arrow" />
+                    </Link>
+                  ) : (
+                    <>
+                      <Link href="/chung-nhan" className="btn lesson-end__btn">
+                        {U.toCertificate}
+                        <Icon name="arrow" />
+                      </Link>
+                      <Link href="/hoc-tiep" className="btn btn--paper">
+                        {U.toNextSteps}
+                      </Link>
+                    </>
+                  )}
+                  <Link href="/#muc-luc" className="btn btn--paper">
+                    {U.backHome}
+                  </Link>
+                </div>
+                {next && !lastOfChapter && <p className="lesson-end__note lesson-end__next">{next.title}</p>}
               </>
             ) : (
               <button type="button" className="btn lesson-end__btn" onClick={finish}>

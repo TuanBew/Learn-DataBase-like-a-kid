@@ -4,9 +4,9 @@ export const exercise: SqlExercise = {
   id: 'c4-e6',
   chapter: 4,
   kind: 'debug',
-  title: 'Sửa CASE WHEN bị thiếu một từ',
+  title: 'Sửa CASE WHEN thiếu một từ',
   prompt:
-    'Query dưới đây đang báo lỗi. Bi muốn gắn nhãn giá cho các món Topping và Trà sữa. Sửa query cho chạy đúng.',
+    'Query đang báo lỗi. Mình muốn gắn nhãn giá cho các món Topping và Trà sữa. Sửa query cho chạy đúng.',
   asks: [
     "Dưới 20000 là 'Rẻ', từ 20000 tới dưới 40000 là 'Vừa', còn lại là 'Đắt'.",
     'Đặt tên column nhãn là `price_level`.',

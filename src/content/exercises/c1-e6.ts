@@ -25,7 +25,7 @@ export const exercise: SqlExercise = {
   why: 'Dấu `*` lấy mọi column, và `FROM products` chọn table products. Bạn vừa gửi query đầu tiên.',
   hints: {
     light: 'Query đã viết sẵn cho bạn. Chỉ cần bấm Chạy.',
-    specific: 'Nếu bạn lỡ sửa chữ nào trong editor, hãy gõ lại đúng câu `SELECT * FROM products;` rồi bấm Chạy.',
+    specific: 'Nếu lỡ sửa, gõ lại đúng câu `SELECT * FROM products;`. Rồi bấm Chạy.',
     skeleton: {
       mysql: 'SELECT ____ FROM products;',
       oracle: 'SELECT ____ FROM products;',
@@ -38,7 +38,7 @@ export const exercise: SqlExercise = {
         mysql: 'SELECT * FROM stores',
         oracle: 'SELECT * FROM stores',
       },
-      hint: 'Query chạy tốt, nhưng đây là table stores, tức là các tiệm. Đề bài cần thực đơn, nên hãy đổi lại thành `FROM products`.',
+      hint: 'Query chạy tốt, nhưng table stores chứa các tiệm. Đề bài cần thực đơn. Đổi lại thành `FROM products`.',
     },
     {
       id: 'one-column',

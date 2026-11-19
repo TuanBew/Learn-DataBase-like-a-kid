@@ -5,7 +5,7 @@ export const exercise: SqlExercise = {
   chapter: 6,
   kind: 'debug',
   title: 'Sửa query món trong đơn 1004',
-  prompt: 'Query dưới đây muốn liệt kê các món trong đơn 1004, nhưng đang báo lỗi. Bấm Chạy để đọc lỗi, rồi sửa.',
+  prompt: 'Query này muốn liệt kê các món trong đơn 1004, nhưng báo lỗi. Bấm Chạy để đọc lỗi, rồi sửa.',
   asks: ['Hiện `order_id`, `product_id` và `quantity`.', 'Chỉ lấy đơn có `order_id` bằng 1004.'],
   database: 'teashop',
   tables: ['orders', 'order_items'],

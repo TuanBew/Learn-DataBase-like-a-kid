@@ -102,7 +102,7 @@ export const lesson: Lesson = {
           kind: 'choice',
           question: 'Bạn chạy `SELECT name FROM products LIMIT 3` trên Oracle. Oracle báo mã nào?',
           options: [
-            { text: 'ORA-00933', correct: true, feedback: 'Đúng. Oracle không hiểu LIMIT, nên coi câu lệnh kết thúc sai chỗ. Hãy viết FETCH FIRST 3 ROWS ONLY.' },
+            { text: 'ORA-00933', correct: true, feedback: 'Đúng. Oracle không hiểu LIMIT, nên coi câu lệnh kết thúc sai chỗ. Viết FETCH FIRST 3 ROWS ONLY.' },
             { text: 'ORA-00942', feedback: 'ORA-00942 báo table không có. Table products vẫn có.' },
             { text: 'ORA-00979', feedback: 'ORA-00979 liên quan tới GROUP BY. Query này không có GROUP BY.' },
           ],

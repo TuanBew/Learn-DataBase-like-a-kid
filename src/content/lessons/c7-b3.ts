@@ -45,7 +45,7 @@ export const lesson: Lesson = {
       type: 'text',
       title: 'Cái giá của index',
       paragraphs: [
-        'Index không miễn phí. Nó chiếm thêm chỗ trong database.',
+        'Index không miễn phí. Index chiếm thêm chỗ trong database.',
         'Mỗi lần bạn INSERT, UPDATE hoặc DELETE, database phải cập nhật cả index. Ghi vì thế chậm hơn một chút.',
         'Giống mục lục: sách thêm một trang thì mục lục phải sửa theo.',
         'Vì vậy không ai tạo index cho mọi column. Người ta chỉ tạo cho column hay dùng để tìm.',
@@ -81,7 +81,7 @@ export const lesson: Lesson = {
           question: 'Vì sao không nên tạo index cho mọi column?',
           options: [
             { text: 'Index chiếm chỗ, và mỗi lần ghi phải cập nhật thêm index', correct: true, feedback: 'Đúng. Càng nhiều index, ghi càng chậm và tốn chỗ.' },
-            { text: 'Index làm kết quả query sai', feedback: 'Index không đổi kết quả. Nó chỉ đổi tốc độ tìm.' },
+            { text: 'Index làm kết quả query sai', feedback: 'Index không đổi kết quả. Index chỉ đổi tốc độ tìm.' },
             { text: 'Mỗi table chỉ được một index', feedback: 'Một table có thể có nhiều index.' },
           ],
         },

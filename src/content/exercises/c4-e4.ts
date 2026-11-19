@@ -6,7 +6,7 @@ export const exercise: SqlExercise = {
   kind: 'translate',
   title: 'Nối chuỗi: từ CONCAT sang Oracle',
   prompt:
-    'Query dưới đây chạy ở MySQL và nối chức vụ với tên nhân viên. Viết lại để chạy ở Oracle và ra cùng kết quả.',
+    'Query này chạy ở MySQL và nối chức vụ với tên nhân viên. Viết lại cho chạy ở Oracle, ra cùng kết quả.',
   asks: [
     'Nối chuỗi bằng `||`, không dùng CONCAT.',
     'Giữ column `badge`, dấu hai chấm và dấu cách giữa chức vụ và tên.',

@@ -87,6 +87,11 @@ svg {
 
 /* ---------- Khối nền dùng lại ---------- */
 
+/* Giấy vụn ăn mừng có thể bay quá mép phải. Cắt đi để trang không trượt ngang. */
+#main {
+  overflow-x: clip;
+}
+
 .wrap {
   width: min(100% - 32px, var(--page));
   margin-inline: auto;

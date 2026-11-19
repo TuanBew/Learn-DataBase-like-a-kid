@@ -5,7 +5,7 @@ export const exercise: SqlExercise = {
   chapter: 5,
   kind: 'debug',
   title: 'Sửa query đếm món theo nhóm',
-  prompt: 'Query dưới đây muốn đếm số món của từng nhóm món, nhưng đang báo lỗi. Bấm Chạy để đọc lỗi, rồi sửa.',
+  prompt: 'Query này muốn đếm số món của từng nhóm món, nhưng báo lỗi. Bấm Chạy để đọc lỗi, rồi sửa.',
   asks: ['Mỗi nhóm món một row.', 'Hiện `category` và số món, đặt tên column số món là `items`.'],
   database: 'teashop',
   tables: ['products'],
@@ -19,7 +19,7 @@ export const exercise: SqlExercise = {
     oracle: 'SELECT category, COUNT(*) AS items\nFROM products\nGROUP BY category;',
   },
   check: { orderMatters: false, aliasMatters: true },
-  why: 'Mỗi nhóm chỉ ra một row, nên SELECT chỉ được có column nằm trong GROUP BY hoặc function gom. Bỏ `name` thì lỗi hết.',
+  why: 'Mỗi nhóm chỉ ra một row, nên SELECT chỉ được có column nằm trong GROUP BY hoặc function gom. Bỏ `name` thì lỗi biến mất.',
   hints: {
     light: 'Khi có GROUP BY, mỗi nhóm chỉ ra một row. Một nhóm có nhiều tên món thì chọn tên nào?',
     specific: 'Column `name` không nằm trong GROUP BY và không nằm trong function gom. Bỏ `name` khỏi SELECT.',

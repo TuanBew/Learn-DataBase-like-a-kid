@@ -6,7 +6,7 @@ export const exercise: SqlExercise = {
   kind: 'write',
   title: 'Tên tiệm viết hoa và độ dài',
   prompt:
-    'Bi làm biển hiệu cho các tiệm. Cần tên tiệm viết hoa và số ký tự của tên. MySQL và Oracle dùng function khác nhau để đếm ký tự.',
+    'Mình làm biển hiệu cho các tiệm. Mình cần tên tiệm viết hoa và số ký tự của tên. MySQL và Oracle đếm ký tự bằng hai function khác nhau.',
   asks: [
     'Hiện `name`, tên viết hoa đặt là `upper_name`, và số ký tự đặt là `chars`.',
     'Đếm ký tự, không đếm byte. MySQL dùng CHAR_LENGTH, Oracle dùng LENGTH.',

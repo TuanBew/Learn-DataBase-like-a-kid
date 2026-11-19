@@ -1,6 +1,7 @@
 import { Link } from 'wouter';
 import { Icon } from '../components/Icon';
 import { chapters } from '../content/course';
+import { exerciseMap } from '../content/exercise-map';
 import { exercises } from '../content/exercises';
 import { lessons } from '../content/lessons';
 import { homeAsk, homeFlow, homeInside } from '../content/home';
@@ -115,6 +116,10 @@ export function Home() {
         <div className="home-toc__head">
           <h2>{U.tocTitle}</h2>
           <p>{U.tocLead}</p>
+          <Link href="/tien-trinh" className="home-toc__progress">
+            {U.seeProgress}
+            <Icon name="arrow" size={16} />
+          </Link>
         </div>
         <ol className="home-toc__page sheet">
           {chapters.map((c) => (
@@ -132,12 +137,15 @@ export function Home() {
                   {c.lessons.map((l) => {
                     const ready = l.exercise ? l.id in exercises : l.id in lessons;
                     const done = l.exercise ? progress.exercises[l.id] !== undefined : progress.lessons[l.id] !== undefined;
+                    const tasks = exerciseMap[l.id] ?? [];
+                    const tasksDone = tasks.filter((id) => progress.exercises[id] !== undefined).length;
                     return (
                       <li key={l.id} className={`toc-l ${ready ? '' : 'toc-l--soon'}`}>
                         {ready ? (
                           <Link href={l.exercise ? `/tap/${l.id}` : `/bai/${l.id}`} className="toc-l__link">
                             <span className="toc-l__title">{l.title}</span>
                             <span className="toc-l__dots" aria-hidden="true" />
+                            {tasks.length > 0 && <span className={`toc-l__ex ${tasksDone === tasks.length ? 'toc-l__ex--done' : ''}`}>{U.exercisesOf(tasksDone, tasks.length)}</span>}
                             <span className={`toc-l__go ${done ? 'toc-l__go--done pen' : ''} ${l.exercise && !done ? 'toc-l__go--preview' : ''}`}>
                               {done ? U.done : l.exercise ? U.preview : U.open}
                               <Icon name={done ? 'check' : 'arrow'} size={16} />
@@ -160,9 +168,6 @@ export function Home() {
         </ol>
       </section>
 
-      <footer className="wrap home-foot">
-        <p>{U.footer}</p>
-      </footer>
     </>
   );
 }

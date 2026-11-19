@@ -5,7 +5,7 @@ export const exercise: SqlExercise = {
   chapter: 3,
   kind: 'predict',
   title: 'Đoán món còn lại sau WHERE',
-  prompt: 'Đọc query dưới đây. Đoán xem món nào còn lại sau WHERE, chọn các row đó, rồi xem Theater để kiểm.',
+  prompt: 'Đọc query. Đoán món nào còn lại sau WHERE. Chọn các row đó, rồi xem Theater để kiểm.',
   asks: [
     'Chọn các row của table products sẽ còn lại.',
     'Nhớ rằng BETWEEN gồm cả hai đầu.',

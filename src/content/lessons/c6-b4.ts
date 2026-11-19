@@ -133,7 +133,7 @@ export const lesson: Lesson = {
         'Ví dụ: món nào đắt hơn giá trung bình? Trước hết cần giá trung bình, tức `AVG(price)`.',
         'Bạn đặt phép tính đó vào ngoặc và so với `price`: `WHERE price > (SELECT AVG(price) FROM products)`.',
         'Database tính giá trung bình một lần, rồi so từng món với con số đó.',
-        'Subquery ở bài này đứng riêng. Nó không nhắc tới table của query ngoài.',
+        'Subquery ở bài này đứng riêng. Subquery không nhắc tới table của query ngoài.',
       ],
     },
     {
@@ -224,7 +224,7 @@ export const lesson: Lesson = {
     {
       type: 'keypoints',
       items: [
-        'subquery là query nhỏ trong dấu ngoặc. Nó chạy trước query ngoài.',
+        'subquery là query nhỏ trong dấu ngoặc. Subquery chạy trước query ngoài.',
         'IN (subquery) giữ row khi giá trị nằm trong danh sách mà subquery trả về.',
         'NOT IN gặp NULL trong danh sách thì không giữ row nào. Loại NULL bằng IS NOT NULL.',
         'scalar subquery trả một con số, dùng để so sánh như `price > (SELECT AVG(price) ...)`.',

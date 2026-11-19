@@ -5,7 +5,7 @@ export const exercise: SqlExercise = {
   chapter: 3,
   kind: 'order',
   title: 'Xếp query theo đúng thứ tự viết',
-  prompt: 'Bi cần danh sách món giá từ 25.000 tới 40.000 đồng, món đắt đứng trước. Bấm các mẩu theo đúng thứ tự viết của query.',
+  prompt: 'Mình cần danh sách món giá từ 25.000 tới 40.000 đồng, món đắt đứng trước. Bấm các mẩu theo đúng thứ tự viết của query.',
   asks: [
     'Hiện `name` và `price`.',
     'Giữ món có `price` từ 25000 tới 40000.',

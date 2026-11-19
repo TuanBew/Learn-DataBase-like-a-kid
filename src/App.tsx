@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { LazyMotion, MotionConfig, domMax } from 'motion/react';
 import { Route, Switch, useLocation } from 'wouter';
+import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { exercises } from './content/exercises';
 import { lessons } from './content/lessons';
@@ -60,6 +61,7 @@ export function App() {
             </Switch>
           </Suspense>
         </main>
+        <Footer />
       </MotionConfig>
     </LazyMotion>
   );

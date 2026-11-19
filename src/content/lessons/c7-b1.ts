@@ -116,7 +116,7 @@ export const lesson: Lesson = {
           question: 'Bạn chạy `DELETE FROM products` mà quên WHERE. Chuyện gì xảy ra?',
           options: [
             { text: 'Mọi row trong products bị xóa', correct: true, feedback: 'Đúng. Không có WHERE thì không row nào được giữ lại.' },
-            { text: 'Database báo lỗi và không xóa gì', feedback: 'Câu này đúng cú pháp, nên database chạy luôn. Nó không hỏi lại.' },
+            { text: 'Database báo lỗi và không xóa gì', feedback: 'Câu này đúng cú pháp, nên database chạy luôn. Database không hỏi lại.' },
             { text: 'Chỉ row đầu tiên bị xóa', feedback: 'Database không đoán. Không có WHERE nghĩa là mọi row.' },
           ],
         },

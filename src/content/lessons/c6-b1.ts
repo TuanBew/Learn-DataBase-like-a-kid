@@ -177,7 +177,7 @@ export const lesson: Lesson = {
           question: 'Bạn chọn `customer_id` mà không ghi table đứng trước, trong query ghép orders và customers. Chuyện gì xảy ra?',
           options: [
             { text: 'Database báo lỗi vì không biết lấy column của table nào', correct: true, feedback: 'Đúng. MySQL báo 1052, Oracle báo ORA-00918.' },
-            { text: 'Database tự lấy column của table đầu tiên', feedback: 'Database không đoán. Nó dừng lại và báo lỗi.' },
+            { text: 'Database tự lấy column của table đầu tiên', feedback: 'Database không đoán. Database dừng lại và báo lỗi.' },
             { text: 'Database trả mọi row của cả hai table', feedback: 'Lỗi xảy ra trước khi query chạy, nên không có row nào.' },
           ],
         },

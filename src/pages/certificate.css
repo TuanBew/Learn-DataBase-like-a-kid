@@ -1,0 +1,65 @@
+.cert {
+  display: grid;
+  gap: var(--s6);
+  padding-block: var(--s6) var(--s8);
+  max-width: 980px;
+}
+.cert__head {
+  display: grid;
+  gap: var(--s5);
+}
+.cert__head h1 {
+  font-size: clamp(2.1rem, 5vw, 3.25rem);
+}
+.cert-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+}
+.cert-paper {
+  padding: var(--s3);
+  overflow: hidden;
+}
+.cert-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1600 / 1130;
+  border-radius: var(--r-md);
+}
+.cert-canvas--locked {
+  opacity: 0.6;
+  filter: blur(1px);
+}
+.cert-note {
+  color: var(--ink-2);
+}
+.cert-field {
+  display: grid;
+  gap: var(--s2);
+  max-width: 460px;
+}
+.cert-field label {
+  font-weight: 600;
+}
+.cert-input {
+  font: inherit;
+  font-size: 1.125rem;
+  min-height: 46px;
+  padding: 8px 14px;
+  color: var(--ink);
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: var(--r-md);
+  width: 100%;
+}
+.cert-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s4);
+}
+.cert-msg {
+  color: var(--ink-2);
+  font-weight: 600;
+}

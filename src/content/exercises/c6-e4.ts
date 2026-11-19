@@ -5,7 +5,7 @@ export const exercise: SqlExercise = {
   chapter: 6,
   kind: 'translate',
   title: 'Chuyển query nối khách sang Oracle',
-  prompt: 'Query MySQL dưới đây lấy 5 đơn đầu kèm tên khách. Viết lại cho Oracle: bỏ `AS` trước alias của table và đổi LIMIT thành FETCH FIRST.',
+  prompt: 'Query MySQL này lấy 5 đơn đầu kèm tên khách. Viết lại cho Oracle: bỏ `AS` trước alias của table và đổi LIMIT thành FETCH FIRST.',
   asks: [
     'Giữ nguyên các column, phần nối và ORDER BY.',
     'Alias của table viết liền, không có `AS`.',

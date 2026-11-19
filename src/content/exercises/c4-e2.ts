@@ -5,8 +5,9 @@ export const exercise: SqlExercise = {
   chapter: 4,
   kind: 'fill',
   title: 'Mỗi calo tốn bao nhiêu đồng',
-  prompt: 'Bi muốn so giá các món Trà sữa theo calo. Điền vào chỗ trống `____` để chia giá cho calo, làm tròn thành số nguyên.',
+  prompt: 'Mình muốn so giá các món Trà sữa theo calo. Điền vào chỗ trống `____` để chia giá cho calo và làm tròn thành số nguyên.',
   asks: [
+    'Hiện `name`, `calories`, và chỉ lấy nhóm Trà sữa.',
     'Chia `price` cho `calories`.',
     'Làm tròn kết quả, không giữ chữ số thập phân.',
     'Đặt tên column là `dong_per_calo`.',

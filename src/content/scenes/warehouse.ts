@@ -111,6 +111,6 @@ export const copy = {
     start: 'Kho của mình có ba kệ. Mỗi kệ là một table. Chọn một phiếu, rồi bấm Đưa phiếu cho Bi.',
     picked: 'Bạn chọn phiếu này. Bấm Đưa phiếu cho Bi.',
     storedAlready: 'Row Trà xoài đã nằm trên kệ. Chọn phiếu khác, hoặc bấm Làm lại.',
-    all: 'Bạn chỉ viết phiếu. Tìm kệ, chép row và xếp row là việc của mình.',
+    all: 'Bạn chỉ viết phiếu. Mình tìm kệ, chép row và xếp row.',
   },
 };

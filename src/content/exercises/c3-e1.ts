@@ -5,7 +5,7 @@ export const exercise: SqlExercise = {
   chapter: 3,
   kind: 'write',
   title: 'Tên và thành phố của khách',
-  prompt: 'Bi muốn gửi thiệp cảm ơn tới khách thành viên. Lấy tên và thành phố của mọi khách.',
+  prompt: 'Mình muốn gửi thiệp cảm ơn tới khách thành viên. Lấy tên và thành phố của mọi khách.',
   asks: ['Chỉ hiện hai column: `full_name` và `city`.', 'Lấy mọi row của table customers.'],
   database: 'teashop',
   tables: ['customers'],

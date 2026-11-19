@@ -6,7 +6,7 @@ export const exercise: SqlExercise = {
   kind: 'translate',
   title: 'Ngày giờ: từ DATE_FORMAT sang Oracle',
   prompt:
-    'Query dưới đây chạy ở MySQL và lấy các đơn của ngày 2 tháng 3. Viết lại để chạy ở Oracle và ra cùng kết quả.',
+    'Query này chạy ở MySQL và lấy các đơn của ngày 2 tháng 3. Viết lại cho chạy ở Oracle, ra cùng kết quả.',
   asks: [
     'Đổi DATE_FORMAT thành TO_CHAR với khuôn `DD/MM/YYYY`.',
     'Đổi DATE(ordered_at) thành TRUNC(ordered_at).',

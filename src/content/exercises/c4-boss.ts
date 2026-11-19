@@ -6,7 +6,7 @@ export const exercise: SqlExercise = {
   kind: 'write',
   title: 'Boss: thẻ thực đơn cho Cà phê và Trà trái cây',
   prompt:
-    'Bi in thẻ thực đơn cho các món Cà phê và Trà trái cây. Mỗi thẻ cần tên kèm nhóm, giá tính bằng nghìn đồng, nhãn giá và calo.',
+    'Mình in thẻ thực đơn cho các món Cà phê và Trà trái cây. Mỗi thẻ cần tên kèm nhóm, giá tính bằng nghìn đồng, nhãn giá và calo.',
   asks: [
     "Column `label`: tên món, dấu cách, rồi nhóm món trong ngoặc, ví dụ 'Cà phê muối (Cà phê)'.",
     'Column `price_k`: `price` chia 1000.',

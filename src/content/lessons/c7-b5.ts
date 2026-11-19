@@ -28,7 +28,7 @@ export const lesson: Lesson = {
       type: 'text',
       title: 'Nhìn qua database hr',
       paragraphs: [
-        'Database hr là một công ty nhỏ. Nó có bốn table: `employees`, `departments`, `jobs` và `locations`.',
+        'Database hr là một công ty nhỏ. Database này có bốn table: `employees`, `departments`, `jobs` và `locations`.',
         'Mỗi nhân viên có `department_id`, trỏ tới phòng của họ. Query dưới đây dùng hai table đầu.',
         'Khởi động bằng query mẫu. Đọc nó từ trên xuống dưới.',
       ],
@@ -110,7 +110,7 @@ export const lesson: Lesson = {
           options: [
             { text: '1, vì COUNT(*) đếm cả row NULL do LEFT JOIN tạo ra', correct: true, feedback: 'Đúng. Muốn ra 0, đếm một column của employees, như COUNT(e.employee_id).' },
             { text: '0', feedback: 'COUNT(e.employee_id) mới ra 0. COUNT(*) đếm mọi row, kể cả row toàn NULL.' },
-            { text: 'NULL', feedback: 'COUNT không bao giờ trả NULL. Nó trả một con số.' },
+            { text: 'NULL', feedback: 'COUNT không bao giờ trả NULL. COUNT trả một con số.' },
           ],
         },
         {

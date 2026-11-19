@@ -47,7 +47,7 @@ export const exercise: SqlExercise = {
         mysql: "SELECT COUNT(*) AS total_orders FROM orders WHERE status = 'done'",
         oracle: "SELECT COUNT(*) AS total_orders FROM orders WHERE status = 'done'",
       },
-      hint: 'Query này đếm đúng đơn done nhưng gộp cả chuỗi thành một số. Thêm `store_id` vào SELECT và GROUP BY store_id để chia theo tiệm.',
+      hint: 'Query này đếm đúng đơn done nhưng gộp mọi tiệm thành một số. Thêm `store_id` vào SELECT và GROUP BY store_id để chia theo tiệm.',
     },
   ],
 };

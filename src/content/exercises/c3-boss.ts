@@ -29,7 +29,7 @@ export const exercise: SqlExercise = {
   check: { orderMatters: true },
   why: 'WHERE giữ món ngoài Trà sữa và dưới 45.000 đồng. ORDER BY đặt món đắt lên trước. Bước cuối chỉ giữ 3 row đầu.',
   hints: {
-    light: 'Bài này cần bốn bước theo thứ tự viết: chọn column, lọc row bằng hai điều kiện, sắp xếp, lấy vài row đầu.',
+    light: 'Bài này có bốn bước theo thứ tự viết. Chọn column, lọc row bằng hai điều kiện, sắp xếp, rồi lấy vài row đầu.',
     specific:
       "Nối hai điều kiện bằng AND: `category <> 'Trà sữa'` và `price < 45000`. Sắp bằng ORDER BY price DESC, name. MySQL lấy 3 row đầu bằng LIMIT, Oracle dùng FETCH FIRST.",
     skeleton: {

@@ -129,6 +129,15 @@
 .lesson-end__note {
   color: var(--ink-2);
 }
+.lesson-end__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+}
+.lesson-end__next {
+  margin-top: calc(var(--s2) * -1);
+  font-weight: 600;
+}
 @media (max-width: 560px) {
   .scene {
     padding: var(--s4) var(--s3);

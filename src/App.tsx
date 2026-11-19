@@ -1,21 +1,40 @@
-import { Suspense, lazy, useEffect } from 'react';
-import { LazyMotion, MotionConfig, domMax } from 'motion/react';
+import { type ComponentType, Suspense, lazy, useEffect } from 'react';
+import { LazyMotion, MotionConfig } from 'motion/react';
 import { Route, Switch, useLocation } from 'wouter';
 import { Footer } from './components/Footer';
 import { Header } from './components/Header';
 import { exercises } from './content/exercises';
 import { lessons } from './content/lessons';
 import { databases } from './data';
-import { Home } from './pages/Home';
+import { preload } from './lib/useLoad';
 
-const lessonPage = () => import('./pages/LessonPage');
-const exercisePage = () => import('./pages/ExercisePage');
-const LessonPage = lazy(lessonPage);
-const ExercisePage = lazy(exercisePage);
-const NextStepsPage = lazy(() => import('./pages/NextStepsPage'));
-const SourcesPage = lazy(() => import('./pages/SourcesPage'));
-const ProgressPage = lazy(() => import('./pages/ProgressPage'));
-const CertificatePage = lazy(() => import('./pages/CertificatePage'));
+/**
+ * Một trang tải lười mà vẫn hiện ngay được nếu chunk đã tải xong từ trước.
+ * `lazy()` của React luôn hiện khung chờ ở lần vẽ đầu và giữ khung đó khoảng 300ms,
+ * kể cả khi chunk đã có sẵn. Trang đã `preload()` thì vẽ thẳng, không qua khung chờ.
+ */
+function page<P extends object>(load: () => Promise<ComponentType<P>>) {
+  let ready: ComponentType<P> | undefined;
+  const Lazy = lazy(() => load().then((c) => ({ default: c })));
+  const Page = (props: P) => {
+    const C = ready ?? Lazy;
+    return <C {...props} />;
+  };
+  Page.preload = () =>
+    load().then((c) => {
+      ready = c;
+    });
+  return Page;
+}
+
+const motionFeatures = () => import('./motion-features').then((m) => m.default);
+const Home = page(() => import('./pages/Home').then((m) => m.Home));
+const LessonPage = page(() => import('./pages/LessonPage').then((m) => m.default));
+const ExercisePage = page(() => import('./pages/ExercisePage').then((m) => m.default));
+const NextStepsPage = page(() => import('./pages/NextStepsPage').then((m) => m.default));
+const SourcesPage = page(() => import('./pages/SourcesPage').then((m) => m.default));
+const ProgressPage = page(() => import('./pages/ProgressPage').then((m) => m.default));
+const CertificatePage = page(() => import('./pages/CertificatePage').then((m) => m.default));
 
 /**
  * Tải trang và nội dung của route đang mở trước khi React vẽ lần đầu.
@@ -24,9 +43,13 @@ const CertificatePage = lazy(() => import('./pages/CertificatePage'));
  */
 export function preloadRoute(path: string): Promise<unknown> {
   const [, kind, id] = path.split('/');
-  if (kind === 'bai') return Promise.all([lessonPage(), lessons[id]?.()]);
-  if (kind === 'tap') return Promise.all([exercisePage(), exercises[id]?.().then((ex) => (ex.kind === 'quiz' ? undefined : databases[ex.database]()))]);
-  return Promise.resolve();
+  if (kind === 'bai') return Promise.all([LessonPage.preload(), preload(lessons[id])]);
+  if (kind === 'tap') return Promise.all([ExercisePage.preload(), preload(exercises[id]).then((ex) => (!ex || ex.kind === 'quiz' ? undefined : preload(databases[ex.database])))]);
+  if (kind === 'hoc-tiep') return NextStepsPage.preload();
+  if (kind === 'nguon') return SourcesPage.preload();
+  if (kind === 'tien-trinh') return ProgressPage.preload();
+  if (kind === 'chung-nhan') return CertificatePage.preload();
+  return Home.preload();
 }
 
 /** Về đầu trang khi đổi trang, hoặc cuộn tới mục có dấu #. */
@@ -43,7 +66,7 @@ function ScrollManager() {
 
 export function App() {
   return (
-    <LazyMotion features={domMax} strict>
+    <LazyMotion features={motionFeatures} strict>
       <MotionConfig reducedMotion="user">
         <ScrollManager />
         <Header />
@@ -59,9 +82,10 @@ export function App() {
               <Route path="/chung-nhan" component={CertificatePage} />
               <Route component={Home} />
             </Switch>
+            {/* Chân trang nằm trong cùng khung chờ với nội dung, để nó không hiện trước rồi bị đẩy xuống. */}
+            <Footer />
           </Suspense>
         </main>
-        <Footer />
       </MotionConfig>
     </LazyMotion>
   );

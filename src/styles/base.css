@@ -90,6 +90,8 @@ svg {
 /* Giấy vụn ăn mừng có thể bay quá mép phải. Cắt đi để trang không trượt ngang. */
 #main {
   overflow-x: clip;
+  /* Chân trang luôn nằm dưới màn hình đầu, nên nội dung tải thêm không đẩy nó trong tầm nhìn. */
+  min-height: 100vh;
 }
 
 .wrap {

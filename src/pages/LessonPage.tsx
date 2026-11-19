@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
-import { Says } from '../components/Chau';
+import { Says } from '../components/Mascot';
 import { Confetti } from '../components/Confetti';
 import { Icon } from '../components/Icon';
 import { KeyPoints, OracleCard, RealWorldCard, SourcesLine, StoryBlock, TextBlock } from '../components/lesson/blocks';
@@ -70,7 +70,7 @@ function Block({ block }: { block: LessonBlock }) {
     case 'exercise':
       return (
         <Link href={`/tap/${block.exerciseId}`} className="btn">
-          {uiApp.home.theaterCta}
+          {U.toExercise}
         </Link>
       );
   }

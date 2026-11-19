@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react';
 import type { ReactNode } from 'react';
 import { play } from '../sfx/sfx';
-import { Says } from './Chau';
+import { Says } from './Mascot';
 import { uiExercise } from '../content/ui-exercise';
 import './hint-ladder.css';
 
@@ -53,7 +53,7 @@ export function HintLadder({ light, specific, skeleton, solution, onSolution, re
   return (
     <section className="hlad sheet" aria-label={T.regionLabel}>
       <Says mood={opened >= 4 ? 'happy' : opened > 0 ? 'think' : 'idle'} size={56}>
-        {T.chau[opened]}
+        {T.mascot[opened]}
       </Says>
 
       <ol className="hlad__steps">

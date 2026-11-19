@@ -5,7 +5,7 @@ Website tĩnh dạy database và SQL cho người chưa biết gì về IT. Yêu
 ## Luật viết chữ trên site (không được quên)
 
 - Người học là người lớn không biết IT. Dạy từng bước nhỏ, ví dụ đời thường. Không nói ngọng, không chê, không mỉa.
-- Mascot tên Châu, xưng "mình", gọi người học là "bạn". Giữ cặp này trên toàn site.
+- Mascot tên Bi (một chú robot database), xưng "mình", gọi người học là "bạn". Giữ cặp này trên toàn site.
 - Lý thuyết theo STE: mỗi câu một ý, câu chủ động, câu lý thuyết dưới 20 chữ, câu hướng dẫn dưới 15 chữ và ở dạng mệnh lệnh ("Bấm Chạy"). Điều kiện đặt trước hành động. Mỗi từ một nghĩa: nút chạy query luôn gọi là "Chạy".
 - Vào thẳng ý. Không "Hãy cùng tìm hiểu", "Dưới đây là", "Tóm lại", "Hy vọng". Không "không chỉ X mà còn Y", "không phải X mà là Y". Không bộ ba cho tròn. Không câu châm ngôn chốt đoạn. Không gạch ngang dài nối ý. In đậm rất ít.
 - Tránh từ sáo: đóng vai trò quan trọng, then chốt, hành trình, khám phá, nâng tầm, chìa khóa, mở ra cánh cửa, một cách hiệu quả, trải nghiệm liền mạch, vô cùng, cực kỳ.
@@ -33,6 +33,14 @@ Website tĩnh dạy database và SQL cho người chưa biết gì về IT. Yêu
 | limit, ceiling | trần |
 
 Luật áp cho mọi kiểu dịch tương tự. Cũng giữ tiếng Anh: function, JOIN, subquery, COMMIT, ROLLBACK, client, server, dialect, và mọi từ khóa SQL.
+
+## Góp ý của chủ dự án sau Mốc 1 (đã chốt)
+
+- Tên hiện trên site là "Learn Database". "Learn DataBase like a kid" chỉ là tên repo, không đưa lên giao diện.
+- Mascot là Bi, một chú robot database, nét sáng và thân thiện. Không quay lại hạt trân châu.
+- Trang chủ dạy database trước: ứng dụng quanh ta, dữ liệu đi đâu, bên trong database có gì. SQL và Query Theater chỉ xuất hiện sau, và không có nút nào ở đầu trang dẫn thẳng vào bài tập.
+- Bài tập chỉ đến sau lý thuyết của chương đó. Không mời người học làm bài tập khi chưa học.
+- Tiêu đề trang chủ "Hãy khám phá xem làm việc với database như thế nào" do chủ dự án chọn. Giữ nguyên, không sửa theo luật từ sáo.
 
 ## Phạm vi
 

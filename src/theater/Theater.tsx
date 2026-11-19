@@ -3,7 +3,7 @@ import * as m from 'motion/react-m';
 import { useReducedMotion } from 'motion/react';
 import type { ClauseKind } from '../engine/ast';
 import type { Trace, TraceClause } from '../engine/trace';
-import { Chau, type Mood } from '../components/Chau';
+import { Mascot, type Mood } from '../components/Mascot';
 import { Icon } from '../components/Icon';
 import { play } from '../sfx/sfx';
 import { theaterCopy as T } from './copy.vi';
@@ -142,7 +142,7 @@ export function Theater({ trace, autoPlay = true, onEnd }: Props) {
       <div className="qt-body">
         <div className="qt-side">
           <div className="qt-say">
-            <Chau mood={MOOD[frame.phase]} size={58} />
+            <Mascot mood={MOOD[frame.phase]} size={58} />
             <p className="qt-caption" aria-live="polite">
               {frame.caption}
             </p>

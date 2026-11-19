@@ -1,0 +1,306 @@
+.flow {
+  padding: 14px 16px 10px;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.flow__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.flow__chip-rows {
+  background: var(--mango);
+}
+.flow-tone-peach { --tone: var(--peach); --tone-deep: var(--peach-deep); }
+.flow-tone-sky { --tone: var(--sky); --tone-deep: var(--sky-deep); }
+.flow-tone-taro { --tone: var(--taro); --tone-deep: var(--taro-deep); }
+.flow-tone-mango { --tone: var(--mango); --tone-deep: var(--mango-deep); }
+
+.flow__track {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  padding: 12px 10px 14px;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 8px 8px;
+  border: var(--line);
+  border-radius: var(--r-md);
+}
+.flow__apps {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.flow-app {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 2px 0 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.flow-app__icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  background: var(--tone);
+  border: var(--line);
+  border-radius: 16px;
+  box-shadow: var(--depth-md);
+  transition:
+    transform 90ms var(--ease-out),
+    box-shadow 90ms var(--ease-out);
+}
+.flow-app:hover .flow-app__icon {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 var(--ink);
+}
+.flow-app:active .flow-app__icon {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--ink);
+}
+.flow-app__name {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+.flow-app__ok {
+  position: absolute;
+  right: -8px;
+  top: -8px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--matcha);
+  border: 1.5px solid var(--matcha-ink);
+  color: var(--matcha-ink);
+  animation: flow-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.flow-app--nudge .flow-app__icon {
+  animation: flow-nudge 1.6s ease-in-out 1.2s 3;
+}
+@keyframes flow-nudge {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+  72% {
+    transform: translateY(-7px) rotate(-5deg);
+  }
+  86% {
+    transform: translateY(0) rotate(4deg);
+  }
+}
+@keyframes flow-pop {
+  from {
+    transform: scale(0);
+  }
+}
+.flow__wires,
+.flow__wire2 {
+  width: 100%;
+  height: 44px;
+  display: block;
+}
+.flow__wire2 {
+  height: 26px;
+}
+.flow__wires path,
+.flow__wire2 path {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+  vector-effect: non-scaling-stroke;
+}
+.flow__server {
+  position: relative;
+}
+.flow__server .chip {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+/* Máy chủ: một khối có ba khe, đèn nháy khi có yêu cầu đi qua */
+.flow-server {
+  display: grid;
+  gap: 4px;
+  width: 84px;
+  padding: 7px 8px;
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: 10px;
+  box-shadow: var(--depth-md);
+}
+.flow-server span {
+  position: relative;
+  height: 8px;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  background: var(--paper-2);
+}
+.flow-server span::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  top: 1px;
+  width: 4px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--matcha-deep);
+}
+.flow-server--pulse {
+  animation: flow-bump 380ms var(--ease-out);
+}
+.flow-server--pulse span {
+  animation: flow-blink 380ms steps(2, end);
+}
+@keyframes flow-bump {
+  30% {
+    transform: scale(1.08);
+  }
+}
+@keyframes flow-blink {
+  50% {
+    background: var(--mango);
+  }
+}
+.flow__db {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 25% minmax(0, 1fr);
+  gap: 0;
+  align-items: center;
+}
+.flow-db {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+.flow-db svg {
+  transform-origin: 50% 100%;
+}
+.flow-db--pulse {
+  animation: flow-squash 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes flow-squash {
+  30% {
+    transform: scale(1.07, 0.9);
+  }
+}
+.flow-rows {
+  padding-left: 12px;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-height: 108px;
+  min-width: 0;
+}
+.flow-rows__empty {
+  align-self: center;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+.flow-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 8px 0 4px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: 8px;
+  box-shadow: 0 3px 0 var(--edge);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.flow-row__table {
+  flex: none;
+  padding: 0 6px;
+  font-weight: 800;
+  background: var(--tone);
+  border: 1.5px solid var(--ink);
+  border-radius: 5px;
+  line-height: 1.5;
+}
+.flow-row__cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.flow-row__cell:last-child {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+/* Chấm dữ liệu chạy trên đường dây */
+.flow-dot {
+  position: absolute;
+  left: -9px;
+  top: -9px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--tone-deep);
+  border: 2px solid var(--ink);
+  pointer-events: none;
+  z-index: 3;
+}
+.flow-dot--back {
+  background: var(--matcha);
+  color: var(--matcha-ink);
+}
+.flow__say .says__bubble {
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  min-height: 3.9em;
+}
+@media (max-width: 520px) {
+  .flow {
+    padding: 12px 12px 8px;
+  }
+  .flow-app__icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+  }
+  .flow-app__name {
+    font-size: 0.74rem;
+  }
+  .flow__wires {
+    height: 34px;
+  }
+  .flow__wire2 {
+    height: 20px;
+  }
+  .flow__db {
+    grid-template-columns: 25% minmax(0, 1fr);
+  }
+  .flow-db svg {
+    width: 78px;
+    height: 75px;
+  }
+  .flow-row {
+    font-size: 0.7rem;
+    gap: 6px;
+  }
+  .flow-rows {
+    min-height: 102px;
+  }
+}

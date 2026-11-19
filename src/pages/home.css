@@ -6,10 +6,8 @@
   padding-block: var(--s5) var(--s7);
 }
 .home-hero h1 {
-  font-size: clamp(2.3rem, 5vw, 3.7rem);
-}
-.home-hero h1 span {
-  display: block;
+  font-size: clamp(2.05rem, 4.3vw, 3.25rem);
+  line-height: 1.12;
   text-wrap: balance;
 }
 .home-hero__text {
@@ -71,21 +69,24 @@
   }
 }
 
-/* Query Theater: thứ tự viết và thứ tự chạy */
-.home-theater {
+/* Các dải bên dưới: chữ bên trái, cảnh bên phải */
+.home-band {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--s5);
   align-items: center;
   padding-block: var(--s6);
 }
-.home-theater__text {
+.home-band__text {
   display: grid;
-  gap: var(--s4);
+  gap: var(--s3);
   justify-items: start;
 }
-.home-theater__text p {
+.home-band__text p {
   max-width: 54ch;
+}
+.home-band__hint {
+  font-weight: 600;
 }
 .home-order {
   display: grid;
@@ -154,8 +155,8 @@
   vector-effect: non-scaling-stroke;
 }
 @media (min-width: 980px) {
-  .home-theater {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
+  .home-band {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 540px);
     gap: var(--s7);
     padding-block: var(--s7);
   }
@@ -245,6 +246,9 @@
   box-shadow: var(--depth-sm);
   align-self: center;
   line-height: 1.7;
+}
+.toc-l__go--preview {
+  background: var(--sheet);
 }
 .toc-l__go--done {
   background: none;

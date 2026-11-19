@@ -14,13 +14,14 @@ const { chromium } = require('playwright');
   await page.goto(base + '/', { waitUntil: 'networkidle' });
   await page.waitForTimeout(1200);
   await page.screenshot({ path: `${out}/home-top-${width}.png` });
-  await page.locator('.hero-piece').nth(0).click();
-  await page.waitForTimeout(250);
-  await page.locator('.hero-piece').nth(1).click();
-  await page.waitForTimeout(250);
-  await page.locator('.hero-piece').nth(2).click();
-  await page.waitForTimeout(900);
+  for (const i of [0, 1, 2, 3]) {
+    await page.locator('.flow-app').nth(i).click();
+    await page.waitForTimeout(350);
+  }
+  await page.waitForTimeout(2600);
   await page.screenshot({ path: `${out}/home-played-${width}.png` });
+  await page.locator('.inside__part').nth(2).click();
+  await page.waitForTimeout(400);
   await page.screenshot({ path: `${out}/home-full-${width}.png`, fullPage: true });
 
   await page.goto(base + '/bai/c1-b1', { waitUntil: 'networkidle' });

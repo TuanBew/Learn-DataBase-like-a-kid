@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import * as m from 'motion/react-m';
 import { AnimatePresence } from 'motion/react';
-import { Says } from '../components/Chau';
+import { Says } from '../components/Mascot';
 import { Icon } from '../components/Icon';
 import { Rich } from '../components/Rich';
 import type { OrderPhoneCopy } from '../content/types';

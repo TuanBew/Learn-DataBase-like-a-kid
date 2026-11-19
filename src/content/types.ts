@@ -48,10 +48,10 @@ export interface DataStreetCopy {
     columns: string[];
     /** Hai hoặc ba row mẫu sẽ lần lượt được ghi, mỗi row khớp `columns`. */
     rows: string[][];
-    /** Một câu Châu nói sau khi nơi này ghi row. */
+    /** Một câu Bi nói sau khi nơi này ghi row. */
     caption: Rich;
   }[];
-  /** Châu nói khi người học đã chạm đủ bốn nơi. */
+  /** Bi nói khi người học đã chạm đủ bốn nơi. */
   done: Rich;
 }
 
@@ -67,7 +67,7 @@ export interface OrderPhoneCopy {
   tableName: string;
   /** Lời nhắc khi table còn trống. */
   empty: string;
-  /** Lời Châu theo số row đã ghi: phần tử 0 cho row đầu, 1 cho row thứ hai, ... */
+  /** Lời Bi theo số row đã ghi: phần tử 0 cho row đầu, 1 cho row thứ hai, ... */
   afterEach: Rich[];
 }
 
@@ -83,7 +83,7 @@ export interface MatchQuiz {
   kind: 'match';
   question: Rich;
   pairs: { left: string; right: string }[];
-  /** Châu nói khi ghép đúng hết. */
+  /** Bi nói khi ghép đúng hết. */
   done: Rich;
 }
 
@@ -124,7 +124,7 @@ export interface Chapter {
   /** Một câu nói chương này dạy gì. */
   about: string;
   /** Tên các bài theo thứ tự. Bài chưa viết thì chỉ có `title`. */
-  lessons: { id: string; title: string; ready?: boolean }[];
+  lessons: { id: string; title: string; ready?: boolean; /** true nếu mục này là một bài tập, không phải bài học. */ exercise?: boolean }[];
 }
 
 /* ---------- Bài tập SQL ---------- */
@@ -156,7 +156,7 @@ export interface Exercise {
     /** true nếu đề bài bắt đặt tên column bằng AS. */
     aliasMatters?: boolean;
   };
-  /** Châu nói khi đúng: vì sao query này đúng. */
+  /** Bi nói khi đúng: vì sao query này đúng. */
   why: Rich;
   /** Bốn bậc gợi ý. Bậc 3 là khung query có chỗ trống `____`. Bậc 4 là lời giải, lấy từ `solution`. */
   hints: {
@@ -166,7 +166,7 @@ export interface Exercise {
   };
   /**
    * Đáp án sai hay gặp. Khi kết quả của người học trùng với kết quả của `sql`,
-   * Châu nói `hint`.
+   * Bi nói `hint`.
    */
   wrong: { id: string; sql: Partial<Record<Dialect, string>>; hint: Rich }[];
 }

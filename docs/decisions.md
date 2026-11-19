@@ -44,3 +44,12 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 ## Chia việc
 
 - Chưa dùng subagent Fable nào. Mọi subagent đều chạy Sonnet.
+
+## Góp ý sau Mốc 1
+
+- **Tên trên site đổi thành "Learn Database".** Chủ dự án không muốn đưa tên repo lên giao diện.
+- **Mascot đổi từ hạt trân châu Châu sang robot Bi.** Chủ dự án thấy mascot cũ đáng sợ và muốn một hình có nét công nghệ. Bi có thân là khối trụ database và đầu là màn hình sáng. Bi vẫn là người giữ kho, tức hình ảnh của DBMS.
+- **Trang chủ dạy database trước.** Cảnh đầu trang không còn là query. Cảnh mới: chạm vào một ứng dụng, dữ liệu chạy qua server vào database và thành một row. Dưới đó là cảnh table, row, column, rồi mới tới một dải ngắn nói về SQL. Nút "Thử Query Theater" ở đầu trang đã bỏ.
+- **Bài tập mẫu của Chương 3 chỉ còn nằm trong mục lục**, ở cuối Chương 3, với nhãn "Xem trước". Từ Mốc 2, bài tập luôn đứng sau lý thuyết của chương.
+- **Tiêu đề trang chủ dùng đúng câu chủ dự án đưa.** Trong câu mô tả, chữ "truy vấn" được thay bằng "query" để khớp với luật thuật ngữ của chính dự án. Nếu chủ dự án muốn giữ "truy vấn" thì sửa một chỗ ở `src/content/ui-app.ts`.
+

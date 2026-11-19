@@ -1,0 +1,107 @@
+.inside {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.inside__parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.inside__part {
+  min-height: 44px;
+  padding: 4px 16px;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--ink);
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: 10px;
+  box-shadow: var(--depth-sm);
+  cursor: pointer;
+  transition:
+    transform 90ms var(--ease-out),
+    box-shadow 90ms var(--ease-out),
+    background-color 160ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.inside__part[aria-pressed='true'] {
+  background: var(--mango);
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ink);
+}
+.inside__sheet {
+  position: relative;
+  padding: 26px 14px 14px;
+  transition:
+    background-color 200ms ease,
+    box-shadow 200ms ease;
+}
+.inside__name {
+  position: absolute;
+  left: 14px;
+  top: -14px;
+  background: var(--sky);
+}
+.inside--table .inside__sheet {
+  background: #fff6d8;
+  box-shadow: 0 6px 0 var(--mango-deep);
+}
+.inside__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+.inside__table th {
+  padding: 2px 10px;
+  text-align: left;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--ink-2);
+  border-radius: 6px;
+  transition: background-color 200ms ease;
+}
+.inside__table td {
+  padding: 7px 10px;
+  background: var(--sheet);
+  border-block: 2px solid var(--ink);
+  transition: background-color 200ms ease;
+  white-space: nowrap;
+}
+.inside__table td:first-child {
+  border-left: 2px solid var(--ink);
+  border-radius: 8px 0 0 8px;
+}
+.inside__table td:last-child {
+  border-right: 2px solid var(--ink);
+  border-radius: 0 8px 8px 0;
+  text-align: right;
+}
+.inside__table th:last-child {
+  text-align: right;
+}
+.inside__table tr.is-on td,
+.inside__table td.is-on,
+.inside__table th.is-on {
+  background: var(--mango);
+  color: var(--ink);
+}
+.inside__say {
+  min-height: 2.6em;
+  font-size: 1.3rem;
+}
+@media (max-width: 520px) {
+  .inside__table {
+    font-size: 0.76rem;
+  }
+  .inside__table td {
+    padding: 6px 7px;
+  }
+  .inside__table th {
+    padding: 2px 7px;
+    font-size: 0.68rem;
+  }
+}

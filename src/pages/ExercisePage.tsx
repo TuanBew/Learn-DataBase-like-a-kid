@@ -1,6 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'wouter';
-import { Chau, Says } from '../components/Chau';
+import { Mascot, Says } from '../components/Mascot';
 import { Confetti } from '../components/Confetti';
 import { HintLadder } from '../components/HintLadder';
 import { Icon } from '../components/Icon';
@@ -156,7 +156,7 @@ function ExerciseView({ exercise, db }: { exercise: Exercise; db: Database }) {
               {U.task}
             </h2>
             <div className="ex-task__say">
-              <Chau size={56} mood="idle" />
+              <Mascot size={56} mood="idle" />
               <p>
                 <Rich text={exercise.prompt} />
               </p>
@@ -232,7 +232,7 @@ function ExerciseView({ exercise, db }: { exercise: Exercise; db: Database }) {
             <section className="ex-error sheet" role="alert">
               <h2 className="ex-h">{error.kind === 'unsupported' ? U.outOfScope : U.errorTitle}</h2>
               <div className="ex-error__say">
-                <Chau size={52} mood="think" />
+                <Mascot size={52} mood="think" />
                 <p>
                   {error.friendly} {error.tip && <strong>{error.tip}</strong>}
                 </p>
@@ -252,7 +252,7 @@ function ExerciseView({ exercise, db }: { exercise: Exercise; db: Database }) {
           {!ran && preview && (
             <section className="ex-preview sheet">
               <div className="ex-preview__say">
-                <Chau size={64} mood="happy" />
+                <Mascot size={64} mood="happy" />
                 <p>{U.previewSay}</p>
               </div>
               <ResultTable result={preview} caption={U.previewTitle(exercise.tables[0])} />

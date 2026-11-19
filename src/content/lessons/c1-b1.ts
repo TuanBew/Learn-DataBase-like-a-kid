@@ -22,7 +22,7 @@ export const lesson: Lesson = {
         'Sáng nay bạn đặt một ly trà sữa qua app. Bạn chọn món, bấm đặt, rồi đi làm.',
         'Hôm sau bạn mở lại app. Đơn hôm qua vẫn nằm đó, đủ món, giá và giờ đặt.',
         'App tắt cả đêm mà vẫn nhớ. Lý do là app đã ghi đơn lại ngay lúc bạn bấm.',
-        'Mình là Châu, người giữ kho của tiệm. Mình ghi mọi thứ vào sổ, để hôm sau còn tìm lại.',
+        'Mình là Bi, robot giữ kho của tiệm. Mình ghi mọi thứ vào sổ, để hôm sau còn tìm lại.',
         'Thứ được ghi lại gọi là dữ liệu. Quanh bạn có nhiều nơi đang ghi dữ liệu. Ra phố xem thử nhé.',
       ],
     },

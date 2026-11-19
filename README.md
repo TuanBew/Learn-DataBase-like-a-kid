@@ -1,6 +1,6 @@
 # Learn DataBase like a kid
 
-Website tĩnh dạy database và SQL cho người lớn chưa biết gì về IT. Mascot Châu dẫn bạn đi từng bước nhỏ, từ "database là gì" tới sửa dữ liệu. MySQL 8 dùng để học nền, Oracle 19c dùng cho công việc.
+Website tĩnh dạy database và SQL cho người lớn chưa biết gì về IT. Mascot Bi dẫn bạn đi từng bước nhỏ, từ "database là gì" tới sửa dữ liệu. MySQL 8 dùng để học nền, Oracle 19c dùng cho công việc.
 
 Engine SQL tự viết bằng TypeScript chạy ngay trong browser. Không có backend, không cần đăng nhập.
 

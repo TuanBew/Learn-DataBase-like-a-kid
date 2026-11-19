@@ -42,8 +42,8 @@ export const uiExercise = {
     open: ['Mở gợi ý nhẹ', 'Mở gợi ý cụ thể', 'Mở khung query', 'Mở lời giải'],
     allOpen: 'Đã mở hết',
     runSolution: 'Chạy lời giải trong Theater',
-    // Lời Châu, theo số bậc đã mở (0 đến 4).
-    chau: [
+    // Lời Bi, theo số bậc đã mở (0 đến 4).
+    mascot: [
       'Kẹt thì mở gợi ý. Mình đưa từng bậc một.',
       'Kẹt là chuyện bình thường. Thử lại với gợi ý này.',
       'Gần rồi. Đọc kỹ rồi sửa query của bạn.',

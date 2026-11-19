@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import type { MatchQuiz as MatchQuizData } from '../../content/types';
 import { uiLesson } from '../../content/ui-lesson';
 import { play } from '../../sfx/sfx';
-import { Says } from '../Chau';
+import { Says } from '../Mascot';
 import { Rich } from '../Rich';
 import './quiz.css';
 

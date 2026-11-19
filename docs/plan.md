@@ -9,7 +9,7 @@ Người học bắt đầu từ con số không, nên site trông như cuốn v
 - Bút đỏ của cô giáo chỉ dùng cho lời phê: lý do một row bị loại, điểm 10 khi làm đúng, số chương trong mục lục, lề đỏ của trang vở.
 - Màu khối lấy từ quầy trà sữa: trà sữa, matcha, khoai môn, xoài, đào, trân châu. Mỗi clause của query có một màu riêng và giữ màu đó ở mọi nơi: FROM xanh da trời, WHERE xoài, SELECT khoai môn, ORDER BY matcha, LIMIT và FETCH FIRST đào.
 - Chữ: Baloo 2 cho tiêu đề, Be Vietnam Pro cho chữ đọc, JetBrains Mono cho dữ liệu và SQL, Patrick Hand cho lời phê bút đỏ. Cả bốn font tự host, chỉ lấy bộ latin và vietnamese.
-- Mascot là Châu, một hạt trân châu đội mũ người giữ kho. Châu chính là hình ảnh của DBMS ở Chương 1.
+- Mascot là Bi, một chú robot nhỏ có thân là khối trụ database. Bi là người giữ kho, tức hình ảnh của DBMS ở Chương 1.
 
 Điểm lấy từ ảnh tham khảo: nền giấy kẻ ô, chữ mono cho dữ liệu, chip số liệu, nút Phát lại và Tạm dừng, dãy bước, ô "Ý chính" và "Bạn sẽ học". Điểm cố ý làm khác: không chép bố cục ba cột, dãy bước nằm trên sân khấu và chính là các clause của query, lời giải thích do mascot nói.
 
@@ -34,6 +34,7 @@ src/pages      Trang chủ, trang bài học, trang bài tập
 - Engine: SELECT, WHERE, ORDER BY, LIMIT, FETCH FIRST ở hai dialect, có mã lỗi thật.
 - Bài 1 Chương 1 trọn vẹn, có hai cảnh motion và âm thanh.
 - Bài tập `c3-e6` có Query Theater đầy đủ ở MySQL và Oracle.
+- Trang chủ dạy database trước: ứng dụng gửi dữ liệu qua server vào database, rồi table, row, column, sau cùng mới nhắc tới SQL.
 
 ## Mốc 2
 

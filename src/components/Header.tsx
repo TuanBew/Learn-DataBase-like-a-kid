@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
 import { uiApp } from '../content/ui-app';
 import { isMuted, onMuteChange, play, setMuted } from '../sfx/sfx';
-import { Chau } from './Chau';
+import { Mascot } from './Mascot';
 import { Icon } from './Icon';
 import './header.css';
 
@@ -16,9 +16,9 @@ export function Header() {
       </a>
       <div className="wrap hdr__in">
         <Link href="/" className="hdr__logo" aria-label={uiApp.nav.home}>
-          <Chau size={38} />
+          <Mascot size={38} />
           <span>
-            Learn <b>DataBase</b> like a kid
+            Learn <b>Database</b>
           </span>
         </Link>
         <nav className="hdr__nav">

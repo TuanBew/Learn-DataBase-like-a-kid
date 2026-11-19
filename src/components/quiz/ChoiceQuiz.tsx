@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import type { ChoiceQuiz as ChoiceQuizData } from '../../content/types';
 import { play } from '../../sfx/sfx';
-import { Says } from '../Chau';
+import { Says } from '../Mascot';
 import { Rich } from '../Rich';
 import './quiz.css';
 

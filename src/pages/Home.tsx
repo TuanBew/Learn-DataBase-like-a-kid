@@ -1,9 +1,11 @@
 import { Link } from 'wouter';
 import { Icon } from '../components/Icon';
 import { chapters } from '../content/course';
+import { homeAsk, homeFlow, homeInside } from '../content/home';
 import { uiApp } from '../content/ui-app';
 import { useProgress } from '../lib/progress';
-import { HeroPlayground } from '../scenes/HeroPlayground';
+import { HomeFlow } from '../scenes/HomeFlow';
+import { HomeInside } from '../scenes/HomeInside';
 import './home.css';
 
 const U = uiApp.home;
@@ -20,26 +22,23 @@ const ROW = 46;
 
 export function Home() {
   const progress = useProgress();
-  const lessonCount = chapters.reduce((n, c) => n + c.lessons.length, 0);
+  const lessonCount = chapters.reduce((n, c) => n + c.lessons.filter((l) => !l.exercise).length, 0);
 
   return (
     <>
+      {/* 1. Database đứng sau mọi ứng dụng */}
       <section className="wrap home-hero">
         <div className="home-hero__text">
-          <h1>
-            {U.title.map((line) => (
-              <span key={line}>{line} </span>
-            ))}
-          </h1>
+          <h1>{U.title}</h1>
           <p className="home-hero__lead">{U.lead}</p>
           <div className="home-hero__cta">
             <Link href="/bai/c1-b1" className="btn">
               {U.start}
               <Icon name="arrow" />
             </Link>
-            <Link href="/tap/c3-e6" className="btn btn--paper">
-              {U.tryTheater}
-            </Link>
+            <a href="#muc-luc" className="btn btn--paper">
+              {U.toToc}
+            </a>
           </div>
           <div className="home-hero__facts">
             <span className="chip">
@@ -56,28 +55,36 @@ export function Home() {
         </div>
         <div className="home-hero__play">
           <p className="pen home-hero__pen" aria-hidden="true">
-            {U.heroPen}
+            {homeFlow.pen}
             <svg viewBox="0 0 60 40" width="52" height="36">
               <path d="M4 6 Q34 2 44 30" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
               <path d="M34 26 L45 32 L49 20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </p>
-          <HeroPlayground />
+          <HomeFlow />
         </div>
       </section>
 
-      <section className="wrap home-theater">
-        <div className="home-theater__text">
-          <h2>{U.theaterTitle}</h2>
-          <p>{U.theaterLead}</p>
-          <Link href="/tap/c3-e6" className="btn btn--ink">
-            {U.theaterCta}
-            <Icon name="arrow" />
-          </Link>
+      {/* 2. Bên trong database */}
+      <section className="wrap home-band">
+        <div className="home-band__text">
+          <h2>{homeInside.title}</h2>
+          <p>{homeInside.lead}</p>
+          <p className="home-band__hint">{homeInside.hint}</p>
+        </div>
+        <HomeInside />
+      </section>
+
+      {/* 3. Hiểu database rồi mới tới SQL */}
+      <section className="wrap home-band">
+        <div className="home-band__text">
+          <h2>{homeAsk.title}</h2>
+          <p>{homeAsk.lead}</p>
+          <p>{homeAsk.note}</p>
         </div>
         <div className="home-order sheet" aria-hidden="true">
           <div className="home-order__col">
-            <p className="home-order__label">{U.youWrite}</p>
+            <p className="home-order__label">{homeAsk.youWrite}</p>
             {WRITTEN.map((kw) => (
               <code key={kw} className="home-order__item">
                 {kw}
@@ -91,7 +98,7 @@ export function Home() {
             })}
           </svg>
           <div className="home-order__col">
-            <p className="home-order__label">{U.dbRuns}</p>
+            <p className="home-order__label">{homeAsk.dbRuns}</p>
             {RUN.map((r, i) => (
               <code key={r.kw} className={`home-order__item home-order__item--run home-tone-${r.tone}`}>
                 <span>{i + 1}</span>
@@ -121,15 +128,15 @@ export function Home() {
                 <p className="toc-ch__about">{c.about}</p>
                 <ul>
                   {c.lessons.map((l) => {
-                    const done = progress.lessons[l.id] !== undefined;
+                    const done = l.exercise ? progress.exercises[l.id] !== undefined : progress.lessons[l.id] !== undefined;
                     return (
                       <li key={l.id} className={`toc-l ${l.ready ? '' : 'toc-l--soon'}`}>
                         {l.ready ? (
-                          <Link href={`/bai/${l.id}`} className="toc-l__link">
+                          <Link href={l.exercise ? `/tap/${l.id}` : `/bai/${l.id}`} className="toc-l__link">
                             <span className="toc-l__title">{l.title}</span>
                             <span className="toc-l__dots" aria-hidden="true" />
-                            <span className={`toc-l__go ${done ? 'toc-l__go--done pen' : ''}`}>
-                              {done ? U.done : U.open}
+                            <span className={`toc-l__go ${done ? 'toc-l__go--done pen' : ''} ${l.exercise && !done ? 'toc-l__go--preview' : ''}`}>
+                              {done ? U.done : l.exercise ? U.preview : U.open}
                               <Icon name={done ? 'check' : 'arrow'} size={16} />
                             </span>
                           </Link>

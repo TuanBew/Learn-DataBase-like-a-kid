@@ -19,10 +19,27 @@ Mỗi dòng: quyết định, rồi lý do. Quyết định mới ghi xuống cu
 - **Oracle: so sánh ngày với chuỗi báo ORA-01861.** Lý do: Oracle không tự hiểu chuỗi `'2026-02-01'` với định dạng ngày mặc định. Người học sẽ gặp đúng lỗi này ở công ty, nên engine báo lỗi thay vì âm thầm chạy.
 - **Đáp án sai hay gặp được nhận ra bằng kết quả**, không bằng cách so chữ của query. Engine chạy từng đáp án sai đã khai báo và so kết quả với kết quả của người học.
 
-## Việc chưa làm được và lý do
+## Kiểm bảng dialect với tài liệu chính thức
 
-- **Chưa kiểm được bảng dialect với tài liệu chính thức.** Mạng của session chặn `dev.mysql.com` và `docs.oracle.com` (và cả `cs50.harvard.edu`, `github.blog`). `docs/dialect-verification.md` ghi rõ từng dòng đang ở trạng thái "chưa kiểm được". Engine Mốc 1 viết theo hiểu biết sẵn có; test nào cần kiểm lại có comment `CHỜ KIỂM TÀI LIỆU`.
-- **Bài 1 chưa đối chiếu được với CS50 SQL và bài blog của GitHub** vì cùng lý do. Thẻ "Ngoài đời" chỉ viết đúng ý đã được kiểm sẵn trong yêu cầu.
+Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-verification.md`. Bảng ở mục 7 của `docs/PROMPT.md` giữ nguyên vì đó là bản lưu yêu cầu. Engine và bài học làm theo các chỉnh sửa dưới đây.
+
+- 13 trong 17 dòng của bảng đúng với tài liệu. Không tìm thấy chỗ nào engine Mốc 1 lệch tài liệu.
+- **Nối chuỗi:** bổ sung hai ý. `CONCAT` của MySQL ra NULL nếu có một tham số NULL. Ở Oracle, nối một chuỗi với NULL ra chính chuỗi đó.
+- **Tên table và column:** câu "MySQL giữ như lúc viết" chưa đủ. Tên column và alias của column không phân biệt hoa thường. Tên table có phân biệt hay không tùy hệ điều hành và `lower_case_table_names`.
+- **Lưu thay đổi:** tài liệu Oracle không nói tool nào chờ COMMIT, đó là hành vi của từng tool. Tài liệu có nói lệnh DDL như CREATE TABLE tự COMMIT ngầm. Bài về CREATE TABLE ở Mốc 2 sẽ ghi ý này.
+- **So sánh chữ:** nói rõ đây là collation mặc định của MySQL 8 (`utf8mb4_0900_ai_ci`, NO PAD), đổi được bằng COLLATE. Oracle mặc định so sánh binary.
+- **Chưa kiểm được vì tài liệu không nói rõ:** `đ` có bằng `d` ở `utf8mb4_0900_ai_ci` không; tiêu đề column của một biểu thức không có alias; Oracle báo mã gì cho dấu `%`, cho query rỗng và cho hai câu lệnh liền nhau; MySQL báo gì cho hai câu lệnh liền nhau. Các test liên quan vẫn mang comment `CHỜ KIỂM TÀI LIỆU`. Muốn chốt cần chạy trên MySQL và Oracle thật, ví dụ Oracle FreeSQL.
+
+## Mạng và cách đọc nguồn
+
+- Session chạy trong môi trường `learn-database-like-a-kid`, đã mở mạng tới các host của tài liệu và nguồn lý thuyết ở mục 11.
+- Trong sandbox này công cụ WebFetch không phân giải được DNS. Subagent đọc nguồn bằng `curl` thường qua proxy của session, không đổi User-Agent.
+- Bài 1 đã đối chiếu với CS50 SQL Lecture 0 và bài blog của GitHub. Một câu ở thẻ "Ngoài đời" đã sửa cho đúng mức bài blog viết.
+
+## Tốc độ tải
+
+- **React chỉ vẽ lần đầu sau khi chunk của route đang mở đã tải xong.** Lý do: nếu vẽ khung chờ trước, React hoãn hiện nội dung thêm khoảng 300ms, và Lighthouse tính LCP của trang bài tập lên hơn 4 giây.
+- **CodeMirror là chunk riêng, gọi sau khi đề bài đã hiện.** Trong lúc chờ, chỗ của editor hiện sẵn câu query khởi đầu.
 
 ## Chia việc
 

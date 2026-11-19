@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { Chau, Says } from '../components/Chau';
 import { Confetti } from '../components/Confetti';
@@ -21,10 +21,8 @@ import './exercise.css';
 
 const U = uiApp.exercise;
 
-/* CodeMirror nặng nhất trang, nên tải riêng và tải ngay từ đầu, song song với phần còn lại. */
-const loadEditor = () => import('../components/SqlEditor');
-const SqlEditor = lazy(loadEditor);
-void loadEditor();
+/* CodeMirror nặng nhất trang, nên tải riêng, sau khi đề bài đã hiện. */
+const SqlEditor = lazy(() => import('../components/SqlEditor'));
 
 const TYPE_NAME: Record<Dialect, Record<ColumnType, string>> = {
   mysql: { int: 'INT', decimal: 'DECIMAL', text: 'VARCHAR', date: 'DATE', datetime: 'DATETIME' },
@@ -67,6 +65,13 @@ function ExerciseView({ exercise, db }: { exercise: Exercise; db: Database }) {
   const [runId, setRunId] = useState(0);
   const [ended, setEnded] = useState(false);
   const theaterRef = useRef<HTMLDivElement>(null);
+
+  /* Vẽ đề bài xong mới gọi editor, để chunk nặng không tranh đường với phần chữ. */
+  const [editorReady, setEditorReady] = useState(false);
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => window.setTimeout(() => setEditorReady(true), 0));
+    return () => window.cancelAnimationFrame(id);
+  }, []);
 
   const text = texts[dialect];
   const solution = exercise.solution[dialect] ?? '';
@@ -195,6 +200,9 @@ function ExerciseView({ exercise, db }: { exercise: Exercise; db: Database }) {
               </div>
             </div>
             <Suspense fallback={<pre className="ex-editor__wait">{text}</pre>}>
+              {!editorReady ? (
+                <pre className="ex-editor__wait">{text}</pre>
+              ) : (
               <SqlEditor
                 key={dialect}
                 value={text}
@@ -205,6 +213,7 @@ function ExerciseView({ exercise, db }: { exercise: Exercise; db: Database }) {
                 error={error ? error.span : null}
                 label={U.editor}
               />
+              )}
             </Suspense>
             <div className="ex-actions">
               <button type="button" className="btn ex-run" onClick={() => doRun(text, false)}>

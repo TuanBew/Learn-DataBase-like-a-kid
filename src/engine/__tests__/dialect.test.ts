@@ -328,7 +328,7 @@ describe('toán tử || và function nối chuỗi', () => {
     expect(ok(sql, 'oracle').rows).toEqual([['Trân châu đenTopping']]);
   });
 
-  // CHỜ KIỂM TÀI LIỆU: CONCAT có tham số NULL: MySQL ra NULL, Oracle coi NULL là chuỗi rỗng
+  // MySQL: CONCAT trả NULL nếu có tham số NULL (https://dev.mysql.com/doc/refman/8.0/en/string-functions.html). Oracle: nối chuỗi rỗng với toán hạng khác ra chính toán hạng đó, CONCAT tương đương || (https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Concatenation-Operator.html)
   it('CONCAT với NULL: MySQL ra NULL, Oracle bỏ qua NULL', () => {
     const sql = "SELECT CONCAT('cal:', calories) FROM products WHERE product_id = 5";
     expect(ok(sql, 'mysql').rows).toEqual([[null]]);
@@ -378,7 +378,7 @@ describe('ngày tháng', () => {
     expect(ok(sqlText, 'mysql').rows).toEqual([[12], [13], [14]]);
   });
 
-  // CHỜ KIỂM TÀI LIỆU: ORA-01861 xảy ra khi NLS_DATE_FORMAT mặc định (DD-MON-RR) không khớp chuỗi 'YYYY-MM-DD'
+  // Tài liệu xác nhận chuỗi được đổi ngầm sang DATE bằng default date format (NLS_DATE_FORMAT), https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Data-Type-Comparison-Rules.html ; ORA-01861 = literal không khớp format (https://docs.oracle.com/en/error-help/db/ora-01861/). Tài liệu không nói rõ mã lỗi cho đúng chuỗi ISO này, và không nêu giá trị mặc định DD-MON-RR.
   it('Oracle: so sánh ngày với chuỗi ISO ra ORA-01861', () => {
     const e = fail(sqlText, 'oracle');
     expect(e.code).toBe('ORA-01861');
@@ -396,7 +396,7 @@ describe('toán tử chia dư', () => {
     expect(ok('SELECT 10 % 3', 'mysql').rows).toEqual([[1]]);
   });
 
-  // CHỜ KIỂM TÀI LIỆU: Oracle báo ORA-00911 (invalid character) cho dấu % đứng giữa hai số
+  // Tài liệu chỉ liệt kê + - * / là toán tử số học của Oracle (https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Arithmetic-Operators.html) và ORA-00911 là invalid character (https://docs.oracle.com/en/error-help/db/ora-00911/). Tài liệu không nói rõ mã lỗi cho `10 % 3` (CHỜ KIỂM bằng Oracle thật).
   it('Oracle: % là lỗi, tại chính ký tự đó', () => {
     const sql = 'SELECT 10 % 3 FROM DUAL';
     const e = fail(sql, 'oracle');
@@ -556,7 +556,7 @@ describe('query rỗng và nhiều câu lệnh', () => {
     expect(e.dbMessage).toBe('ORA-00900: invalid SQL statement');
   });
 
-  // CHỜ KIỂM TÀI LIỆU: MySQL client mặc định chạy được hai câu lệnh liền nhau, còn driver tắt multi-statement thì ra 1064
+  // Chạy nhiều câu lệnh một lần cần cờ CLIENT_MULTI_STATEMENTS (https://dev.mysql.com/doc/c-api/8.0/en/c-api-multiple-queries.html). Tài liệu không nói rõ mã lỗi khi cờ tắt (CHỜ KIỂM bằng MySQL thật).
   it('MySQL: hai câu lệnh trong một lần chạy ra 1064 tại câu thứ hai', () => {
     const sql = 'SELECT 1 FROM DUAL; SELECT 2 FROM DUAL';
     const e = fail(sql, 'mysql');

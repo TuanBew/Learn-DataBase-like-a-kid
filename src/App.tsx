@@ -13,20 +13,16 @@ const LessonPage = lazy(lessonPage);
 const ExercisePage = lazy(exercisePage);
 
 /**
- * Tải sớm trang và nội dung của route đang mở, song song với lúc React khởi động.
- * Nhờ vậy trang bài học và trang bài tập không phải chờ ba lượt tải nối đuôi nhau.
+ * Tải trang và nội dung của route đang mở trước khi React vẽ lần đầu.
+ * Nếu để React vẽ khung chờ trước, React sẽ hoãn hiện nội dung thêm khoảng 300ms,
+ * và tiêu đề bài xuất hiện muộn.
  */
-function preloadRoute(path: string): void {
+export function preloadRoute(path: string): Promise<unknown> {
   const [, kind, id] = path.split('/');
-  if (kind === 'bai') {
-    void lessonPage();
-    void lessons[id]?.();
-  } else if (kind === 'tap') {
-    void exercisePage();
-    void exercises[id]?.().then((ex) => databases[ex.database]());
-  }
+  if (kind === 'bai') return Promise.all([lessonPage(), lessons[id]?.()]);
+  if (kind === 'tap') return Promise.all([exercisePage(), exercises[id]?.().then((ex) => databases[ex.database]())]);
+  return Promise.resolve();
 }
-preloadRoute(window.location.pathname);
 
 /** Về đầu trang khi đổi trang, hoặc cuộn tới mục có dấu #. */
 function ScrollManager() {

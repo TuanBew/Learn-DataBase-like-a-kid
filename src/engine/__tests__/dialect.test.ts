@@ -572,34 +572,3 @@ describe('query rỗng và nhiều câu lệnh', () => {
   });
 });
 
-describe('phần chưa hỗ trợ', () => {
-  const cases: [string, string][] = [
-    ['COUNT', 'SELECT COUNT(*) FROM products'],
-    ['SUM', 'SELECT SUM(price) FROM products'],
-    ['GROUP BY', 'SELECT category FROM products GROUP BY category'],
-    ['JOIN', 'SELECT * FROM products a JOIN order_items b ON a.product_id = b.product_id'],
-    ['subquery', 'SELECT * FROM products WHERE price > (SELECT 1 FROM DUAL)'],
-    ['INSERT', "INSERT INTO stores VALUES (5, 'x', 'y', 'z', '2026-03-01')"],
-    ['UPDATE', "UPDATE stores SET name = 'x'"],
-    ['DELETE', 'DELETE FROM stores'],
-  ];
-  for (const [name, sql] of cases) {
-    for (const d of ['mysql', 'oracle'] as Dialect[]) {
-      it(`${d}: ${name} ra kind 'unsupported'`, () => {
-        const e = fail(sql, d);
-        expect(e.kind).toBe('unsupported');
-        expect(e.friendly.length).toBeGreaterThan(0);
-      });
-    }
-  }
-
-  it('span của GROUP BY trỏ vào GROUP', () => {
-    const sql = 'SELECT category FROM products GROUP BY category';
-    expect(at(sql, fail(sql, 'mysql'))).toBe('GROUP');
-  });
-
-  it('span của INSERT trỏ vào INSERT', () => {
-    const sql = "INSERT INTO stores VALUES (5, 'x', 'y', 'z', '2026-03-01')";
-    expect(at(sql, fail(sql, 'mysql'))).toBe('INSERT');
-  });
-});

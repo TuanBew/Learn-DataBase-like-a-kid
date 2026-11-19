@@ -9,7 +9,7 @@ export const entries: Record<string, GlossaryEntry> = {
   expression: {
     term: 'expression',
     short: 'Một phép tính hoặc một giá trị đứng trong query, ví dụ lương tháng nhân 12.',
-    example: 'Giá một ly nhân với số ly cho ra tiền của dòng món đó.',
+    example: 'Giá một ly nhân với số ly cho ra tiền của món đó trong đơn.',
   },
   like: {
     term: 'LIKE',

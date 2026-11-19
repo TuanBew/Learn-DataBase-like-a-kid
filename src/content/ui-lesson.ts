@@ -14,4 +14,7 @@ export const uiLesson = {
   quizMatched: 'đã ghép',
   quizMatchHint: 'Bấm một ô bên trái, rồi bấm ô bên phải khớp với nó.',
   quizPairNumber: 'Cặp số',
+  exerciseLinks: 'Bài tập của bài này',
+  exerciseBoss: 'Boss',
+  exerciseDone: 'Đã làm xong',
 } as const;

@@ -1,6 +1,6 @@
 export const uiProgress = {
   title: 'Tiến trình',
-  bi: 'Mình nhớ bạn đã học tới đâu. Số liệu dưới đây tính từ những gì bạn đã làm trên máy này.',
+  bi: 'Mình nhớ bạn đã học tới đâu. Số liệu trong trang tính từ những gì bạn đã làm trên máy này.',
   lessonsLabel: 'Bài đã xong',
   exercisesLabel: 'Bài tập đã xong',
   of: 'trên',

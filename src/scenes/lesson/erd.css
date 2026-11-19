@@ -1,0 +1,213 @@
+.erd {
+  display: grid;
+  gap: var(--s4);
+  min-width: 0;
+  max-width: 780px;
+}
+.erd__board {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas:
+    'stores orders customers'
+    'staff order_items products';
+  gap: 44px 56px;
+  padding: var(--s3);
+  background: var(--paper);
+  border: var(--line);
+  border-radius: var(--r-md);
+}
+.erd__box--stores {
+  grid-area: stores;
+}
+.erd__box--orders {
+  grid-area: orders;
+}
+.erd__box--customers {
+  grid-area: customers;
+}
+.erd__box--staff {
+  grid-area: staff;
+}
+.erd__box--order_items {
+  grid-area: order_items;
+}
+.erd__box--products {
+  grid-area: products;
+}
+.erd__box {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0 0 6px;
+  text-align: left;
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: var(--r-sm);
+  box-shadow: var(--depth-sm);
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    opacity 180ms var(--ease-out),
+    background-color 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.erd__box:hover {
+  background: var(--paper-2);
+}
+.erd__box.is-near {
+  background: color-mix(in srgb, var(--sky) 45%, var(--sheet));
+}
+.erd__box.is-sel {
+  background: var(--mango);
+  box-shadow: 0 5px 0 var(--ink);
+}
+.erd__box.is-dim {
+  opacity: 0.35;
+}
+.erd__name {
+  display: block;
+  min-height: 30px;
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.9rem;
+  line-height: 24px;
+  background: var(--taro);
+  border-bottom: var(--line);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.erd__box.is-sel .erd__name {
+  background: var(--ink);
+  color: #fff;
+}
+.erd__col {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px 1px 6px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+.erd__col.is-pk {
+  font-weight: 800;
+}
+.erd__slot {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+.erd__icon {
+  display: block;
+}
+.erd__cname {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.erd__lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.erd__line path {
+  stroke: var(--ink-soft);
+  stroke-width: 1.75;
+  transition:
+    stroke-width 180ms var(--ease-out),
+    stroke 180ms var(--ease-out);
+}
+.erd__line {
+  transition: opacity 180ms var(--ease-out);
+}
+.erd__line.is-off {
+  opacity: 0.18;
+}
+.erd__line.is-on path {
+  stroke: var(--red);
+  stroke-width: 3.5;
+}
+.erd__card circle {
+  fill: var(--sheet);
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+.erd__card text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  fill: var(--ink);
+}
+.erd__line.is-on .erd__card circle {
+  fill: var(--mango);
+}
+.erd__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px var(--s4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.erd__legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.erd__say .says__bubble {
+  font-size: 0.98rem;
+}
+.erd__lead {
+  font-weight: 700;
+}
+.erd__says {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+.erd__says li + li {
+  margin-top: 4px;
+}
+@media (max-width: 700px) {
+  .erd__board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas:
+      'stores staff'
+      'orders customers'
+      'order_items products';
+    gap: 44px 44px;
+    padding: var(--s2);
+  }
+  .erd__name {
+    font-size: 0.82rem;
+    padding: 3px 8px;
+  }
+  .erd__col {
+    font-size: 0.7rem;
+    gap: 3px;
+    padding-left: 4px;
+  }
+  .erd__slot {
+    width: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .erd__box,
+  .erd__line,
+  .erd__line path {
+    transition: none;
+  }
+}
+.erd__hint {
+  margin-top: 6px;
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+}

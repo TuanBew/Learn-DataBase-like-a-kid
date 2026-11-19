@@ -21,7 +21,7 @@ export interface Pkg {
 
 export const sources = {
   title: 'Nguồn và ghi công',
-  bi: 'Mỗi bài trên site dựa trên ít nhất một nguồn dưới đây. Mình viết lại bằng lời của mình và không chép nguyên văn.',
+  bi: 'Mỗi bài trên site dựa trên ít nhất một nguồn trong trang này. Mình viết lại bằng lời của mình và không chép nguyên văn.',
   open: 'mở ở tab mới',
   cols: { name: 'Nguồn', usedFor: 'Dùng cho', note: 'Ghi chú' },
 

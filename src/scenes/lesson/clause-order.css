@@ -1,0 +1,39 @@
+.corder {
+  display: grid;
+  gap: var(--s4);
+  min-width: 0;
+  max-width: 780px;
+}
+.corder__cap,
+.corder__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+}
+.corder__code {
+  margin: 6px 0 0;
+  padding: var(--s3);
+  display: grid;
+  justify-items: start;
+  background: var(--paper-2);
+  border: var(--line);
+  border-radius: var(--r-sm);
+  overflow-x: auto;
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+.corder__line {
+  font-family: var(--font-mono);
+  white-space: pre;
+}
+.corder__play {
+  display: grid;
+  gap: var(--s2);
+  min-width: 0;
+}
+.corder__title {
+  font-size: var(--text-lg);
+}
+.corder__say .says__bubble {
+  font-size: 0.98rem;
+}

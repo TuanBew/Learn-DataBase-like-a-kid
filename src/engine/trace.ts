@@ -29,6 +29,42 @@ export interface TraceRow {
 
 export type TraceStep =
   | { kind: 'from'; table: string; alias?: string; columns: TraceCol[]; rows: TraceRow[] }
+  | {
+      /** Ghép thêm một table vào các row đang có. */
+      kind: 'join';
+      joinKind: 'inner' | 'left' | 'cross';
+      table: string;
+      alias?: string;
+      /** Điều kiện ON, nguyên văn. */
+      on?: string;
+      rightColumns: TraceCol[];
+      rightRows: TraceRow[];
+      /** Mọi column sau khi ghép. */
+      columns: TraceCol[];
+      rows: TraceRow[];
+      /** Row mới ghép từ row bên trái nào và row bên phải nào. `right` là null khi LEFT JOIN không tìm thấy row khớp. */
+      links: { id: number; left: number; right: number | null }[];
+    }
+  | {
+      /** Một subquery chạy trước, ra một giá trị hoặc một danh sách. */
+      kind: 'subquery';
+      text: string;
+      scalar: boolean;
+      columns: string[];
+      rows: Value[][];
+      total: number;
+    }
+  | {
+      /** Gom row vào các nhóm. Mỗi nhóm thành một row gồm các giá trị của GROUP BY và các function gom. */
+      kind: 'group';
+      /** true khi không có GROUP BY: mọi row vào chung một nhóm. */
+      implicit: boolean;
+      keys: string[];
+      aggs: string[];
+      columns: TraceCol[];
+      groups: { id: number; rowIds: number[]; cells: Value[] }[];
+    }
+  | { kind: 'having'; verdicts: { id: number; pass: boolean; reason: string }[] }
   | { kind: 'where'; verdicts: { id: number; pass: boolean; reason: string }[] }
   | {
       kind: 'select';

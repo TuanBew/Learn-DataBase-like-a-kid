@@ -37,6 +37,8 @@ export interface TableDef {
   /** Một câu tiếng Việt nói table này lưu gì. */
   about?: string;
   columns: ColumnDef[];
+  /** Các luật CHECK của table, viết như trong SQL, ví dụ 'price > 0'. */
+  checks?: string[];
   /** Mỗi row là một mảng giá trị, đúng thứ tự của `columns`. */
   rows: RawValue[][];
 }

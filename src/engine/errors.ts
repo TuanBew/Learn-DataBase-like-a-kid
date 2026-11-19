@@ -37,7 +37,9 @@ export class SqlError extends Error {
 }
 
 const ORA: Record<string, string> = {
+  '00001': 'unique constraint violated',
   '00900': 'invalid SQL statement',
+  '00902': 'invalid datatype',
   '00903': 'invalid table name',
   '00904': 'invalid identifier',
   '00905': 'missing keyword',
@@ -46,16 +48,33 @@ const ORA: Record<string, string> = {
   '00908': 'missing NULL keyword',
   '00909': 'invalid number of arguments',
   '00911': 'invalid character',
+  '00913': 'too many values',
+  '00918': 'column ambiguously defined',
   '00920': 'invalid relational operator',
   '00923': 'FROM keyword not found where expected',
   '00924': 'missing BY keyword',
+  '00925': 'missing INTO keyword',
+  '00926': 'missing VALUES keyword',
+  '00927': 'missing equal sign',
   '00933': 'SQL command not properly ended',
+  '00934': 'group function is not allowed here',
   '00936': 'missing expression',
+  '00937': 'not a single-group group function',
   '00942': 'table or view does not exist',
+  '00947': 'not enough values',
+  '00955': 'name is already used by an existing object',
+  '00971': 'missing SET keyword',
+  '00979': 'not a GROUP BY expression',
+  '01400': 'cannot insert NULL',
+  '01407': 'cannot update to NULL',
+  '01427': 'single-row subquery returns more than one row',
   '01476': 'divisor is equal to zero',
   '01722': 'invalid number',
   '01756': 'quoted string not properly terminated',
   '01861': 'literal does not match format string',
+  '02290': 'check constraint violated',
+  '02291': 'integrity constraint violated - parent key not found',
+  '02292': 'integrity constraint violated - child record found',
 };
 
 export type OraCode = keyof typeof ORA | string;

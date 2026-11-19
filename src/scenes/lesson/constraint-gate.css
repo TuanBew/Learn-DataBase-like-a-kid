@@ -1,0 +1,317 @@
+.cgt {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: var(--s5);
+  align-items: start;
+  max-width: 780px;
+  margin-inline: auto;
+}
+.cgt__side,
+.cgt__main {
+  display: grid;
+  gap: var(--s2);
+  min-width: 0;
+  align-content: start;
+}
+.cgt__qhead {
+  display: flex;
+}
+.cgt__cols,
+.cgt-card,
+.cgt__tr {
+  display: grid;
+  grid-template-columns: 66px minmax(0, 1fr) 58px;
+  gap: 6px;
+  align-items: center;
+}
+.cgt__cols {
+  padding: 0 10px;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: var(--ink-2);
+}
+.cgt__cols span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cgt__cols span:last-child {
+  text-align: right;
+}
+.cgt__queue {
+  display: grid;
+  gap: 6px;
+}
+.cgt-card {
+  min-height: 44px;
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.25;
+  text-align: left;
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: 10px;
+  box-shadow: 0 3px 0 var(--edge);
+}
+.cgt-card span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.cgt-card--btn {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.cgt-card--btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.cgt-card--btn[aria-checked='true'] {
+  background: var(--mango);
+  box-shadow: 0 3px 0 var(--ink);
+}
+.cgt-card--btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.cgt-card--slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+  background: none;
+  border: 2px dashed var(--ink-line);
+  box-shadow: none;
+}
+.cgt-id {
+  font-weight: 800;
+}
+.cgt-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.cgt-null {
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.cgt__go {
+  --bg: var(--matcha);
+  margin-top: var(--s1);
+}
+
+/* Cổng: hai cột trụ, một xà ngang, bốn biển luật treo dưới xà */
+.cgt__gate {
+  position: relative;
+  padding: 0 10px 0;
+  border: 8px solid var(--ink);
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  background: var(--sheet);
+  overflow: hidden;
+}
+.cgt__signs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cgt__signwrap {
+  display: grid;
+  justify-items: stretch;
+}
+.cgt__rope {
+  justify-self: center;
+  width: 2px;
+  height: 12px;
+  background: var(--ink);
+}
+.cgt-sign {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  min-height: 84px;
+  padding: 6px 6px 4px;
+  text-align: center;
+  font-family: var(--font-mono);
+  background: var(--paper-2);
+  border: var(--line);
+  border-radius: 8px;
+  box-shadow: 0 3px 0 var(--edge);
+}
+.cgt-sign__col {
+  font-size: 0.68rem;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+.cgt-sign__rule {
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.cgt-sign__state {
+  align-self: end;
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+.cgt-sign--ok {
+  background: var(--matcha);
+  animation: cgt-pop 0.35s var(--ease-out);
+}
+.cgt-sign--ok .cgt-sign__state {
+  color: var(--matcha-ink);
+}
+.cgt-sign--bad {
+  background: var(--red-soft);
+  border-color: var(--red-ink);
+  box-shadow: 0 3px 0 var(--red);
+  animation: cgt-shake 0.45s ease-out;
+}
+.cgt-sign--bad .cgt-sign__state {
+  color: var(--red-ink);
+}
+.cgt__lane {
+  display: grid;
+  place-items: center;
+  height: 72px;
+  margin: 0 -10px;
+  padding: 0 10px;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 8px 8px;
+  overflow: hidden;
+}
+.cgt-runner {
+  width: min(100%, 300px);
+  background: var(--mango);
+  box-shadow: 0 3px 0 var(--ink);
+}
+.cgt__codes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-height: 34px;
+}
+.cgt__codeslabel {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--red-ink);
+}
+.cgt__code {
+  background: var(--red-soft);
+  border-color: var(--red-ink);
+  color: var(--red-ink);
+}
+.cgt__thead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.cgt__tname {
+  background: var(--sky);
+}
+.cgt__reset {
+  margin-left: auto;
+  min-height: 44px;
+}
+.cgt__table {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  min-height: 190px;
+  padding: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  border: var(--line);
+  border-radius: var(--r-md);
+  background: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+.cgt__tr {
+  grid-template-columns: 74px minmax(0, 1fr) 64px;
+  min-height: 34px;
+  padding: 3px 10px;
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: 8px;
+  box-shadow: 0 3px 0 var(--edge);
+}
+.cgt__tr > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.cgt__tr--head {
+  min-height: 0;
+  padding: 0 10px 2px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.cgt__tr--head span:last-child {
+  text-align: right;
+}
+.cgt__say .says__bubble {
+  font-size: 0.98rem;
+}
+.cgt__done {
+  margin-top: var(--s2);
+}
+@keyframes cgt-pop {
+  0% {
+    transform: scale(0.92);
+  }
+  60% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes cgt-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  45% {
+    transform: translateX(5px);
+  }
+  70% {
+    transform: translateX(-3px);
+  }
+}
+@media (max-width: 700px) {
+  .cgt {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s4);
+  }
+  .cgt__signs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cgt-sign {
+    min-height: 74px;
+  }
+  .cgt__table {
+    padding: 8px;
+    font-size: 0.74rem;
+    min-height: 170px;
+  }
+  .cgt__tr {
+    grid-template-columns: 70px minmax(0, 1fr) 56px;
+  }
+  .cgt__tr--head {
+    font-size: 0.64rem;
+  }
+}

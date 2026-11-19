@@ -1,0 +1,235 @@
+.tanat {
+  display: grid;
+  gap: var(--s6);
+  max-width: 780px;
+  margin-inline: auto;
+  min-width: 0;
+}
+.ta__part {
+  display: grid;
+  gap: var(--s3);
+  min-width: 0;
+}
+.ta__h {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+.ta__intro {
+  font-size: 0.98rem;
+}
+.ta__btns,
+.ta__vals {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+}
+.ta__btn,
+.ta__valbtn {
+  min-height: 44px;
+  min-width: 64px;
+}
+.ta__btn[aria-pressed='true'] {
+  --bg: var(--mango);
+}
+.ta__valbtn {
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+.ta__reset {
+  min-height: 44px;
+  padding: 0 8px;
+  background: none;
+  border: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.ta__count {
+  display: flex;
+  gap: var(--s2);
+}
+
+/* Table */
+.ta__wrap {
+  min-width: 0;
+}
+.ta {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  background: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 8px 8px;
+  border: var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--depth-card);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  transition: background-color 160ms ease;
+}
+.ta--lit {
+  background-color: var(--mango);
+  background-image: none;
+}
+.ta__tname .chip {
+  background: var(--taro);
+}
+.ta__grid {
+  display: grid;
+  grid-template-columns: 22px 92px minmax(0, 1fr) 76px 112px;
+  gap: 5px;
+  align-items: stretch;
+}
+.ta__grid--mini {
+  grid-template-columns: minmax(0, 1fr) 78px 96px;
+}
+.ta__gutter {
+  min-height: 44px;
+  padding: 0;
+  background: var(--taro);
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+}
+.ta__gutter--btn {
+  cursor: pointer;
+  min-width: 22px;
+}
+.ta__gutter--btn:hover {
+  background: var(--mango);
+}
+.ta__th {
+  display: grid;
+  gap: 3px;
+  align-content: center;
+  justify-items: start;
+  min-width: 0;
+  min-height: 44px;
+  padding: 3px 6px;
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.74rem;
+  color: var(--ink);
+  text-align: left;
+  background: var(--taro);
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.ta__th--static {
+  cursor: default;
+}
+.ta__cname {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  line-height: 1.1;
+}
+.ta__type {
+  padding: 0 6px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  line-height: 1.5;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--sheet);
+}
+.ta__type--int {
+  background: var(--sky);
+}
+.ta__type--text {
+  background: var(--peach);
+}
+.ta__type--date {
+  background: var(--matcha);
+}
+.ta__cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 44px;
+  padding: 3px 6px;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  color: var(--ink);
+  background: var(--sheet);
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  transition: background-color 140ms ease;
+}
+.ta__cell--num {
+  justify-content: flex-end;
+  text-align: right;
+}
+.ta__cell--static {
+  cursor: default;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  background: var(--paper-2);
+}
+.ta__cell--pick {
+  justify-content: center;
+}
+.ta__cell--pick.is-new {
+  border-color: var(--matcha-ink);
+}
+.ta__val {
+  display: inline-block;
+}
+.ta__th.is-lit,
+.ta__cell.is-lit,
+.ta__gutter.is-lit {
+  background: var(--mango);
+}
+.ta--lit .ta__th,
+.ta--lit .ta__cell,
+.ta--lit .ta__gutter {
+  background: var(--mango);
+}
+.ta__cell--pick.is-lit {
+  outline: 3px solid var(--ink);
+  outline-offset: 1px;
+}
+.ta__say .says__bubble {
+  font-size: 0.98rem;
+}
+
+@media (max-width: 560px) {
+  .ta {
+    padding: 8px;
+    gap: 4px;
+    font-size: 0.64rem;
+  }
+  .ta__grid {
+    grid-template-columns: 12px 64px minmax(0, 1fr) 48px 76px;
+    gap: 4px;
+  }
+  .ta__grid--mini {
+    grid-template-columns: minmax(0, 1fr) 62px 82px;
+  }
+  .ta__th {
+    font-size: 0.56rem;
+    padding: 3px 2px;
+  }
+  .ta__cell {
+    padding: 3px 4px;
+  }
+  .ta__gutter {
+    min-width: 12px;
+  }
+  .ta__gutter--btn {
+    min-width: 12px;
+  }
+  .ta__cell--static {
+    font-size: 0.72rem;
+  }
+}

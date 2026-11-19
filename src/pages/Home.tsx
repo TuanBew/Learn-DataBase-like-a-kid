@@ -1,6 +1,8 @@
 import { Link } from 'wouter';
 import { Icon } from '../components/Icon';
 import { chapters } from '../content/course';
+import { exercises } from '../content/exercises';
+import { lessons } from '../content/lessons';
 import { homeAsk, homeFlow, homeInside } from '../content/home';
 import { uiApp } from '../content/ui-app';
 import { useProgress } from '../lib/progress';
@@ -128,10 +130,11 @@ export function Home() {
                 <p className="toc-ch__about">{c.about}</p>
                 <ul>
                   {c.lessons.map((l) => {
+                    const ready = l.exercise ? l.id in exercises : l.id in lessons;
                     const done = l.exercise ? progress.exercises[l.id] !== undefined : progress.lessons[l.id] !== undefined;
                     return (
-                      <li key={l.id} className={`toc-l ${l.ready ? '' : 'toc-l--soon'}`}>
-                        {l.ready ? (
+                      <li key={l.id} className={`toc-l ${ready ? '' : 'toc-l--soon'}`}>
+                        {ready ? (
                           <Link href={l.exercise ? `/tap/${l.id}` : `/bai/${l.id}`} className="toc-l__link">
                             <span className="toc-l__title">{l.title}</span>
                             <span className="toc-l__dots" aria-hidden="true" />

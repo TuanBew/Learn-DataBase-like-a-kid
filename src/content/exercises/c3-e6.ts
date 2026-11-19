@@ -1,7 +1,7 @@
-import type { Exercise } from '../types';
+import type { SqlExercise } from '../types';
 
 /** Bài mẫu của khuôn bài tập. Các bài khác viết theo đúng cấu trúc này. */
-export const exercise: Exercise = {
+export const exercise: SqlExercise = {
   id: 'c3-e6',
   chapter: 3,
   kind: 'write',

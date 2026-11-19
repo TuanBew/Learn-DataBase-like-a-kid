@@ -8,7 +8,7 @@ import { ResultCompare } from '../components/ResultCompare';
 import { ResultTable } from '../components/ResultTable';
 import { Rich } from '../components/Rich';
 import { exercises } from '../content/exercises';
-import type { Exercise } from '../content/types';
+import type { SqlExercise } from '../content/types';
 import { uiApp } from '../content/ui-app';
 import { databases } from '../data';
 import { type GradeReport, type ResultSet, type SqlError, type Trace, grade, run } from '../engine';
@@ -31,7 +31,8 @@ const TYPE_NAME: Record<Dialect, Record<ColumnType, string>> = {
 
 export default function ExercisePage({ id }: { id: string }) {
   const exercise = useLoad(exercises[id], `ex:${id}`);
-  const db = useLoad(exercise ? databases[exercise.database] : undefined, `db:${exercise?.database ?? ''}`);
+  const sqlEx = exercise && exercise.kind !== 'quiz' ? exercise : null;
+  const db = useLoad(sqlEx ? databases[sqlEx.database] : undefined, `db:${sqlEx?.database ?? ''}`);
   if (exercise === null) {
     return (
       <div className="wrap ex-missing">
@@ -49,7 +50,7 @@ export default function ExercisePage({ id }: { id: string }) {
         <p className="ex-kicker">{U.kicker(exercise.chapter)}</p>
         <h1 className="ex-title">{exercise.title}</h1>
       </header>
-      {db ? <ExerciseView exercise={exercise} db={db} /> : <div style={{ minHeight: '60vh' }} />}
+      {sqlEx && db ? <ExerciseView exercise={sqlEx} db={db} /> : <div style={{ minHeight: '60vh' }} />}
     </div>
   );
 }
@@ -58,7 +59,7 @@ type Outcome =
   | { kind: 'error'; error: SqlError }
   | { kind: 'ran'; trace: Trace; result: ResultSet; report: GradeReport; wrongHint?: string; solution: boolean };
 
-function ExerciseView({ exercise, db }: { exercise: Exercise; db: Database }) {
+function ExerciseView({ exercise, db }: { exercise: SqlExercise; db: Database }) {
   const [dialect, setDialect] = useState<Dialect>(exercise.dialects[0]);
   const [texts, setTexts] = useState<Record<Dialect, string>>({ mysql: exercise.starter.mysql ?? '', oracle: exercise.starter.oracle ?? '' });
   const [outcome, setOutcome] = useState<Outcome | null>(null);

@@ -19,6 +19,7 @@ describe('bài tập', () => {
 
       it('mỗi dialect của bài đều có lời giải, starter và đáp án sai', async () => {
         const ex = await exercises[id]();
+        if (ex.kind === 'quiz') return;
         expect(ex.dialects.length).toBeGreaterThan(0);
         for (const d of ex.dialects) {
           expect(ex.solution[d], `solution ${d}`).toBeTruthy();
@@ -31,6 +32,7 @@ describe('bài tập', () => {
       for (const d of ['mysql', 'oracle'] as Dialect[]) {
         it(`${d}: lời giải mẫu chạy không lỗi và tự chấm ra đúng`, async () => {
           const ex = await exercises[id]();
+          if (ex.kind === 'quiz') return;
           if (!ex.dialects.includes(d)) return;
           const db = await databases[ex.database]();
           const sol = run(ex.solution[d]!, db, d);
@@ -40,6 +42,7 @@ describe('bài tập', () => {
 
         it(`${d}: mỗi đáp án sai chạy không lỗi và bị chấm sai`, async () => {
           const ex = await exercises[id]();
+          if (ex.kind === 'quiz') return;
           if (!ex.dialects.includes(d)) return;
           const db = await databases[ex.database]();
           const sol = run(ex.solution[d]!, db, d);
@@ -53,6 +56,7 @@ describe('bài tập', () => {
 
         it(`${d}: kết quả của các đáp án sai khác nhau từng đôi`, async () => {
           const ex = await exercises[id]();
+          if (ex.kind === 'quiz') return;
           if (!ex.dialects.includes(d)) return;
           const db = await databases[ex.database]();
           const results = ex.wrong.map((w) => {
@@ -70,6 +74,7 @@ describe('bài tập', () => {
 
         it(`${d}: starter chạy được hoặc báo lỗi có lời giải thích`, async () => {
           const ex = await exercises[id]();
+          if (ex.kind === 'quiz') return;
           if (!ex.dialects.includes(d)) return;
           const db = await databases[ex.database]();
           const r = run(ex.starter[d]!, db, d);

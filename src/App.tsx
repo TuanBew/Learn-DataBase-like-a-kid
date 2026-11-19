@@ -20,7 +20,7 @@ const ExercisePage = lazy(exercisePage);
 export function preloadRoute(path: string): Promise<unknown> {
   const [, kind, id] = path.split('/');
   if (kind === 'bai') return Promise.all([lessonPage(), lessons[id]?.()]);
-  if (kind === 'tap') return Promise.all([exercisePage(), exercises[id]?.().then((ex) => databases[ex.database]())]);
+  if (kind === 'tap') return Promise.all([exercisePage(), exercises[id]?.().then((ex) => (ex.kind === 'quiz' ? undefined : databases[ex.database]()))]);
   return Promise.resolve();
 }
 

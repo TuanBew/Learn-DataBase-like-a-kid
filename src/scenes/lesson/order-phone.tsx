@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import * as m from 'motion/react-m';
 import { AnimatePresence } from 'motion/react';
-import { Says } from '../components/Mascot';
-import { Icon } from '../components/Icon';
-import { Rich } from '../components/Rich';
-import type { OrderPhoneCopy } from '../content/types';
-import { uiApp } from '../content/ui-app';
-import { niceNumber } from '../engine/values';
-import { play } from '../sfx/sfx';
+import { Says } from '../../components/Mascot';
+import { Icon } from '../../components/Icon';
+import { Rich } from '../../components/Rich';
+import { copy } from '../../content/scenes/order-phone';
+import { uiApp } from '../../content/ui-app';
+import { niceNumber } from '../../engine/values';
+import { play } from '../../sfx/sfx';
 import './order-phone.css';
 
 const MAX = 6;
@@ -27,7 +27,7 @@ const clock = (n: number) => {
 };
 
 /** Cảnh "Đặt một ly": mỗi lần bấm Đặt món, một row bay từ điện thoại vào table orders. */
-export function OrderPhone({ copy }: { copy: OrderPhoneCopy }) {
+export default function OrderPhone() {
   const [pick, setPick] = useState(copy.drinks[0]?.id ?? '');
   const [orders, setOrders] = useState<Order[]>([]);
   const full = orders.length >= MAX;

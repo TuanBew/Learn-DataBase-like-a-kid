@@ -1,13 +1,13 @@
 import type { Chapter } from './types';
 
-/** Mục lục của khóa học. Bài nào có `ready: true` là đã mở. */
+/** Mục lục của khóa học. Bài nào đã có file trong `lessons/` hoặc `exercises/` thì tự mở. */
 export const chapters: Chapter[] = [
   {
     id: 1,
     title: 'Database là gì',
     about: 'Dữ liệu nằm ở đâu, ai giữ, và bạn nói chuyện với người giữ bằng cách nào.',
     lessons: [
-      { id: 'c1-b1', title: 'Dữ liệu ở quanh ta', ready: true },
+      { id: 'c1-b1', title: 'Dữ liệu ở quanh ta' },
       { id: 'c1-b2', title: 'Excel và database' },
       { id: 'c1-b3', title: 'table, row, column' },
       { id: 'c1-b4', title: 'DBMS và SQL' },
@@ -23,7 +23,8 @@ export const chapters: Chapter[] = [
       { id: 'c2-b2', title: 'foreign key' },
       { id: 'c2-b3', title: 'Vì sao phải tách table' },
       { id: 'c2-b4', title: 'NULL' },
-      { id: 'c2-b5', title: 'constraint và CREATE TABLE' },
+      { id: 'c2-b5', title: 'constraint' },
+      { id: 'c2-b6', title: 'Đọc ERD và CREATE TABLE' },
     ],
   },
   {
@@ -36,7 +37,7 @@ export const chapters: Chapter[] = [
       { id: 'c3-b3', title: 'ORDER BY và DISTINCT' },
       { id: 'c3-b4', title: 'LIMIT và FETCH FIRST' },
       { id: 'c3-b5', title: 'Thứ tự query chạy thật' },
-      { id: 'c3-e6', title: 'Bài tập mẫu: ba món rẻ nhất trên 30.000 đồng', ready: true, exercise: true },
+      { id: 'c3-e6', title: 'Bài tập mẫu: ba món rẻ nhất trên 30.000 đồng', exercise: true },
     ],
   },
   {

@@ -94,14 +94,36 @@ export type Quiz = ChoiceQuiz | MatchQuiz;
 export type LessonBlock =
   | { type: 'story'; title: string; paragraphs: Rich[] }
   | { type: 'text'; title?: string; paragraphs: Rich[] }
-  | { type: 'scene'; scene: 'data-street'; title: string; intro: Rich; copy: DataStreetCopy }
-  | { type: 'scene'; scene: 'order-phone'; title: string; intro: Rich; copy: OrderPhoneCopy }
+  /** Một cảnh motion. `scene` là khóa trong `src/scenes/index.ts`. Chữ của cảnh nằm ở `src/content/scenes/<scene>.ts`. */
+  | { type: 'scene'; scene: string; title: string; intro: Rich }
+  /** "Thử tay ngay": một editor nhỏ kèm Query Theater, chạy trên dữ liệu thật. */
+  | PlaygroundBlock
+  /** Một đoạn code có chú thích từng phần, ví dụ CREATE TABLE. */
+  | { type: 'code'; title: string; intro?: Rich; code: string; notes: { find: string; text: Rich }[] }
   | { type: 'quiz'; title: string; items: Quiz[] }
-  | { type: 'exercise'; exerciseId: string }
+  /** Lối sang các bài tập của bài này. */
+  | { type: 'exercise'; exerciseIds: string[] }
   | { type: 'oracle'; body: Rich[]; mysql?: string; oracle?: string }
   | { type: 'realworld'; title: string; paragraphs: Rich[]; source?: Source }
   | { type: 'keypoints'; items: Rich[] }
   | { type: 'sources'; items: Source[] };
+
+export interface PlaygroundBlock {
+  type: 'playground';
+  title: string;
+  intro: Rich;
+  database: 'teashop' | 'teashop-big' | 'hr';
+  /** Các table hiện tên column cho người học xem. */
+  tables: string[];
+  /** Dialect được chọn. Một dialect thì ẩn nút đổi. */
+  dialects: Dialect[];
+  /** Query có sẵn lúc mở. */
+  sql: Partial<Record<Dialect, string>>;
+  /** Các query gợi ý để bấm thử, mỗi cái đổi một điểm so với query gốc. */
+  tries?: { label: string; sql: Partial<Record<Dialect, string>> }[];
+  /** Bi nói một câu dưới editor. */
+  say?: Rich;
+}
 
 export interface Lesson {
   /** Ví dụ 'c1-b1'. */
@@ -123,25 +145,38 @@ export interface Chapter {
   title: string;
   /** Một câu nói chương này dạy gì. */
   about: string;
-  /** Tên các bài theo thứ tự. Bài chưa viết thì chỉ có `title`. */
-  lessons: { id: string; title: string; ready?: boolean; /** true nếu mục này là một bài tập, không phải bài học. */ exercise?: boolean }[];
+  /** Tên các bài theo thứ tự. */
+  lessons: { id: string; title: string; /** true nếu mục này là một bài tập, không phải bài học. */ exercise?: boolean }[];
 }
 
 /* ---------- Bài tập SQL ---------- */
 
-export type ExerciseKind = 'write' | 'fill' | 'order' | 'predict' | 'debug' | 'translate' | 'rehearsal';
+/**
+ * Các dạng bài tập.
+ * - write: viết query từ đầu. fill: `starter` có chỗ trống `____`. debug: `starter` là query viết sai.
+ * - translate: `from` là query MySQL, người học viết lại bằng Oracle.
+ * - order: xếp các mẩu trong `pieces` cho đúng thứ tự viết của query.
+ * - predict: đoán row nào còn lại sau khi chạy `solution`, rồi xem Theater để kiểm.
+ * - rehearsal: diễn tập UPDATE hoặc DELETE trên bản sao của `target`.
+ * - quiz: một nhóm câu hỏi nhanh trong `items`, không cần engine.
+ */
+export type ExerciseKind = 'write' | 'fill' | 'order' | 'predict' | 'debug' | 'translate' | 'rehearsal' | 'quiz';
 
-export interface Exercise {
-  /** Ví dụ 'c3-e4'. */
+interface ExerciseBase {
+  /** Ví dụ 'c3-e4'. Bài boss của chương có đuôi '-boss'. */
   id: string;
   chapter: number;
-  kind: ExerciseKind;
   title: string;
   /** Đề bài. Nói rõ cần column nào, điều kiện gì, sắp xếp ra sao. */
   prompt: Rich;
-  /** Vài gạch đầu dòng nhắc lại yêu cầu, mỗi gạch một ý. */
+  /** Vài gạch đầu dòng nhắc lại yêu cầu, mỗi gạch một ý. Bài quiz để mảng rỗng. */
   asks: Rich[];
-  database: 'teashop' | 'hr';
+}
+
+/** Bài tập chạy trên SQL engine. */
+export interface SqlExercise extends ExerciseBase {
+  kind: Exclude<ExerciseKind, 'quiz'>;
+  database: 'teashop' | 'teashop-big' | 'hr';
   /** Các table hiện trong ô "Dữ liệu của bài". */
   tables: string[];
   /** Các dialect bài này dùng. */
@@ -169,4 +204,20 @@ export interface Exercise {
    * Bi nói `hint`.
    */
   wrong: { id: string; sql: Partial<Record<Dialect, string>>; hint: Rich }[];
+  /** translate: query gốc viết bằng MySQL. */
+  from?: string;
+  /** order: các mẩu của query theo đúng thứ tự viết. Giao diện tự xáo. */
+  pieces?: Partial<Record<Dialect, string[]>>;
+  /** rehearsal: table bị sửa. Kết quả đúng là trạng thái của table này sau khi chạy `solution`. */
+  target?: string;
 }
+
+/** Bài tập gồm các câu hỏi nhanh, không cần engine. */
+export interface QuizExercise extends ExerciseBase {
+  kind: 'quiz';
+  items: Quiz[];
+  /** Bi nói khi làm xong hết. */
+  why: Rich;
+}
+
+export type Exercise = SqlExercise | QuizExercise;

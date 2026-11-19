@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { Link } from 'wouter';
 import { Says } from '../components/Mascot';
 import { Confetti } from '../components/Confetti';
 import { Icon } from '../components/Icon';
+import { AnnotatedCode } from '../components/lesson/AnnotatedCode';
 import { KeyPoints, OracleCard, RealWorldCard, SourcesLine, StoryBlock, TextBlock } from '../components/lesson/blocks';
+import { ExerciseLinks } from '../components/lesson/ExerciseLinks';
 import { ChoiceQuiz } from '../components/quiz/ChoiceQuiz';
 import { MatchQuiz } from '../components/quiz/MatchQuiz';
 import { Rich } from '../components/Rich';
@@ -13,12 +15,13 @@ import type { Lesson, LessonBlock } from '../content/types';
 import { uiApp } from '../content/ui-app';
 import { markLesson, useProgress } from '../lib/progress';
 import { useLoad } from '../lib/useLoad';
-import { DataStreet } from '../scenes/DataStreet';
-import { OrderPhone } from '../scenes/OrderPhone';
+import { scenes } from '../scenes';
 import { play } from '../sfx/sfx';
 import './lesson.css';
 
 const U = uiApp.lesson;
+
+const Playground = lazy(() => import('../components/Playground'));
 
 export default function LessonPage({ id }: { id: string }) {
   const lesson = useLoad(lessons[id], `lesson:${id}`);
@@ -42,16 +45,36 @@ function Block({ block }: { block: LessonBlock }) {
       return <StoryBlock title={block.title} paragraphs={block.paragraphs} />;
     case 'text':
       return <TextBlock title={block.title} paragraphs={block.paragraphs} />;
-    case 'scene':
+    case 'scene': {
+      const Scene = scenes[block.scene];
       return (
         <section className="scene sheet" aria-label={uiApp.scenes.sceneLabel}>
           <h2 className="scene__title">{block.title}</h2>
           <p className="scene__intro">
             <Rich text={block.intro} />
           </p>
-          {block.scene === 'data-street' ? <DataStreet copy={block.copy} /> : <OrderPhone copy={block.copy} />}
+          {Scene && (
+            <Suspense fallback={<div className="scene__wait" />}>
+              <Scene />
+            </Suspense>
+          )}
         </section>
       );
+    }
+    case 'playground':
+      return (
+        <section className="scene sheet" aria-label={uiApp.scenes.sceneLabel}>
+          <h2 className="scene__title">{block.title}</h2>
+          <p className="scene__intro">
+            <Rich text={block.intro} />
+          </p>
+          <Suspense fallback={<div className="scene__wait" />}>
+            <Playground block={block} />
+          </Suspense>
+        </section>
+      );
+    case 'code':
+      return <AnnotatedCode title={block.title} intro={block.intro} code={block.code} notes={block.notes} />;
     case 'quiz':
       return (
         <section className="lesson-quiz">
@@ -68,11 +91,7 @@ function Block({ block }: { block: LessonBlock }) {
     case 'sources':
       return <SourcesLine items={block.items} />;
     case 'exercise':
-      return (
-        <Link href={`/tap/${block.exerciseId}`} className="btn">
-          {U.toExercise}
-        </Link>
-      );
+      return <ExerciseLinks ids={block.exerciseIds} />;
   }
 }
 

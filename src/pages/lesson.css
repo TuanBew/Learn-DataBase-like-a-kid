@@ -134,3 +134,7 @@
     padding: var(--s4) var(--s3);
   }
 }
+
+.scene__wait {
+  min-height: 240px;
+}

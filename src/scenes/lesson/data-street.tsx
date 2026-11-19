@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import * as m from 'motion/react-m';
 import { AnimatePresence } from 'motion/react';
-import { Says } from '../components/Mascot';
-import { Rich } from '../components/Rich';
-import type { DataStreetCopy } from '../content/types';
-import { uiApp } from '../content/ui-app';
-import { play } from '../sfx/sfx';
+import { Says } from '../../components/Mascot';
+import { Rich } from '../../components/Rich';
+import { copy } from '../../content/scenes/data-street';
+import type { DataStreetCopy } from '../../content/types';
+import { uiApp } from '../../content/ui-app';
+import { play } from '../../sfx/sfx';
 import './data-street.css';
 
 type PlaceId = DataStreetCopy['places'][number]['id'];
@@ -91,7 +92,7 @@ function Building({ id }: { id: PlaceId }) {
 }
 
 /** Cảnh "Phố dữ liệu": chạm vào một nơi, nơi đó ghi một row vào sổ của mình. */
-export function DataStreet({ copy }: { copy: DataStreetCopy }) {
+export default function DataStreet() {
   const [counts, setCounts] = useState<Partial<Record<PlaceId, number>>>({});
   const [last, setLast] = useState<PlaceId | null>(null);
   const [full, setFull] = useState(false);

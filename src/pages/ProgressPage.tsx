@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Says } from '../components/Mascot';
 import type { Mood } from '../components/Mascot';
 import { chapters } from '../content/course';
+import { exercisesOfChapter } from '../content/exercise-map';
 import { uiProgress as T } from '../content/ui-progress';
 import { exportCode, importCode, resetProgress, useProgress } from '../lib/progress';
 import { play } from '../sfx/sfx';
@@ -22,14 +23,14 @@ export default function ProgressPage() {
   const [resetMsg, setResetMsg] = useState('');
 
   const rows = chapters.map((c) => {
-    const lessons = c.lessons.filter((l) => !l.exercise);
-    const exs = c.lessons.filter((l) => l.exercise);
+    const lessons = c.lessons;
+    const exs = exercisesOfChapter(c.id);
     const doneLessons = lessons.filter((l) => progress.lessons[l.id]).length;
-    const doneExs = exs.filter((l) => {
-      const e = progress.exercises[l.id];
+    const doneExs = exs.filter((id) => {
+      const e = progress.exercises[id];
       return Boolean(e && (e.mysql || e.oracle));
     }).length;
-    return { c, total: c.lessons.length, done: doneLessons + doneExs, lessons: lessons.length, doneLessons, exs: exs.length, doneExs };
+    return { c, total: lessons.length + exs.length, done: doneLessons + doneExs, lessons: lessons.length, doneLessons, exs: exs.length, doneExs };
   });
   const sum = (k: 'lessons' | 'doneLessons' | 'exs' | 'doneExs') => rows.reduce((n, r) => n + r[k], 0);
   const totalLessons = sum('lessons');

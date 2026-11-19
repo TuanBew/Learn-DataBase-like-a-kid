@@ -36,7 +36,9 @@ src/pages      Trang chủ, trang bài học, trang bài tập
 - Bài tập `c3-e6` có Query Theater đầy đủ ở MySQL và Oracle.
 - Trang chủ dạy database trước: ứng dụng gửi dữ liệu qua server vào database, rồi table, row, column, sau cùng mới nhắc tới SQL.
 
-## Mốc 2
+## Mốc 2 (đã xong)
+
+Kết quả: 33 bài học, 49 bài tập (mỗi chương 6 bài và một bài boss), 17 cảnh motion, 1094 test qua. JS tải lần đầu của trang chủ khoảng 135 KB gzip. Lượt quét 164 trang (bài học và bài tập ở 1440px và 390px) không còn lỗi console hay tràn ngang.
 
 1. Engine: JOIN, GROUP BY, HAVING, aggregate, subquery, function chuỗi và ngày giờ, ROWNUM, INSERT, UPDATE, DELETE, COMMIT, ROLLBACK, CREATE TABLE.
 2. Theater: bước JOIN, GROUP BY, HAVING, chế độ gọn cho 200 row, diễn tập UPDATE và DELETE.

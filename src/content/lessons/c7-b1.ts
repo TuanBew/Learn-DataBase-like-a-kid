@@ -62,7 +62,7 @@ export const lesson: Lesson = {
       type: 'scene',
       scene: 'dml-rehearsal',
       title: 'Diễn tập UPDATE và DELETE',
-      intro: 'Chạy thử UPDATE và DELETE trên bản sao của products. Thử một lệnh có WHERE, rồi thử một lệnh quên WHERE.',
+      intro: 'Chọn một lệnh rồi bấm Chạy. Lệnh chạy trên bản sao của products. Thử một lệnh có WHERE, rồi một lệnh quên WHERE.',
     },
     {
       type: 'text',

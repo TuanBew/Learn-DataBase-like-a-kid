@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
   const [lesson, widthArg, out, ...acts] = process.argv.slice(2);
   const width = Number(widthArg);
   const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width, height: width < 600 ? 844 : 900 }, deviceScaleFactor: 1, reducedMotion: process.env.REDUCED ? 'reduce' : 'no-preference' });
+  const page = await browser.newPage({ viewport: { width, height: width < 600 ? 844 : 900 }, deviceScaleFactor: Number(process.env.SCALE || 1), reducedMotion: process.env.REDUCED ? 'reduce' : 'no-preference' });
   const errors = [];
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   page.on('pageerror', (e) => errors.push(String(e)));

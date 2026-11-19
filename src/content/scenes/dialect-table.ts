@@ -17,7 +17,7 @@ export const copy = {
   seen: 'Đã xem',
   mysql: 'MySQL',
   oracle: 'Oracle',
-  run: 'Chạy thử cả hai',
+  run: 'Chạy cả hai',
   rerun: 'Chạy lại',
   noRun: 'Chủ đề này chỉ có chữ, không có nút chạy.',
   mistake: 'Nếu viết nhầm',
@@ -31,7 +31,7 @@ export const copy = {
   loadFail: 'Không mở được database mẫu. Tải lại trang rồi thử lại.',
   says: {
     start: 'Chọn một chủ đề bên trái. Mình sẽ chỉ chỗ MySQL và Oracle viết khác nhau.',
-    ready: 'Bấm Chạy thử cả hai để xem hai câu này ra gì.',
+    ready: 'Bấm Chạy cả hai để xem hai query này ra gì.',
     ran: 'Mình vừa chạy cả hai câu. Nhìn dòng Nếu viết nhầm để biết mã lỗi.',
     ranSame: 'Mình vừa chạy câu này ở cả hai dialect. Hai kết quả khác nhau.',
     done: 'Bạn đã xem hết các chủ đề. Khi gặp lỗi lạ, hãy hỏi mình: dialect nào đang chạy?',

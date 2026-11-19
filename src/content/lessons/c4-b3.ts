@@ -162,7 +162,7 @@ export const lesson: Lesson = {
       type: 'oracle',
       body: [
         "DATE của Oracle luôn có giờ. `ordered_at = DATE '2026-03-08'` chỉ khớp đơn đặt đúng 00:00:00, nên ra 0 row.",
-        "Oracle không tự đổi chữ thành ngày khi so sánh. `ordered_at = '2026-03-08'` báo lỗi ORA-01861.",
+        "Oracle đọc chuỗi ngày theo một dạng mặc định, và dạng đó khác 2026-03-08. Vì vậy `ordered_at = '2026-03-08'` báo lỗi ORA-01861.",
         "Gặp ORA-01861, kiểm lại: ngày đã đứng sau chữ DATE, hay nằm trong TO_DATE chưa?",
         "MySQL đổi chữ dạng 2026-03-08 thành ngày giúp bạn, nên `ordered_at >= '2026-03-08'` chạy bình thường.",
       ],
@@ -215,7 +215,7 @@ export const lesson: Lesson = {
       items: [
         'ordered_at có cả ngày lẫn giờ. DATE của Oracle cũng có giờ.',
         'Lọc theo ngày bằng khoảng `>=` và `<` ngày hôm sau. Cũng có thể cắt giờ bằng DATE ở MySQL, TRUNC ở Oracle.',
-        "Oracle không so ngày với chuỗi. Viết `DATE '2026-03-08'` hoặc TO_DATE, nếu không sẽ gặp ORA-01861.",
+        "Ở Oracle, viết ngày bằng `DATE '2026-03-08'` hoặc TO_DATE. So thẳng với chuỗi '2026-03-08' thì gặp ORA-01861.",
         'DATE_FORMAT và TO_CHAR đổi ngày thành chữ. STR_TO_DATE và TO_DATE đổi chữ thành ngày.',
       ],
     },

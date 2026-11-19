@@ -148,7 +148,7 @@ export const lesson: Lesson = {
           options: [
             { text: '0', feedback: 'Số 0 là một giá trị có thật. Chưa có calo nghĩa là chưa biết, nên kết quả cũng chưa biết.' },
             { text: 'NULL', correct: true, feedback: 'Đúng. Một số NULL làm cả phép tính thành NULL.' },
-            { text: 'Lỗi chia cho 0', feedback: 'NULL khác 0. Database không chia cho 0, mà trả NULL.' },
+            { text: 'Lỗi chia cho 0', feedback: 'NULL khác 0. Calo chưa có nên kết quả là NULL, và query không báo lỗi.' },
           ],
         },
         {

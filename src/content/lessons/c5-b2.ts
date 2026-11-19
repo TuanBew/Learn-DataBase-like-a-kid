@@ -30,7 +30,7 @@ export const lesson: Lesson = {
       paragraphs: [
         '**[[group-by]]** chia row thành nhóm. Các row có cùng giá trị ở column đó vào cùng một nhóm.',
         'Function gom chạy trên từng nhóm. Mỗi nhóm cho ra đúng một row kết quả.',
-        'Query dưới đây đếm món theo nhóm. Mở Query Theater để xem từng row bay vào hộp của nhóm mình.',
+        'Query dưới đây đếm món theo nhóm. Mở Query Theater để xem từng row bay vào hộp của nhóm đó.',
       ],
     },
     {
@@ -122,7 +122,7 @@ export const lesson: Lesson = {
         'Column trong SELECT không nằm trong GROUP BY và không nằm trong function gom thì Oracle báo ORA-00979. Lời báo cổ điển của lỗi này là "not a GROUP BY expression".',
         'Nếu query không có GROUP BY mà SELECT lẫn column với function gom, Oracle báo ORA-00937.',
         'MySQL 8 cũng chặn, với mã 1055. Riêng MySQL cho chọn thêm column của một table khi đã GROUP BY primary key của table đó.',
-        'Cách sửa ở cả hai nơi: thêm column vào GROUP BY, hoặc bọc nó trong function gom như `MAX(name)`.',
+        'Cách sửa ở cả hai dialect: thêm column vào GROUP BY, hoặc bọc nó trong function gom như `MAX(name)`.',
       ],
       mysql: 'SELECT category, name, COUNT(*)\nFROM products\nGROUP BY category;\n-- lỗi 1055',
       oracle: 'SELECT category, name, COUNT(*)\nFROM products\nGROUP BY category\n-- lỗi ORA-00979',
@@ -153,7 +153,7 @@ export const lesson: Lesson = {
           kind: 'choice',
           question: 'Table products có 14 row và 4 giá trị category khác nhau. `GROUP BY category` cho ra bao nhiêu row?',
           options: [
-            { text: '14', feedback: 'Mỗi nhóm cho ra đúng một row, không phải mỗi món.' },
+            { text: '14', feedback: 'Mỗi nhóm cho ra đúng một row. Số row kết quả bằng số nhóm.' },
             { text: '4', correct: true, feedback: 'Đúng. Mỗi category là một nhóm, mỗi nhóm một row.' },
             { text: '1', feedback: 'Một row chỉ ra khi không có GROUP BY và cả table là một nhóm.' },
           ],

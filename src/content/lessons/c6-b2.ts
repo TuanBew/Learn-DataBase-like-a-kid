@@ -84,7 +84,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Đơn 1017 là đơn của khách vãng lai. Column customer_id của đơn ấy là NULL, vì khách không đăng ký thành viên.',
         'LEFT JOIN giữ đơn này lại. Column bên phải của đơn ấy là NULL hết.',
-        'Bạn tận dụng điều đó. Thêm `WHERE` kiểm một column bên phải có NULL, và kết quả chỉ còn các row không ghép được.',
+        'Bạn tận dụng điều đó. Thêm `WHERE` kiểm một column bên phải có NULL. Kết quả chỉ còn các row không ghép được.',
         'Chọn column primary key của table bên phải để kiểm. Row thật luôn có primary key, nên NULL ở đó chỉ có nghĩa là không ghép được.',
         'Với món chưa từng bán, table products đứng bên trái và order_items đứng bên phải. Kiểm `i.item_id IS NULL`.',
       ],
@@ -143,7 +143,7 @@ export const lesson: Lesson = {
           options: [
             { text: 'Table a, đứng bên trái', correct: true, feedback: 'Đúng. Table đứng trước chữ JOIN là table bên trái.' },
             { text: 'Table b, đứng bên phải', feedback: 'Bên phải là table b. LEFT JOIN giữ bên trái, tức table a.' },
-            { text: 'Cả hai table', feedback: 'Giữ cả hai bên là FULL JOIN, khóa này không dạy.' },
+            { text: 'Cả hai table', feedback: 'Giữ cả hai bên là FULL JOIN, khóa học này không dạy.' },
           ],
         },
         {

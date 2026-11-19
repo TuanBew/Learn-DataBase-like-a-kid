@@ -4,7 +4,7 @@ export const lesson: Lesson = {
   id: 'c7-b3',
   chapter: 7,
   order: 3,
-  title: 'index',
+  title: 'Index',
   lead: 'Bạn hiểu vì sao index giúp tìm row nhanh, và cái giá phải trả.',
   minutes: 14,
   goals: [
@@ -26,7 +26,7 @@ export const lesson: Lesson = {
     },
     {
       type: 'text',
-      title: 'index giống mục lục cuối sách',
+      title: 'Index giống mục lục cuối sách',
       paragraphs: [
         '**[[index]]** là danh sách phụ giúp database tìm row mà không phải đọc cả table.',
         'Index xếp sẵn các giá trị theo thứ tự. Cạnh mỗi giá trị có chỉ dẫn tới row chứa nó. Mục lục cuối sách làm đúng như vậy.',
@@ -39,7 +39,7 @@ export const lesson: Lesson = {
       type: 'scene',
       scene: 'index-race',
       title: 'Cuộc đua tìm row',
-      intro: 'Chọn số row của table rồi bấm chạy. Xem ai tới đích trước khi table lớn dần.',
+      intro: 'Chọn số row của table rồi bấm Chạy. Xem ai tới đích trước khi table lớn dần.',
     },
     {
       type: 'text',
@@ -50,7 +50,7 @@ export const lesson: Lesson = {
         'Giống mục lục: sách thêm một trang thì mục lục phải sửa theo.',
         'Vì vậy không ai tạo index cho mọi column. Người ta chỉ tạo cho column hay dùng để tìm.',
         'Primary key luôn có index. Khi bạn tìm row bằng primary key, database dùng index đó.',
-        'Khóa này chỉ dạy ý tưởng. Cách chọn column nào nên có index nằm ngoài phạm vi.',
+        'Khóa học này chỉ dạy ý tưởng. Cách chọn column nào nên có index nằm ngoài phạm vi.',
       ],
     },
     {
@@ -108,7 +108,7 @@ export const lesson: Lesson = {
     {
       type: 'keypoints',
       items: [
-        'index giống mục lục cuối sách: xếp sẵn giá trị và chỉ tới row.',
+        'Index giống mục lục cuối sách: xếp sẵn giá trị và chỉ tới row.',
         'Không có index, database scan cả table. Có index, database nhảy thẳng tới row.',
         'Bù lại, index chiếm chỗ và làm INSERT, UPDATE, DELETE chậm hơn một chút.',
         'Primary key luôn có index.',

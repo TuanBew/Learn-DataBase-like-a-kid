@@ -97,9 +97,9 @@ export const lesson: Lesson = {
         '**[[alias]]** của table là tên ngắn đặt ngay sau tên table. `orders AS o` nghĩa là gọi orders là o.',
         'Sau đó bạn viết `o.order_id` thay cho `orders.order_id`.',
         'Chữ đứng trước dấu chấm nói column thuộc table nào.',
-        'Cả orders lẫn customers đều có `customer_id`. Nếu gõ `customer_id` trơn, DBMS không biết bạn muốn bên nào.',
+        'Cả orders lẫn customers đều có `customer_id`. Nếu gõ `customer_id` trơn, Database không biết bạn muốn bên nào.',
         'MySQL báo lỗi 1052. Oracle báo ORA-00918.',
-        'Xóa chữ `o.` trước `customer_id` ở query dưới, bấm Chạy và xem lỗi. Rồi gõ lại cho đúng.',
+        'Xóa chữ `o.` trước `customer_id` ở query dưới. Bấm Chạy và xem lỗi. Rồi gõ lại cho đúng.',
       ],
     },
     {
@@ -151,7 +151,7 @@ export const lesson: Lesson = {
       body: [
         'MySQL nhận `orders AS o` lẫn `orders o`. Oracle chỉ nhận `orders o`.',
         'Viết AS trước alias của table thì Oracle báo ORA-00933. Xóa chữ AS là xong.',
-        'Alias của column thì khác. Cả hai nơi đều cho viết AS.',
+        'Alias của column thì khác. Cả hai dialect đều cho viết AS.',
         'Code Oracle cũ ở công ty hay nối bằng dấu phẩy ở FROM, còn điều kiện ghép nằm trong WHERE.',
         'Kết quả của kiểu cũ giống INNER JOIN. Bạn sẽ gặp kiểu này khi đọc code người khác viết. Khi tự viết, dùng JOIN ... ON cho dễ đọc.',
       ],

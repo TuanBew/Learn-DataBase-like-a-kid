@@ -38,7 +38,7 @@ export const exercise: SqlExercise = {
     oracle: "SELECT store_id, COUNT(*) AS done_orders\nFROM orders\nWHERE status = 'done'\nGROUP BY store_id\nHAVING COUNT(*) >= 4\nORDER BY done_orders DESC, store_id",
   },
   check: { orderMatters: true, aliasMatters: true },
-  why: 'WHERE lọc row trước khi gom. GROUP BY chia nhóm, HAVING lọc nhóm, rồi ORDER BY xếp kết quả. Đó cũng là thứ tự query chạy.',
+  why: 'WHERE lọc row trước khi gom. GROUP BY chia nhóm, HAVING lọc nhóm, rồi ORDER BY xếp kết quả. Lúc chạy, chỉ SELECT đổi chỗ: database chạy SELECT sau HAVING.',
   hints: {
     light: 'Query chạy theo thứ tự: lấy table, lọc row, chia nhóm, lọc nhóm, rồi xếp. Mỗi clause đứng đúng chỗ đó.',
     specific: 'SELECT đứng đầu, FROM đứng ngay sau. WHERE đứng trước GROUP BY, còn HAVING đứng sau GROUP BY. ORDER BY đứng cuối.',

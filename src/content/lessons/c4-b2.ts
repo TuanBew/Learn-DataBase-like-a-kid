@@ -4,7 +4,7 @@ export const lesson: Lesson = {
   id: 'c4-b2',
   chapter: 4,
   order: 2,
-  title: 'function chuỗi',
+  title: 'Function chuỗi',
   lead: 'Bạn đổi chữ hoa thường, cắt chữ, đếm chữ và ghép chữ ngay trong query.',
   minutes: 16,
   goals: [
@@ -39,7 +39,7 @@ export const lesson: Lesson = {
     {
       type: 'playground',
       title: 'Thử tay ngay: chữ hoa và độ dài',
-      intro: 'Bấm Chạy ở MySQL, rồi chạy ở Oracle. MySQL cho hai con số đếm, Oracle cho một con số.',
+      intro: 'Bấm Chạy ở MySQL, rồi bấm Chạy ở Oracle. MySQL cho hai con số đếm, Oracle cho một con số.',
       database: 'teashop',
       tables: ['stores'],
       dialects: ['mysql', 'oracle'],
@@ -82,7 +82,7 @@ export const lesson: Lesson = {
         'Ghép hai chuỗi thành một thì mỗi dialect viết một kiểu.',
         'MySQL dùng **[[concat]]**: `CONCAT(a, b, c)`. Bạn đưa vào bao nhiêu chuỗi cũng được.',
         'Oracle dùng hai dấu gạch đứng: `a || b || c`.',
-        'Hai nơi xử lý NULL khác nhau. Nếu một chuỗi là NULL, CONCAT của MySQL trả NULL cho cả kết quả.',
+        'Hai dialect xử lý NULL khác nhau. Nếu một chuỗi là NULL, CONCAT của MySQL trả NULL cho cả kết quả.',
         'Oracle coi NULL như chuỗi rỗng. Phần còn lại vẫn hiện ra.',
         'Query dưới đây ghép tên khách và số điện thoại. Vài khách chưa có số.',
       ],

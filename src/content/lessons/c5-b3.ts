@@ -134,7 +134,7 @@ export const lesson: Lesson = {
       body: [
         'Function gom không đứng được trong WHERE. Lúc WHERE chạy, database chưa gom nhóm.',
         'Viết `WHERE COUNT(*) > 3` thì MySQL báo lỗi 1111, Oracle báo ORA-00934 với lời "group function is not allowed here".',
-        'Cách sửa ở cả hai nơi: chuyển điều kiện sang HAVING.',
+        'Cách sửa ở cả hai dialect: chuyển điều kiện sang HAVING.',
       ],
       mysql: 'SELECT category, COUNT(*)\nFROM products\nWHERE COUNT(*) > 3\nGROUP BY category;\n-- lỗi 1111',
       oracle: 'SELECT category, COUNT(*)\nFROM products\nWHERE COUNT(*) > 3\nGROUP BY category\n-- lỗi ORA-00934',

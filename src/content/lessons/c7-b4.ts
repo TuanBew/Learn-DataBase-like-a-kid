@@ -11,7 +11,7 @@ export const lesson: Lesson = {
     'Nhớ các khác biệt chính giữa MySQL và Oracle',
     'Biết cách đọc một mã lỗi Oracle',
     'Đoán nguyên nhân của bảy mã ORA hay gặp',
-    'Biết khóa này dạy theo Oracle 19c',
+    'Biết khóa học này dạy theo Oracle 19c',
   ],
   blocks: [
     {
@@ -45,7 +45,7 @@ export const lesson: Lesson = {
       title: 'Tên, chữ và dấu nháy',
       paragraphs: [
         'Alias của table: MySQL nhận AS. Oracle không nhận AS trước alias của table.',
-        'Chữ nằm trong nháy đơn ở cả hai nơi. MySQL nhận cả nháy kép. Oracle dùng nháy kép để bao tên column.',
+        'Chữ nằm trong nháy đơn ở cả hai dialect. MySQL nhận cả nháy kép. Oracle dùng nháy kép để bao tên column.',
         'So chữ: MySQL không phân biệt hoa thường và dấu theo mặc định. Oracle có phân biệt.',
         'Tên không có nháy kép: Oracle hiểu thành chữ hoa.',
         'Nối chuỗi: MySQL viết `CONCAT(a, b)`. Oracle viết `a || b`.',
@@ -64,14 +64,14 @@ export const lesson: Lesson = {
         'Chuỗi rỗng: MySQL coi là một giá trị. Oracle coi là NULL.',
         'Thay NULL: MySQL viết `IFNULL`. Oracle viết `NVL`. `COALESCE` chạy ở cả hai.',
         'SELECT không có FROM: MySQL chạy được. Oracle 19c cần `FROM DUAL`.',
-        'Oracle 26ai nới vài luật, ví dụ cho SELECT không cần FROM DUAL. Khóa này dạy theo 19c.',
+        'Oracle 26ai nới vài luật, ví dụ cho SELECT không cần FROM DUAL. Khóa học này dạy theo 19c.',
       ],
     },
     {
       type: 'text',
       title: 'Tạo table và sửa dữ liệu',
       paragraphs: [
-        'data type: MySQL viết `INT`, `VARCHAR`, `DATETIME`. Oracle viết `NUMBER`, `VARCHAR2`, `DATE`.',
+        'Data type: MySQL viết `INT`, `VARCHAR`, `DATETIME`. Oracle viết `NUMBER`, `VARCHAR2`, `DATE`.',
         'Id tự tăng: MySQL viết `AUTO_INCREMENT`. Oracle viết `GENERATED AS IDENTITY`.',
         'INSERT nhiều row trong một câu: MySQL nhận. Oracle 19c không nhận.',
         'Lưu thay đổi: MySQL tự COMMIT sau mỗi lệnh. Tool Oracle thường chờ bạn gõ COMMIT.',
@@ -113,7 +113,7 @@ export const lesson: Lesson = {
           options: [
             { text: 'ORA-00923, vì thiếu FROM', correct: true, feedback: 'Đúng. Ở 19c, thêm `FROM DUAL` là chạy.' },
             { text: 'ORA-01722, vì 1 không phải số', feedback: '1 là một con số. Lỗi nằm ở chỗ thiếu FROM.' },
-            { text: 'Không lỗi, Oracle trả 2', feedback: 'Oracle 26ai làm được. Khóa này dạy 19c, và 19c báo lỗi.' },
+            { text: 'Không lỗi, Oracle trả 2', feedback: 'Oracle 26ai làm được. Khóa học này dạy 19c, và 19c báo lỗi.' },
           ],
         },
         {
@@ -143,7 +143,7 @@ export const lesson: Lesson = {
         'MySQL và Oracle khác nhau ở: LIMIT hay FETCH FIRST, nối chuỗi, ngày giờ, chuỗi rỗng, alias của table, cách lưu thay đổi.',
         'Mã ORA có năm chữ số. Đọc mã rồi đọc câu giải thích đi kèm.',
         'ORA-00933, 00942, 00904, 00923, 00936, 00979, 01722 là bảy mã hay gặp nhất.',
-        'Khóa này dạy theo Oracle 19c. Oracle 26ai nới vài luật.',
+        'Khóa học này dạy theo Oracle 19c. Oracle 26ai nới vài luật.',
       ],
     },
     {

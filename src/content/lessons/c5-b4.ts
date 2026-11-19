@@ -157,8 +157,8 @@ export const lesson: Lesson = {
       title: 'Doanh thu theo tiệm',
       paragraphs: [
         'Báo cáo ba cần tên tiệm. Tên nằm ở table stores, nên ghép stores bằng store_id.',
-        'Chuỗi chỉ có 4 tiệm, nên không cần LIMIT.',
-        'Sau khi nối, một đơn có nhiều row, mỗi món một row. `COUNT(*)` sẽ đếm món chứ không đếm đơn.',
+        'Chỉ có 4 tiệm, nên không cần LIMIT.',
+        'Sau khi nối, một đơn có nhiều row, mỗi món một row. `COUNT(*)` ra số row món. Số này thường lớn hơn số đơn.',
         'Muốn đếm đơn, viết `COUNT(DISTINCT o.order_id)`. DISTINCT đếm mỗi đơn một lần.',
       ],
     },

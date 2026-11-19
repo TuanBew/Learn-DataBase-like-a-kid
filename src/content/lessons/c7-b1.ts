@@ -69,7 +69,7 @@ export const lesson: Lesson = {
       title: 'Thói quen: SELECT trước, sửa sau',
       paragraphs: [
         'Trước khi UPDATE hoặc DELETE, chạy SELECT với đúng WHERE đó.',
-        'Đếm số row trả về. Nếu số row đúng như bạn nghĩ, đổi SELECT thành UPDATE hoặc DELETE và giữ nguyên WHERE.',
+        'Đếm số row trả về. Nếu số row đúng như bạn nghĩ, đổi SELECT thành UPDATE hoặc DELETE. Giữ nguyên WHERE.',
         'Nếu số row nhiều hơn dự tính, dừng lại. Sửa WHERE trước.',
         'Bài sau dạy ROLLBACK, cách gỡ lại thay đổi chưa lưu. Thói quen này vẫn là lớp bảo vệ đầu tiên.',
       ],
@@ -86,9 +86,9 @@ export const lesson: Lesson = {
     },
     {
       type: 'text',
-      title: 'constraint có thể chặn lệnh',
+      title: 'Constraint có thể chặn lệnh',
       paragraphs: [
-        'Mọi lệnh sửa dữ liệu đều đi qua cổng của **[[constraint]]**.',
+        'Mọi lệnh sửa dữ liệu đều đi qua cổng của **[[constraint]]**. Constraint là luật table đặt ra cho row, như "mã không được trùng".',
         'Lệnh nào làm table phạm luật thì database từ chối. Lệnh bị hủy, không row nào đổi.',
         '**[[error-code]]** là mã database báo khi lệnh gặp lỗi. Oracle viết ORA kèm năm số. MySQL báo một con số.',
         'Đọc mã trước, rồi đọc lời giải thích đi kèm. Ba mã dưới đây hay gặp nhất khi sửa dữ liệu.',
@@ -155,7 +155,7 @@ export const lesson: Lesson = {
         'INSERT thêm row, UPDATE sửa row, DELETE xóa row.',
         'UPDATE và DELETE không có WHERE sẽ đổi mọi row.',
         'Chạy SELECT với đúng WHERE trước, xem số row, rồi mới sửa.',
-        'constraint chặn lệnh làm table phạm luật: ORA-00001, ORA-01400, ORA-02292.',
+        'Constraint chặn lệnh làm table phạm luật: ORA-00001, ORA-01400, ORA-02292.',
       ],
     },
     {

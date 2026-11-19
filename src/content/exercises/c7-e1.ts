@@ -41,7 +41,7 @@ export const exercise: SqlExercise = {
         mysql: 'UPDATE products SET price = price + 1000',
         oracle: 'UPDATE products SET price = price + 1000',
       },
-      hint: 'Mọi món đều bị tăng giá, kể cả trà sữa và cà phê. Lệnh còn thiếu WHERE. Lần sau chạy SELECT với đúng WHERE đó trước, bạn sẽ thấy ngay số row nhiều hơn dự tính.',
+      hint: 'Mọi món đều bị tăng giá, kể cả Trà sữa và Cà phê. Lệnh còn thiếu WHERE. Chạy SELECT với WHERE đó trước, bạn sẽ thấy ngay số row nhiều hơn dự tính.',
     },
     {
       id: 'wrong-category',

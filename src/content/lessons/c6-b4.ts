@@ -4,7 +4,7 @@ export const lesson: Lesson = {
   id: 'c6-b4',
   chapter: 6,
   order: 4,
-  title: 'subquery với IN',
+  title: 'Subquery với IN',
   lead: 'Bạn đặt một query nhỏ vào trong query lớn để lấy danh sách hoặc một con số.',
   minutes: 16,
   goals: [
@@ -26,7 +26,7 @@ export const lesson: Lesson = {
     },
     {
       type: 'text',
-      title: 'subquery trả một danh sách cho IN',
+      title: 'Subquery trả một danh sách cho IN',
       paragraphs: [
         '**[[subquery]]** là query nhỏ nằm trong dấu ngoặc của query lớn.',
         'Database chạy subquery trước. Kết quả của nó trở thành dữ liệu cho query ngoài.',
@@ -127,7 +127,7 @@ export const lesson: Lesson = {
     },
     {
       type: 'text',
-      title: 'scalar subquery trả một con số',
+      title: 'Scalar subquery trả một con số',
       paragraphs: [
         '**[[scalar-subquery]]** chỉ trả đúng một giá trị. Bạn dùng nó như một con số trong điều kiện.',
         'Ví dụ: món nào đắt hơn giá trung bình? Trước hết cần giá trung bình, tức `AVG(price)`.',
@@ -224,10 +224,10 @@ export const lesson: Lesson = {
     {
       type: 'keypoints',
       items: [
-        'subquery là query nhỏ trong dấu ngoặc. Subquery chạy trước query ngoài.',
+        'Subquery là query nhỏ trong dấu ngoặc. Subquery chạy trước query ngoài.',
         'IN (subquery) giữ row khi giá trị nằm trong danh sách mà subquery trả về.',
         'NOT IN gặp NULL trong danh sách thì không giữ row nào. Loại NULL bằng IS NOT NULL.',
-        'scalar subquery trả một con số, dùng để so sánh như `price > (SELECT AVG(price) ...)`.',
+        'Scalar subquery trả một con số, dùng để so sánh như `price > (SELECT AVG(price) ...)`.',
       ],
     },
     {

@@ -1,66 +1,54 @@
-import type { SqlExercise } from '../types';
+import type { QuizExercise } from '../types';
 
-export const exercise: SqlExercise = {
+export const exercise: QuizExercise = {
   id: 'c2-e6',
   chapter: 2,
-  kind: 'rehearsal',
-  title: 'Thêm một món hợp lệ',
-  prompt:
-    'Tiệm ra món mới và mình canh cổng. Điền giá trị vào khung INSERT để thêm đúng một row vào bản sao của `products`.',
-  asks: [
-    'Mã món là 15. Mã này chưa ai dùng, nên primary key cho qua.',
-    'Tên món là Trà dâu tằm, nhóm Trà trái cây.',
-    'Giá 46000 và calo 160.',
-    'Ngày ra mắt là 2026-03-10.',
-  ],
-  database: 'teashop',
-  tables: ['products'],
-  target: 'products',
-  dialects: ['mysql', 'oracle'],
-  starter: {
-    mysql:
-      "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (____, ____, ____, ____, ____, ____);",
-    oracle:
-      "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (____, ____, ____, ____, ____, ____)",
-  },
-  solution: {
-    mysql:
-      "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (15, 'Trà dâu tằm', 'Trà trái cây', 46000, 160, '2026-03-10');",
-    oracle:
-      "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (15, 'Trà dâu tằm', 'Trà trái cây', 46000, 160, DATE '2026-03-10')",
-  },
-  check: { orderMatters: false },
-  why: 'Row mới có mã 15 chưa trùng, giá là số, và ngày đúng data type. Vì vậy cổng cho qua.',
-  hints: {
-    light: 'Thứ tự giá trị trong VALUES khớp thứ tự column ở trên. Chữ đặt trong dấu nháy đơn, số thì không.',
-    specific:
-      'Giá trị đầu là mã món 15. Tiếp theo là tên và nhóm, đều là chữ. Rồi tới giá, calo, và cuối cùng là ngày ra mắt.',
-    skeleton: {
-      mysql: "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (15, '____', '____', ____, ____, '____');",
-      oracle:
-        "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (15, '____', '____', ____, ____, DATE '____')",
-    },
-  },
-  wrong: [
+  kind: 'quiz',
+  title: 'Canh cổng cho tiệm trà sữa',
+  prompt: 'Bốn tình huống ở tiệm trà sữa. Mỗi lần có một row sắp vào sổ, và bạn đoán cổng làm gì.',
+  asks: [],
+  items: [
     {
-      id: 'swap-price-calories',
-      sql: {
-        mysql:
-          "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (15, 'Trà dâu tằm', 'Trà trái cây', 160, 46000, '2026-03-10');",
-        oracle:
-          "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (15, 'Trà dâu tằm', 'Trà trái cây', 160, 46000, DATE '2026-03-10')",
-      },
-      hint: 'Row đã vào được, nhưng giá và calo đang đổi chỗ nhau. Giá là 46000 và calo là 160, theo đúng thứ tự column.',
+      kind: 'choice',
+      question:
+        'Table `products` có các luật: mã món là primary key, tên món UNIQUE, giá phải lớn hơn 0. Đang có món tên "Trà đào" với giá 40000. Bạn thêm một row mới cũng tên "Trà đào", giá 45000, mã món chưa ai dùng. Constraint nào chặn row này?',
+      options: [
+        { text: 'UNIQUE trên tên món', correct: true, feedback: 'Đúng. Tên "Trà đào" đã có, và UNIQUE cấm hai row cùng tên.' },
+        { text: 'CHECK trên giá', feedback: 'Giá 45000 lớn hơn 0 nên CHECK cho qua. Hãy nhìn lại tên món.' },
+        { text: 'PRIMARY KEY trên mã món', feedback: 'Mã món của row này chưa ai dùng, nên primary key cho qua. Hãy nhìn lại tên món.' },
+      ],
     },
     {
-      id: 'missing-zero',
-      sql: {
-        mysql:
-          "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (15, 'Trà dâu tằm', 'Trà trái cây', 4600, 160, '2026-03-10');",
-        oracle:
-          "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (15, 'Trà dâu tằm', 'Trà trái cây', 4600, 160, DATE '2026-03-10')",
-      },
-      hint: 'Giá đang là 4600, thiếu một số 0. Đề bài cần giá 46000.',
+      kind: 'match',
+      question: 'Nối mỗi row sắp thêm vào `products` với constraint chặn nó.',
+      pairs: [
+        { left: 'Món có giá -20000', right: 'CHECK' },
+        { left: 'Món có mã trùng với món khác', right: 'PRIMARY KEY' },
+        { left: 'Món có tên trùng với món khác', right: 'UNIQUE' },
+        { left: 'Món bỏ trống mã món', right: 'NOT NULL' },
+      ],
+      done: 'Đúng hết. Mỗi luật canh một kiểu row sai riêng.',
+    },
+    {
+      kind: 'choice',
+      question:
+        'Table `customers` có luật: tên khách không được để trống (NOT NULL), còn số điện thoại thì để trống được. Bạn thêm một khách mới có tên Hà nhưng chưa có số điện thoại. Database làm gì?',
+      options: [
+        { text: 'Nhận row, vì chỉ tên khách mới bắt buộc', correct: true, feedback: 'Đúng. Số điện thoại không có luật NOT NULL, nên ô này để trống được.' },
+        { text: 'Từ chối row, vì thiếu số điện thoại', feedback: 'Chỉ column có NOT NULL mới bắt buộc. Số điện thoại không có luật này.' },
+        { text: 'Từ chối row, vì thiếu primary key', feedback: 'Đề bài không nói thiếu mã khách. Hãy xem lại: row này chỉ thiếu số điện thoại.' },
+      ],
+    },
+    {
+      kind: 'choice',
+      question:
+        'Một đơn mới ghi mã khách 99, nhưng table `customers` chỉ có khách mã 1 tới 8. Mã khách trên đơn là foreign key trỏ tới `customers`. Database làm gì?',
+      options: [
+        { text: 'Từ chối đơn, vì khách 99 không có trong customers', correct: true, feedback: 'Đúng. Foreign key bắt mã khách phải có sẵn ở table customers.' },
+        { text: 'Nhận đơn và tự thêm khách 99', feedback: 'Database không tự thêm row vào table khác. Foreign key chỉ kiểm và từ chối.' },
+        { text: 'Nhận đơn, vì mã 99 là một số hợp lệ', feedback: 'Số 99 hợp lệ về kiểu số, nhưng foreign key còn kiểm khách đó có thật không.' },
+      ],
     },
   ],
+  why: 'Bạn đoán đúng cổng chặn row nào. Mình canh các luật này mỗi lần có row muốn vào sổ.',
 };

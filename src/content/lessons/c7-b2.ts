@@ -4,7 +4,7 @@ export const lesson: Lesson = {
   id: 'c7-b2',
   chapter: 7,
   order: 2,
-  title: 'transaction, COMMIT, ROLLBACK',
+  title: 'Transaction, COMMIT, ROLLBACK',
   lead: 'Bạn gom nhiều thay đổi thành một gói, rồi lưu hẳn hoặc bỏ cả gói.',
   minutes: 16,
   goals: [
@@ -26,7 +26,7 @@ export const lesson: Lesson = {
     },
     {
       type: 'text',
-      title: 'transaction là một giỏ thay đổi',
+      title: 'Transaction là một giỏ thay đổi',
       paragraphs: [
         '**[[transaction]]** là một gói thay đổi làm trọn gói: lưu hết hoặc bỏ hết.',
         'Hình dung một giỏ mua sắm. Mỗi lệnh sửa dữ liệu bỏ thêm một thay đổi vào giỏ.',
@@ -49,7 +49,7 @@ export const lesson: Lesson = {
         'ROLLBACK chỉ cứu được thay đổi chưa COMMIT. COMMIT xong thì ROLLBACK không đòi lại được gì.',
         'Thói quen tốt: sửa xong, chạy SELECT để kiểm kết quả. Kết quả đúng thì COMMIT. Kết quả sai thì ROLLBACK.',
         'Bài trước nói chuyện quên WHERE. Nếu bạn chưa COMMIT, ROLLBACK cứu được toàn bộ.',
-        'Oracle khuyên bạn tự kết thúc mọi transaction bằng COMMIT hoặc ROLLBACK, kể cả transaction cuối trước khi ngắt kết nối.',
+        'Oracle khuyên bạn tự kết thúc mọi transaction bằng COMMIT hoặc ROLLBACK. Luật này áp dụng cả cho transaction cuối, trước khi ngắt kết nối.',
       ],
     },
     {
@@ -112,7 +112,7 @@ export const lesson: Lesson = {
     {
       type: 'keypoints',
       items: [
-        'transaction là một giỏ thay đổi. COMMIT lưu hẳn cả giỏ, ROLLBACK bỏ cả giỏ.',
+        'Transaction là một giỏ thay đổi. COMMIT lưu hẳn cả giỏ, ROLLBACK bỏ cả giỏ.',
         'ROLLBACK chỉ cứu được thay đổi chưa COMMIT.',
         'MySQL tự COMMIT sau mỗi lệnh. Tool Oracle thường chờ bạn gõ COMMIT.',
         'Ở Oracle, lệnh DDL như CREATE TABLE tự COMMIT.',

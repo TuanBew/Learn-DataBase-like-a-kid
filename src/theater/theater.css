@@ -414,7 +414,7 @@
 }
 .qt-stack {
   position: absolute;
-  right: 8px;
+  left: 18px;
   top: -10px;
   z-index: 4;
   padding: 0 8px;

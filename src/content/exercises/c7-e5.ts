@@ -11,8 +11,8 @@ export const exercise: SqlExercise = {
   prompt:
     'Đồng nghiệp gửi một query viết cho MySQL. Viết lại bằng Oracle để ra cùng kết quả. Query này có bốn chỗ cần đổi.',
   asks: [
-    'Nối tên và thành phố bằng cách của Oracle.',
-    'Thay số điện thoại NULL bằng chữ chưa có.',
+    'Nối tên và thành phố bằng `||`, giữ dấu ` - ` ở giữa.',
+    'Thay số điện thoại NULL bằng chữ `chưa có`.',
     'Alias của table viết kiểu Oracle.',
     'Giữ 5 khách đăng ký sớm nhất.',
   ],

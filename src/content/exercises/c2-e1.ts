@@ -11,11 +11,11 @@ export const exercise: QuizExercise = {
     {
       kind: 'choice',
       question:
-        'Table học sinh được dựng bằng `CREATE TABLE students (student_no INT, full_name VARCHAR(50), class_name VARCHAR(10), PRIMARY KEY (student_no))`. Column nào là primary key?',
+        'Table `students` có ba column: `student_no`, `full_name`, `class_name`. Mỗi học sinh có một số báo danh riêng, và database dùng số này để tìm đúng row. Column nào là primary key?',
       options: [
-        { text: 'student_no', correct: true, feedback: 'Đúng. Phần PRIMARY KEY (student_no) nói rõ column này là mã riêng của mỗi row.' },
-        { text: 'full_name', feedback: 'Hai bạn có thể trùng tên, nên tên không làm mã riêng được. Hãy nhìn phần PRIMARY KEY ở cuối.' },
-        { text: 'class_name', feedback: 'Cả lớp chung một tên lớp, nên nó không chỉ ra một bạn nào. Hãy nhìn phần PRIMARY KEY ở cuối.' },
+        { text: 'student_no', correct: true, feedback: 'Đúng. Số báo danh là mã riêng của mỗi row, nên nó làm primary key.' },
+        { text: 'full_name', feedback: 'Hai bạn có thể trùng tên, nên tên không làm mã riêng được. Hãy tìm column có giá trị riêng cho từng bạn.' },
+        { text: 'class_name', feedback: 'Cả lớp chung một tên lớp, nên nó không chỉ ra một bạn nào. Hãy tìm column có giá trị riêng cho từng bạn.' },
       ],
     },
     {

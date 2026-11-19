@@ -32,6 +32,7 @@ export const theaterCopy = {
   whereDone: (kept: number, dropped: number) => `WHERE giữ lại ${kept} row và loại ${dropped} row.`,
   whereBulk: (kept: number, dropped: number) => `WHERE soi ${kept + dropped} row: ${kept} row đạt, ${dropped} row rơi xuống.`,
   selectStar: 'Dấu * giữ lại mọi column.',
+  selectSame: (names: string) => `SELECT lấy ${names}. Không column nào bị bỏ.`,
   selectDim: (kept: string) => `SELECT chỉ cần ${kept}. Các column khác mờ đi.`,
   selectDone: (n: number) => `Các column thừa biến mất. Còn lại ${n} column.`,
   selectComputed: (names: string) => `SELECT tính thêm column mới: ${names}.`,

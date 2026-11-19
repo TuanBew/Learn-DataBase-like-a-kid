@@ -77,7 +77,7 @@ export const lesson: Lesson = {
         'Dùng `COUNT(e.employee_id)` để đếm người. Function này bỏ qua NULL, nên phòng trống ra 0.',
         'Đổi sang `COUNT(*)` thì phòng trống ra 1. LEFT JOIN tạo một row có NULL cho phòng đó, và COUNT(*) đếm row này.',
         'Lương trung bình của phòng trống là NULL, vì không có số nào để lấy trung bình.',
-        'Còn một người chưa thuộc phòng nào: Kimberely Grant, có department_id là NULL. LEFT JOIN giữ mọi phòng, không giữ mọi nhân viên, nên người này không xuất hiện trong báo cáo.',
+        'Còn một người chưa thuộc phòng nào: Kimberely Grant, có department_id là NULL. LEFT JOIN giữ mọi phòng. Người này không có phòng, nên không xuất hiện trong báo cáo.',
         'Muốn thấy người này, đi từ employees sang departments. Viết thử query đó trong editor.',
       ],
     },
@@ -86,9 +86,9 @@ export const lesson: Lesson = {
       title: 'Chạy lại trên Oracle thật',
       paragraphs: [
         'Schema HR có sẵn trên Oracle FreeSQL, tại https://freesql.com. Các query này chạy lại được trên Oracle thật.',
-        'Bộ dữ liệu trong khóa là bản rút gọn, chỉ có 25 nhân viên. Bản đầy đủ có nhiều nhân viên hơn, nên con số trong báo cáo sẽ khác.',
+        'Bộ dữ liệu trong khóa học là bản rút gọn, chỉ có 25 nhân viên. Bản đầy đủ có nhiều nhân viên hơn, nên con số trong báo cáo sẽ khác.',
         'Cú pháp thì giữ nguyên. Nếu query chạy ở đây, nó chạy ở đó.',
-        'Khóa này dạy theo Oracle 19c. FreeSQL cho chọn bản 19c hoặc 26ai.',
+        'Khóa học này dạy theo Oracle 19c. FreeSQL cho chọn bản 19c hoặc 26ai.',
       ],
     },
     {
@@ -100,8 +100,8 @@ export const lesson: Lesson = {
           question: 'Vì sao báo cáo bắt đầu từ departments và dùng LEFT JOIN sang employees?',
           options: [
             { text: 'Để phòng chưa có nhân viên vẫn hiện trong báo cáo', correct: true, feedback: 'Đúng. LEFT JOIN giữ mọi row của table bên trái, tức mọi phòng.' },
-            { text: 'Để Oracle chạy nhanh hơn', feedback: 'Lý do là kết quả, không phải tốc độ. INNER JOIN sẽ làm mất phòng trống.' },
-            { text: 'Vì Oracle không có INNER JOIN', feedback: 'Oracle có INNER JOIN. Ta chọn LEFT JOIN để giữ phòng trống.' },
+            { text: 'Để Oracle chạy nhanh hơn', feedback: 'Lý do nằm ở kết quả. INNER JOIN sẽ làm mất phòng trống.' },
+            { text: 'Vì Oracle không có INNER JOIN', feedback: 'Oracle có INNER JOIN. Bài này chọn LEFT JOIN để giữ phòng trống.' },
           ],
         },
         {
@@ -117,7 +117,7 @@ export const lesson: Lesson = {
           kind: 'choice',
           question: 'Bạn chạy lại query trên FreeSQL và thấy con số khác. Vì sao?',
           options: [
-            { text: 'Bộ dữ liệu trong khóa là bản rút gọn 25 nhân viên', correct: true, feedback: 'Đúng. Cú pháp giống nhau, chỉ khác lượng dữ liệu.' },
+            { text: 'Bộ dữ liệu trong khóa học là bản rút gọn 25 nhân viên', correct: true, feedback: 'Đúng. Cú pháp giống nhau, chỉ khác lượng dữ liệu.' },
             { text: 'Query của bạn viết sai', feedback: 'Query vẫn đúng. Hai nơi chỉ khác dữ liệu.' },
             { text: 'FreeSQL tính COUNT khác', feedback: 'COUNT làm đúng như nhau ở mọi nơi. Khác biệt nằm ở dữ liệu.' },
           ],
@@ -145,7 +145,7 @@ export const lesson: Lesson = {
       type: 'text',
       title: 'Học tiếp',
       paragraphs: [
-        'Bạn đã đi hết khóa này. Bạn biết đọc dữ liệu, ghép table, và sửa dữ liệu an toàn.',
+        'Bạn đã đi hết khóa học này. Bạn biết đọc dữ liệu, ghép table, và sửa dữ liệu an toàn.',
         'Trang Học tiếp, ở đường dẫn /hoc-tiep, liệt kê nơi luyện thêm. Mỗi nơi kèm một câu nói khi nào nên tới.',
         'Mở trang đó và chọn nơi hợp với bạn.',
       ],

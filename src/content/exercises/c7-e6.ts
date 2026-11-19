@@ -11,6 +11,7 @@ export const exercise: SqlExercise = {
     'Mỗi `department_id` hiện một row.',
     'Kèm số nhân viên của phòng đó.',
     'Không hiện tên từng nhân viên.',
+    'Nhân viên chưa có phòng vẫn tính thành một nhóm.',
   ],
   database: 'hr',
   tables: ['employees'],

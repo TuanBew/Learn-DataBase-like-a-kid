@@ -244,7 +244,7 @@ export function buildFrames(trace: Trace): Frame[] {
           push({ phase: 'select', active, caption: T.noFrom, hold: 1700, sfx: [{ name: 'pop' }] });
         } else if (plain) {
           cols = toCols(out);
-          push({ phase: 'select', active, caption: T.selectStar, hold: 1500, sfx: [{ name: 'tick' }] });
+          push({ phase: 'select', active, caption: step.star ? T.selectStar : T.selectSame(out.map((c) => c.header).join(', ')), hold: 1500, sfx: [{ name: 'tick' }] });
         } else {
           if (step.dropped.length > 0) {
             const gone = new Set(step.dropped);

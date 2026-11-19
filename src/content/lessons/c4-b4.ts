@@ -28,7 +28,7 @@ export const lesson: Lesson = {
       type: 'text',
       title: 'Thay NULL bằng giá trị khác',
       paragraphs: [
-        'Column calories có **[[null]]** ở các món chưa đo. Bạn thay NULL bằng một giá trị khác ngay trong kết quả.',
+        'Column calories có **[[null]]** ở các món chưa đo. NULL nghĩa là chưa có giá trị. Bạn thay NULL bằng một giá trị khác ngay trong kết quả.',
         'MySQL có **[[ifnull]]**: `IFNULL(calories, 0)`. Nếu calories khác NULL, kết quả giữ nguyên calories. Nếu là NULL, kết quả là 0.',
         'Oracle có **[[nvl]]**, dùng giống hệt: `NVL(calories, 0)`.',
         '**[[coalesce]]** chạy ở cả hai dialect. COALESCE nhận một danh sách và trả giá trị đầu tiên khác NULL.',
@@ -84,7 +84,7 @@ export const lesson: Lesson = {
       body: [
         'IFNULL chỉ có ở MySQL. NVL chỉ có ở Oracle. Gõ nhầm thì database báo không biết function đó.',
         'MySQL báo lỗi 1305 khi gặp NVL. Oracle báo ORA-00904 khi gặp IFNULL.',
-        'Muốn một query chạy ở cả hai nơi, dùng COALESCE. COALESCE của Oracle cần ít nhất hai tham số.',
+        'Muốn một query chạy ở cả hai dialect, dùng COALESCE. COALESCE của Oracle cần ít nhất hai tham số.',
       ],
       mysql: 'IFNULL(calories, 0)\n-- NVL(calories, 0) báo lỗi 1305',
       oracle: 'NVL(calories, 0)\n-- IFNULL(calories, 0) báo ORA-00904',

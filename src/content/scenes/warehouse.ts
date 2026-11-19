@@ -70,7 +70,7 @@ const slips: WhSlip[] = [
     sql: 'SELECT name, price\nFROM products\nWHERE price > 40000;',
     take: [2, 4, 5, 12],
     going: 'Mình đọc phiếu rồi chạy tới kệ `products`. Mình xem giá của từng row.',
-    done: 'Table `products` có 14 row. Mình tìm ra 4 row có giá trên 40.000 và chép mang ra cho bạn. Row gốc vẫn nằm trên kệ.',
+    done: 'Table `products` có 14 row. Mình tìm ra 4 row có giá trên 40.000. Mình chép chúng mang ra cho bạn. Row gốc vẫn nằm trên kệ.',
   },
   {
     id: 'customer',

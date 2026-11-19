@@ -3,32 +3,32 @@ import type { GlossaryEntry } from '../types';
 export const entries: Record<string, GlossaryEntry> = {
   'aggregate-function': {
     term: 'function gom',
-    short: 'function nhận nhiều row và trả về một giá trị. COUNT, SUM, AVG, MIN, MAX đều là function gom.',
+    short: 'Function nhận nhiều row và trả về một giá trị. COUNT, SUM, AVG, MIN, MAX đều là function gom.',
     example: 'Cộng tiền của mọi ly trong ngày thành một tổng.',
   },
   count: {
     term: 'COUNT',
-    short: 'function gom đếm row. COUNT(*) đếm mọi row, COUNT(column) chỉ đếm row có giá trị.',
+    short: 'Function gom đếm row. COUNT(*) đếm mọi row, COUNT(column) chỉ đếm row có giá trị.',
     example: 'Đếm có bao nhiêu món trong thực đơn.',
   },
   sum: {
     term: 'SUM',
-    short: 'function gom cộng các số trong một column.',
+    short: 'Function gom cộng các số trong một column.',
     example: 'Cộng tiền của mọi ly trong ngày.',
   },
   avg: {
     term: 'AVG',
-    short: 'function gom tính trung bình các số trong một column. Row NULL không được tính.',
+    short: 'Function gom tính trung bình các số trong một column. Row NULL không được tính.',
     example: 'Giá trung bình của các món trà sữa.',
   },
   min: {
     term: 'MIN',
-    short: 'function gom tìm giá trị nhỏ nhất trong một column.',
+    short: 'Function gom tìm giá trị nhỏ nhất trong một column.',
     example: 'Món rẻ nhất trong thực đơn.',
   },
   max: {
     term: 'MAX',
-    short: 'function gom tìm giá trị lớn nhất trong một column.',
+    short: 'Function gom tìm giá trị lớn nhất trong một column.',
     example: 'Món đắt nhất trong thực đơn.',
   },
   'group-by': {

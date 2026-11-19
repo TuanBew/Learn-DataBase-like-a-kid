@@ -37,7 +37,7 @@ export const copy = {
   reset: 'Làm lại',
   stepOf: (n: number, total: number) => `Bước ${n}/${total}`,
   says: {
-    start: 'Bạn mở app của tiệm và chạm Xem thực đơn. Điện thoại là client. Bấm Bước tiếp.',
+    start: 'Bạn mở app của tiệm và bấm Xem thực đơn. Điện thoại là client. Bấm Bước tiếp.',
     done: 'Một chuyến đi và về như vậy thường mất chưa tới một giây.',
   },
 };

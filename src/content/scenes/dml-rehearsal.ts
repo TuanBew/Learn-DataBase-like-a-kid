@@ -19,7 +19,7 @@ const presets: DmlPreset[] = [
     id: 'update-all',
     label: 'UPDATE quên WHERE',
     sql: 'UPDATE products\nSET price = 48000;',
-    say: 'Lệnh này không có WHERE. Cả 14 món cùng đổi giá thành 48.000. Bấm ROLLBACK để lấy lại dữ liệu cũ.',
+    say: 'Lệnh này không có WHERE. Cả 14 món cùng đổi giá thành 48.000. Bấm ROLLBACK để lấy lại dữ liệu cũ. Bài sau dạy kỹ lệnh này.',
   },
   {
     id: 'delete-where',
@@ -31,7 +31,7 @@ const presets: DmlPreset[] = [
     id: 'delete-all',
     label: 'DELETE quên WHERE',
     sql: 'DELETE FROM products;',
-    say: 'Lệnh này không có WHERE. Cả 14 row bị xóa. Bấm ROLLBACK để lấy lại dữ liệu cũ.',
+    say: 'Lệnh này không có WHERE. Cả 14 row bị xóa. Bấm ROLLBACK để lấy lại dữ liệu cũ. Bài sau dạy kỹ lệnh này.',
   },
 ];
 

@@ -85,7 +85,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Bài Thứ tự query chạy thật đã nói: FROM chạy trước GROUP BY.',
         'JOIN nằm trong FROM. Vì vậy database nối table trước, rồi mới gom nhóm trên kết quả đã nối.',
-        'Muốn biết mỗi món bán được bao nhiêu ly, bạn cần tên món và số lượng ở cùng một row. Nối ba table cho bạn điều đó.',
+        'Muốn đếm ly của từng món, bạn cần tên món và số lượng ở cùng một row. Nối ba table cho bạn điều đó.',
         'Rồi `GROUP BY p.name` gom các row cùng tên món, và `SUM(i.quantity)` cộng số ly trong mỗi nhóm.',
         'Query dưới đây chỉ tính đơn có status là done, và lấy năm món bán nhiều nhất.',
       ],

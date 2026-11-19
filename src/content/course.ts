@@ -37,7 +37,6 @@ export const chapters: Chapter[] = [
       { id: 'c3-b3', title: 'ORDER BY và DISTINCT' },
       { id: 'c3-b4', title: 'LIMIT và FETCH FIRST' },
       { id: 'c3-b5', title: 'Thứ tự query chạy thật' },
-      { id: 'c3-e6', title: 'Bài tập mẫu: ba món rẻ nhất trên 30.000 đồng', exercise: true },
     ],
   },
   {

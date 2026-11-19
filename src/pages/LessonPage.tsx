@@ -10,6 +10,7 @@ import { ChoiceQuiz } from '../components/quiz/ChoiceQuiz';
 import { MatchQuiz } from '../components/quiz/MatchQuiz';
 import { Rich } from '../components/Rich';
 import { chapters } from '../content/course';
+import { exerciseMap } from '../content/exercise-map';
 import { lessons } from '../content/lessons';
 import type { Lesson, LessonBlock } from '../content/types';
 import { uiApp } from '../content/ui-app';
@@ -100,6 +101,9 @@ function LessonView({ lesson }: { lesson: Lesson }) {
   const done = progress.lessons[lesson.id] !== undefined;
   const [justDone, setJustDone] = useState(false);
   const chapter = chapters.find((c) => c.id === lesson.chapter);
+  // Bài tập gắn với bài này, trừ những bài đã có sẵn trong một block `exercise`.
+  const listed = new Set(lesson.blocks.flatMap((b) => (b.type === 'exercise' ? b.exerciseIds : [])));
+  const extra = (exerciseMap[lesson.id] ?? []).filter((id) => !listed.has(id));
 
   /* Thanh tiến độ theo vị trí cuộn. */
   const [scroll, setScroll] = useState(0);
@@ -149,6 +153,8 @@ function LessonView({ lesson }: { lesson: Lesson }) {
           {lesson.blocks.map((b, i) => (
             <Block key={i} block={b} />
           ))}
+
+          {extra.length > 0 && <ExerciseLinks ids={extra} />}
 
           <section className="lesson-end sheet">
             {justDone && <Confetti count={34} />}

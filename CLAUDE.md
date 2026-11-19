@@ -40,7 +40,7 @@ Luật áp cho mọi kiểu dịch tương tự. Cũng giữ tiếng Anh: functi
 - Mascot là Bi, một chú robot database, nét sáng và thân thiện. Không quay lại hạt trân châu.
 - Trang chủ dạy database trước: ứng dụng quanh ta, dữ liệu đi đâu, bên trong database có gì. SQL và Query Theater chỉ xuất hiện sau, và không có nút nào ở đầu trang dẫn thẳng vào bài tập.
 - Bài tập chỉ đến sau lý thuyết của chương đó. Không mời người học làm bài tập khi chưa học.
-- Tiêu đề trang chủ "Hãy khám phá xem làm việc với database như thế nào" do chủ dự án chọn. Giữ nguyên, không sửa theo luật từ sáo.
+- Tiêu đề trang chủ "Hãy cùng nhau hiểu rõ Database và SQL nào!" và câu mô tả "Khóa học này sẽ giúp bạn hiểu rõ hơn về kiến trúc hệ thống Database và học cách viết SQL query." do chủ dự án chọn. Giữ nguyên từng chữ, không sửa theo luật viết.
 
 ## Phạm vi
 

@@ -9,9 +9,9 @@ export const uiApp = {
     skip: 'Tới nội dung chính',
   },
   home: {
-    // Tiêu đề và câu mô tả do chủ dự án chọn. Giữ nguyên, không sửa theo luật từ sáo.
-    title: 'Hãy khám phá xem làm việc với database như thế nào',
-    lead: 'Khóa học này sẽ hướng dẫn cho bạn cơ bản về thao tác với database và các câu query của chúng.',
+    // Tiêu đề và câu mô tả do chủ dự án chọn. Giữ nguyên từng chữ, không sửa theo luật viết.
+    title: 'Hãy cùng nhau hiểu rõ Database và SQL nào!',
+    lead: 'Khóa học này sẽ giúp bạn hiểu rõ hơn về kiến trúc hệ thống Database và học cách viết SQL query.',
     start: 'Vào bài đầu tiên',
     toToc: 'Xem mục lục',
     facts: { chapters: 'chương', lessons: 'bài', hours: 'giờ học', hoursValue: '4 tới 6', dialects: 'MySQL trước, Oracle sau' },

@@ -52,3 +52,19 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Trang chủ dạy database trước.** Cảnh đầu trang không còn là query. Cảnh mới: chạm vào một ứng dụng, dữ liệu chạy qua server vào database và thành một row. Dưới đó là cảnh table, row, column, rồi mới tới một dải ngắn nói về SQL. Nút "Thử Query Theater" ở đầu trang đã bỏ.
 - **Bài tập mẫu của Chương 3 chỉ còn nằm trong mục lục**, ở cuối Chương 3, với nhãn "Xem trước". Từ Mốc 2, bài tập luôn đứng sau lý thuyết của chương.
 - **Tiêu đề và câu mô tả ở trang chủ dùng đúng câu chủ dự án đưa** (bản chốt lần hai): "Hãy cùng nhau hiểu rõ Database và SQL nào!" và "Khóa học này sẽ giúp bạn hiểu rõ hơn về kiến trúc hệ thống Database và học cách viết SQL query." Hai câu này nằm ở `src/content/ui-app.ts` và không sửa theo luật viết.
+
+## Mốc 2
+
+- **Engine có hai lối vào.** `run()` chỉ chạy SELECT và dùng cho Query Theater. `createSession()` giữ một bản sao của database và chạy được INSERT, UPDATE, DELETE, COMMIT, ROLLBACK, CREATE TABLE. Lý do: bài tập và Playground thường chỉ cần SELECT, và người học không vô tình sửa dữ liệu của bài.
+- **Session theo đúng luật lưu của từng dialect.** MySQL tự COMMIT sau mỗi lệnh, trừ khi đã gõ START TRANSACTION. Oracle giữ thay đổi tới khi COMMIT. CREATE TABLE tự COMMIT.
+- **Bài học, bài tập, cảnh motion và glossary tự nhận theo file** (`import.meta.glob`). Thêm một file là có thêm một mục, không sửa danh mục.
+- **Bài tập gắn vào bài học qua `src/content/exercise-map/`.** Mỗi bài học có 1 tới 3 bài tập, hiện ở cuối bài. Mục lục chỉ dẫn tới bài học và ghi số bài tập đã làm. Lý do: chủ dự án muốn bài tập luôn đứng sau lý thuyết.
+- **Tám dạng bài tập:** write, fill, order, predict, debug, translate, rehearsal, quiz. Hai chương đầu chủ yếu dùng quiz và predict, vì người học chưa viết SQL.
+- **Bài tập chỉ dùng kiến thức đã dạy.** Lượt đọc soát tìm ra ba bài phạm luật này (INSERT ở Chương 2, phép tính ở bài đầu Chương 3, CREATE TABLE ở bài primary key) và ba bài đã được viết lại. Hai bài báo cáo ở cuối Chương 5 có JOIN viết sẵn, vì bài học `c5-b4` đã giới thiệu khung JOIN đó.
+- **Query Theater chuyển sang chế độ gọn khi table có hơn 24 row:** vẽ 10 row đầu và gom phần còn lại thành một khối có số đếm.
+- **Cảnh motion dùng dữ liệu rút gọn của riêng cảnh.** Ví dụ cảnh foreign key có 4 khách và 5 đơn. Cảnh diễn tập UPDATE, DELETE và cảnh giỏ transaction chạy bằng engine thật trên một bản sao của `products`.
+- **Cảnh diễn tập cho ROLLBACK cứu dữ liệu** dù bài đó dạy trước bài transaction. Session của cảnh mở sẵn một transaction, và Bi nói rõ bài sau dạy kỹ lệnh này. Bài tập diễn tập thì theo đúng dialect: ở MySQL, quên WHERE là đã tự lưu.
+- **Cuộc đua index đếm số lần so của tìm kiếm nhị phân** (7, 14, 20 lần cho 100, 10.000, 1.000.000 row). Index thật của DBMS là B-tree, số lần so cùng cỡ. Thời gian chạy trên màn hình là thời gian minh họa, con số mới là số thật.
+- **Giấy chứng nhận mở khi xong 33 bài học và 7 bài boss.** Trước đó trang hiện bản xem trước và số bài còn thiếu. Giấy vẽ bằng Canvas, tải về dạng PNG.
+- **Trang cắt phần tràn ngang ở `#main`.** Lý do: giấy vụn ăn mừng bay quá mép phải làm trang điện thoại trượt ngang 14px.
+- **Chia việc ở Mốc 2:** phiên chính làm engine, Theater, tám cảnh motion còn lại, khung trang và duyệt. Subagent Sonnet viết 28 bài học, 49 bài tập, dữ liệu HR và bản 200 đơn, test engine, trang phụ, giấy chứng nhận, soát chữ và chạy QA. Lượt soát chữ đầu chỉ quét bằng grep, nên có thêm hai lượt đọc từng câu. Chưa dùng subagent Fable nào.

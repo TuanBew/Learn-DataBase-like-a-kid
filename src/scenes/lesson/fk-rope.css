@@ -135,7 +135,8 @@
     grid-template-columns: minmax(0, 156fr) 22px minmax(0, 172fr);
   }
   .fkr .sk-table {
-    --cols: 50px minmax(0, 1fr);
+    /* 48px vừa chữ order_id, để column bên phải đủ 66px cho chữ customer_id. */
+    --cols: 48px minmax(0, 1fr);
   }
   .fkr .fkr__customers {
     --cols: 72px minmax(0, 1fr);

@@ -13,7 +13,8 @@ Website tĩnh dạy database và SQL cho người lớn chưa biết gì về IT
 - SQL engine tự viết bằng TypeScript, chạy ngay trong browser ở hai dialect (MySQL 8 và Oracle 19c), báo lỗi bằng mã lỗi thật.
 - Hiệu ứng âm thanh Web Audio, không có giọng đọc.
 - Tiến trình lưu trong localStorage, kèm một mã để mang sang máy khác.
-- Giấy chứng nhận tải về dạng ảnh PNG.
+- Ăn mừng khi xong mỗi chương, và giấy chứng nhận tải về dạng ảnh PNG khi xong cả khóa.
+- Hai giao diện: sáng (vở ô ly, mực tím, bút đỏ) và tối (bảng đen, phấn màu). Công tắc nằm ở đầu trang.
 
 ## Chạy trên máy
 
@@ -87,16 +88,20 @@ Thêm một file vào các thư mục trên là site tự nhận, không cần s
 
 `npm test` chạy hơn 1000 test. Trong đó có test so kết quả của engine với SQLite, test hành vi từng dialect, và test chạy mọi lời giải mẫu của bài tập.
 
-Các script trong `scripts/qa/` cần dev server đang chạy ở `http://127.0.0.1:5173` và Playwright cài sẵn.
+Các script trong `scripts/qa/` cần dev server đang chạy ở `http://127.0.0.1:5173` và Playwright cài sẵn trên máy (repo không khai báo Playwright trong `package.json`).
 
-- `crawl.cjs`: mở mọi bài học và bài tập ở 1440px và 390px, tìm lỗi console và nội dung tràn ngang. Nhận URL gốc ở tham số đầu.
-- `checks.cjs`: kiểm font, lỗi console, tràn ngang, reduced motion, nút tắt tiếng, lưu tiến trình, đáp án sai và thông báo lỗi.
-- `checks-2.cjs`: bản rút gọn của `checks.cjs` (lỗi console, reduced motion, tiến trình, đáp án sai).
-- `checks-3.cjs`: kiểm trang chủ, gồm lỗi console, tràn ngang, cảnh dữ liệu chạy qua server, thao tác bàn phím, reduced motion và tiêu đề trang.
-- `page-shots.cjs`: chụp trang chủ và bài học. Dùng `node scripts/qa/page-shots.cjs <thư mục> <chiều rộng> [scale]`.
-- `theater-shots.cjs`: chụp vài khoảnh khắc của Query Theater. Dùng `node scripts/qa/theater-shots.cjs <thư mục> <chiều rộng> [dialect]`.
+- `crawl.cjs`: mở mọi bài học và bài tập ở 1440px và 390px, tìm lỗi console, trang trắng và nội dung tràn ngang.
+- `axe.cjs`: quét accessibility (WCAG 2.1 AA) bằng axe-core trên mọi trang. Đặt `THEME=dark` để quét giao diện tối.
+- `checks-4.cjs`: kiểm tiến trình không mất khi tải lại, xuất và nhập mã tiến trình, nút tắt tiếng, dùng bằng bàn phím và dấu focus.
+- `checks-5.cjs`: kiểm chế độ reduced motion ở mọi cảnh motion, trang chủ và Query Theater.
+- `sfx-check.cjs`: đo tín hiệu của 15 hiệu ứng âm thanh (có tiếng, không vỡ tiếng, tắt tiếng thì im).
+- `copy-scan.cjs`: dò từ cấm và dấu hiệu văn AI trong mọi chữ người học nhìn thấy. Không cần dev server.
+- `all-shots.cjs`: chụp toàn trang mọi màn hình ở 1440px và 390px. Dùng `node scripts/qa/all-shots.cjs <thư mục ra> [lọc]`.
 - `scene-shot.cjs`: chụp một cảnh motion sau một chuỗi thao tác. Dùng `node scripts/qa/scene-shot.cjs <bài> <chiều rộng> <file ra> [thao tác...]`.
-- `moc2-shots.cjs`: chụp bộ ảnh Mốc 2 (Theater với JOIN và GROUP BY, vài dạng bài tập, mục lục, giấy chứng nhận). Dùng `node scripts/qa/moc2-shots.cjs <thư mục ra>`.
+- `moc2-shots.cjs`: chụp bộ ảnh Mốc 2 (Theater với JOIN và GROUP BY, vài dạng bài tập, mục lục, giấy chứng nhận).
+- `checks.cjs`, `checks-2.cjs`, `checks-3.cjs`, `page-shots.cjs`, `theater-shots.cjs`: các script kiểm và chụp của Mốc 1.
+
+Mọi script nhận địa chỉ gốc qua biến `BASE`, ví dụ `BASE=http://127.0.0.1:4173 node scripts/qa/crawl.cjs` để kiểm bản build đang chạy bằng `npm run preview`.
 
 ## Trạng thái
 
@@ -112,7 +117,7 @@ Các điểm sau cần chạy trên MySQL và Oracle thật mới chốt đượ
 - Mã lỗi khi gửi hai câu lệnh liền nhau, ở cả MySQL và Oracle.
 - Vế "tiêu đề kết quả in hoa" ở Oracle, và việc tool Oracle thường chờ COMMIT. Tài liệu SQL Reference xem đây là hành vi của từng tool.
 
-Âm thanh chưa được nghe bằng tai người. Môi trường dựng site không có loa.
+Âm thanh mới được kiểm bằng đo tín hiệu (`scripts/qa/sfx-check.cjs`): cả 15 hiệu ứng có tiếng ở mức nhỏ. Chưa ai nghe bằng tai, vì môi trường dựng site không có loa.
 
 ## Nguồn và giấy phép
 

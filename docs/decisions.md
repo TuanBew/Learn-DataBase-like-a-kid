@@ -90,3 +90,9 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Giấy chứng nhận luôn vẽ trên nền giấy sáng**, kể cả khi site đang ở giao diện tối, vì đó là một tờ giấy để tải về.
 - **Kiểm accessibility bằng axe-core trên mọi trang** (`scripts/qa/axe.cjs`, 87 trang ở hai chiều rộng), ngoài Lighthouse trên trang mẫu. Lượt đầu tìm ra bốn loại lỗi và cả bốn đã sửa: một cặp màu chữ phụ thiếu tương phản, vai trò ARIA sai ở cảnh mổ xẻ table, khối code cuộn ngang không nhận focus bàn phím.
 - **Âm thanh được kiểm bằng đo tín hiệu** (`scripts/qa/sfx-check.cjs`): cả 15 hiệu ứng có tiếng, biên độ đỉnh từ 0,05 tới 0,20, không tạo AudioContext trước lần chạm đầu, tắt tiếng thì im hẳn. Chưa ai nghe bằng tai, vì môi trường dựng site không có loa.
+- **Soi mọi màn hình bằng mắt theo từng mảnh.** 174 ảnh toàn trang (87 trang ở 1440px và 390px) được cắt thành 428 mảnh cao tối đa 1900px để xem ở đúng cỡ chữ. Bảy subagent Sonnet soi theo từng chương, phiên chính xem lại các chỗ bị báo rồi sửa.
+- **CSS dùng chung của các cảnh (`src/styles/kit.css`) nằm trong `base.css`.** Trước đó mỗi cảnh tự import file này. Ở bản build, Vite tải file chung sau CSS riêng của cảnh, nên luật chung đè luật riêng cùng độ ưu tiên: cảnh nhà kho mất lề trái, chấm chọn đè chữ. Dev server tải theo thứ tự khác nên không thấy lỗi. Từ đây ảnh kiểm tra chụp từ bản build.
+- **Khối code xuống dòng thay vì cuộn ngang.** Lý do: khối bị cắt ở mép phải mà không có dấu hiệu cuộn, người học không đọc hết câu lệnh. Table dữ liệu vẫn cuộn ngang, và có thêm một dòng nhắc "Kéo ngang để xem các column còn lại" khi table rộng hơn khung.
+- **Các khối của bài học cách nhau một khoảng đều** (48px). Trước đó khối chữ cách nhau gần 100px còn hai khối thẻ liền nhau chỉ cách 32px.
+- **Thẻ "Ngoài đời" đứng thẳng.** Xoay nghiêng 0,6 độ làm chữ mờ và viền răng cưa.
+- **Lời của Bi ở khối "Thử tay ngay" hiện cả trước và sau khi chạy.** Trước đó lời này biến mất ngay khi người học bấm Chạy.

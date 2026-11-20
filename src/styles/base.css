@@ -21,6 +21,9 @@ body {
   font-family: var(--font-body);
   font-size: var(--text-md);
   line-height: 1.6;
+  /* Font mono gộp ">=" thành "≥", "<>" thành "≠". Tắt đi: người học phải thấy đúng từng ký tự cần gõ. */
+  font-variant-ligatures: no-contextual;
+  font-feature-settings: 'calt' 0;
   /* Trang vở ô ly: ô nhỏ 8px, cứ 5 ô có một đường đậm */
   background-color: var(--paper);
   background-image:

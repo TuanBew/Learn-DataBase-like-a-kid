@@ -96,3 +96,8 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Các khối của bài học cách nhau một khoảng đều** (48px). Trước đó khối chữ cách nhau gần 100px còn hai khối thẻ liền nhau chỉ cách 32px.
 - **Thẻ "Ngoài đời" đứng thẳng.** Xoay nghiêng 0,6 độ làm chữ mờ và viền răng cưa.
 - **Lời của Bi ở khối "Thử tay ngay" hiện cả trước và sau khi chạy.** Trước đó lời này biến mất ngay khi người học bấm Chạy.
+- **Tắt chữ ghép của font code.** JetBrains Mono tự vẽ `>=` thành "≥" và `<>` thành một ký hiệu khác. Người học phải thấy đúng ký tự mình sẽ gõ.
+- **Mã lỗi Oracle (ORA-00918…) không ngắt giữa chừng** khi nằm trong câu chữ, trong ô ghép cặp và trong ghi chú.
+- **Cụm code có chú thích là chữ bấm được, không phải nút.** Thẻ `<button>` không xuống dòng giữa chừng, nên một cụm dài đẩy cả dòng xuống và mất thụt lề. Cụm giờ là `span` có `role="button"`, bấm bằng chuột, Enter hoặc phím cách.
+- **Khối SQL ở giao diện tối có nền tối riêng** (`--code-bg`), đậm hơn mặt bảng, để từ khóa màu phấn đủ tương phản.
+- **Kiểm cuối chạy trên bản build đứng yên.** Bản build được chép sang một thư mục riêng rồi mới chạy các script, để các lần build sau không đổi file giữa lúc đang kiểm.

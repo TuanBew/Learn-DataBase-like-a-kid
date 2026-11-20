@@ -138,10 +138,10 @@
     --cols: 50px minmax(0, 1fr);
   }
   .fkr .fkr__customers {
-    --cols: 64px minmax(0, 1fr);
+    --cols: 72px minmax(0, 1fr);
   }
   .fkr .sk-tr--head {
-    font-size: 0.56rem;
+    font-size: 0.62rem;
   }
   .fkr-fk,
   .fkr-pk {

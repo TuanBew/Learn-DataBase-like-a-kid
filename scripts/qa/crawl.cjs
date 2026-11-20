@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
-const BASE = (process.argv[2] || 'http://127.0.0.1:5173').replace(/\/$/, '');
+const BASE = (process.env.BASE || process.argv[2] || 'http://127.0.0.1:5173').replace(/\/$/, '');
 const root = path.resolve(__dirname, '../../src/content');
 const ids = (d, re) => fs.readdirSync(path.join(root, d)).filter((f) => f.endsWith('.ts') && re.test(f)).map((f) => f.slice(0, -3));
 const lessons = ids('lessons', /^(?!index\.)/);

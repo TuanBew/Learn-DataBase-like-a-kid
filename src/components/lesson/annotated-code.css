@@ -12,10 +12,10 @@
 .acode__pre {
   margin: 0;
   min-width: 0;
-  padding: var(--s3) var(--s4);
+  padding: var(--s3);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   line-height: 2.1;
   tab-size: 2;
   background: var(--paper-2);
@@ -26,6 +26,9 @@
   box-shadow: var(--depth-sm);
 }
 .acode__hit {
+  display: inline;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
   padding: 2px 3px;
   font: inherit;
   color: inherit;
@@ -70,7 +73,7 @@
 }
 @media (min-width: 900px) {
   .acode__grid {
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
     align-items: start;
   }
   .acode__note {

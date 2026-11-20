@@ -226,6 +226,9 @@ svg {
   line-height: 1.2;
 }
 
+.nowrap {
+  white-space: nowrap;
+}
 .mono {
   font-family: var(--font-mono);
 }

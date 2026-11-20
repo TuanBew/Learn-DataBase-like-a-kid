@@ -95,7 +95,9 @@ export function MatchQuiz({ quiz, onDone }: { quiz: MatchQuizData; onDone?: () =
           onClick={onClick}
         >
           {isMatched && <span className="qz-cell__num">{num}</span>}
-          <span className="qz-cell__text">{text}</span>
+          <span className="qz-cell__text">
+            <Rich text={text} />
+          </span>
         </button>
       </li>
     );

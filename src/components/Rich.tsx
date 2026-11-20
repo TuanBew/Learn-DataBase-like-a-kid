@@ -2,7 +2,8 @@ import { Fragment, type ReactNode } from 'react';
 import { glossary } from '../content/glossary';
 import { Term } from './Term';
 
-const TOKEN = /\*\*(.+?)\*\*|`([^`]+)`|\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+// Nhóm cuối bắt mã lỗi Oracle viết trong chữ thường, để mã không bị ngắt dòng ở dấu gạch.
+const TOKEN = /\*\*(.+?)\*\*|`([^`]+)`|\[\[([^\]|]+)(?:\|([^\]]+))?\]\]|(ORA-\d{5})/g;
 
 /** Tách chuỗi `Rich` thành các node React. Đệ quy cho phần bên trong chữ đậm. */
 function parse(text: string, keyBase: string): ReactNode[] {
@@ -20,6 +21,12 @@ function parse(text: string, keyBase: string): ReactNode[] {
         <code key={key} className={/^\S{1,14}$/.test(m[2]) ? 'rich-code rich-code--short' : 'rich-code'}>
           {m[2]}
         </code>,
+      );
+    } else if (m[5] !== undefined) {
+      out.push(
+        <span key={key} className="nowrap">
+          {m[5]}
+        </span>,
       );
     } else {
       const id = m[3].trim();

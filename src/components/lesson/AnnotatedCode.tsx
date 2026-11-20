@@ -45,18 +45,28 @@ export function AnnotatedCode({ title, intro, code, notes }: { title: string; in
   spans.forEach((s) => {
     if (s.start > at) parts.push(<Fragment key={`t${at}`}>{code.slice(at, s.start)}</Fragment>);
     parts.push(
-      <button
+      // Dùng span có vai trò nút, không dùng <button>: nút là một khối liền, không xuống dòng giữa chừng được,
+      // nên đoạn code dài bị đẩy cả cụm xuống dòng và để lại một dòng trống.
+      <span
         key={`n${s.start}`}
-        type="button"
+        role="button"
+        tabIndex={0}
         className={`acode__hit${cur === s.note ? ' is-on' : ''}`}
         aria-pressed={cur === s.note}
         onClick={() => {
           play('pop');
           setPicked(s.note);
         }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            play('pop');
+            setPicked(s.note);
+          }
+        }}
       >
         {code.slice(s.start, s.end)}
-      </button>,
+      </span>,
     );
     at = s.end;
   });

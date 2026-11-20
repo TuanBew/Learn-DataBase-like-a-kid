@@ -132,7 +132,7 @@
 @media (max-width: 560px) {
   .fkr__names,
   .fkr__tables {
-    grid-template-columns: minmax(0, 150fr) 22px minmax(0, 178fr);
+    grid-template-columns: minmax(0, 156fr) 22px minmax(0, 172fr);
   }
   .fkr .sk-table {
     --cols: 50px minmax(0, 1fr);

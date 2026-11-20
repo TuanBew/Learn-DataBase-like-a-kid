@@ -50,7 +50,7 @@ export const lesson: Lesson = {
       tables: ['products'],
       dialects: ['mysql'],
       sql: { mysql: 'SELECT * FROM products;' },
-      say: 'Bạn vừa gửi query đầu tiên. Mỗi row là một món của tiệm.',
+      say: 'Bấm Chạy để gửi query đầu tiên của bạn. Mỗi row trong kết quả là một món của tiệm.',
     },
     {
       type: 'quiz',

@@ -6,7 +6,6 @@ import { Rich } from '../../components/Rich';
 import { copy } from '../../content/scenes/index-race';
 import { niceNumber } from '../../engine/values';
 import { play } from '../../sfx/sfx';
-import '../kit.css';
 import './index-race.css';
 
 const T = copy.targetAt;

@@ -102,7 +102,7 @@ export default function Playground({ block }: { block: PlaygroundBlock }) {
         </div>
       )}
 
-      {block.say && !out && (
+      {block.say && (
         <Says size={52} className="pg__say">
           <Rich text={block.say} />
         </Says>

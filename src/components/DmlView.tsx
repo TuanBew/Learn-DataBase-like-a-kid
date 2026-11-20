@@ -2,6 +2,7 @@ import * as m from 'motion/react-m';
 import { AnimatePresence, useReducedMotion } from 'motion/react';
 import type { DmlTrace } from '../engine';
 import { show } from '../engine/values';
+import { ScrollHint, useOverflowX } from './ScrollHint';
 import './dml-view.css';
 
 const MAX = 14;
@@ -21,10 +22,11 @@ export function DmlView({ dml, labels }: { dml: DmlTrace; labels: { more: (n: nu
   const rows = ordered.slice(0, MAX);
   const rest = source.length - rows.length;
   const cols = dml.columns.map((c) => c.key);
+  const [scrollRef, overflows] = useOverflowX<HTMLDivElement>();
 
   return (
     <div className={`dmlv ${dml.noWhere ? 'dmlv--alarm' : ''}`}>
-      <div className="dmlv__scroll" tabIndex={0}>
+      <div className="dmlv__scroll" tabIndex={0} ref={scrollRef}>
         <table className="dmlv__table">
           <thead>
             <tr>
@@ -65,6 +67,11 @@ export function DmlView({ dml, labels }: { dml: DmlTrace; labels: { more: (n: nu
         </table>
       </div>
       {rest > 0 && <p className="dmlv__more">{labels.more(rest)}</p>}
+      {overflows && (
+        <div className="dmlv__hint">
+          <ScrollHint show />
+        </div>
+      )}
     </div>
   );
 }

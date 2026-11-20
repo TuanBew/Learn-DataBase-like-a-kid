@@ -1,5 +1,6 @@
 /** Chữ cố định của khung trang: đầu trang, trang chủ, trang bài học, trang bài tập. */
 export const uiApp = {
+  scrollHint: 'Table này rộng hơn màn hình. Kéo ngang để xem các column còn lại.',
   site: 'Learn Database',
   nav: {
     toc: 'Mục lục',

@@ -5,10 +5,10 @@ export const copy = {
     name: 'customers',
     columns: ['customer_id', 'full_name'],
     rows: [
-      { id: 1, name: 'Lý Thị Hường' },
-      { id: 2, name: 'Vũ Thu Hường' },
-      { id: 3, name: 'Lê Hoàng Nam' },
-      { id: 4, name: 'Đỗ Mai Linh' },
+      { id: 1, name: 'Lý Hường' },
+      { id: 2, name: 'Vũ Hường' },
+      { id: 3, name: 'Lê Nam' },
+      { id: 4, name: 'Đỗ Linh' },
     ],
   },
   orders: {

@@ -4,7 +4,6 @@ import { Says, type Mood } from '../../components/Mascot';
 import { Rich } from '../../components/Rich';
 import { type BoxValue, type Truth, copy } from '../../content/scenes/null-box';
 import { play } from '../../sfx/sfx';
-import '../kit.css';
 import './null-box.css';
 
 type Mode = 'eq' | 'isnull';

@@ -12,7 +12,7 @@ export const copy = {
     'LIMIT 3',
   ],
   ranTitle: 'Database chạy theo thứ tự khác',
-  task: 'Bấm từng clause theo thứ tự database chạy.',
+  task: 'Clause nào chạy trước thì bấm trước.',
   /** Thứ tự đúng: thứ tự database chạy. */
   pieces: [
     '`FROM`: lấy table',

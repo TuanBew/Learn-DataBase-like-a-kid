@@ -17,7 +17,7 @@ function parse(text: string, keyBase: string): ReactNode[] {
       out.push(<strong key={key}>{parse(m[1], key)}</strong>);
     } else if (m[2] !== undefined) {
       out.push(
-        <code key={key} className="rich-code">
+        <code key={key} className={/^\S{1,14}$/.test(m[2]) ? 'rich-code rich-code--short' : 'rich-code'}>
           {m[2]}
         </code>,
       );

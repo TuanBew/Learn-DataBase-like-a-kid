@@ -1,5 +1,8 @@
 @import './fonts.css';
 @import './tokens.css';
+/* Bộ khối chung của các cảnh motion. Nằm ở đây để luôn tải trước CSS riêng của từng cảnh:
+   nếu tải sau, luật chung sẽ đè luật riêng cùng độ ưu tiên và cảnh bị vỡ ở bản build. */
+@import './kit.css';
 
 *,
 *::before,
@@ -41,6 +44,8 @@ h3 {
   line-height: 1.08;
   margin: 0;
   letter-spacing: -0.01em;
+  /* Chia đều các dòng của tiêu đề, không để rớt một chữ lẻ xuống dòng cuối. */
+  text-wrap: balance;
 }
 h1 {
   font-size: var(--text-3xl);
@@ -54,6 +59,7 @@ h3 {
 }
 p {
   margin: 0;
+  text-wrap: pretty;
 }
 a {
   color: var(--ink);

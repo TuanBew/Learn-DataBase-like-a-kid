@@ -8,6 +8,7 @@ import { ChoiceQuiz } from '../../components/quiz/ChoiceQuiz';
 import { MatchQuiz } from '../../components/quiz/MatchQuiz';
 import { ResultTable } from '../../components/ResultTable';
 import { Rich } from '../../components/Rich';
+import { ScrollHint, useOverflowX } from '../../components/ScrollHint';
 import { DialectToggle, EditorBox, ErrorCard } from '../../components/sql/parts';
 import type { QuizExercise, SqlExercise } from '../../content/types';
 import { uiApp } from '../../content/ui-app';
@@ -70,6 +71,11 @@ export function PredictWork({ exercise, db }: { exercise: SqlExercise; db: Datab
     const r = run(`SELECT * FROM ${exercise.tables[0]}`, db, dialect);
     return r.ok ? r.result : null;
   }, [exercise, db, dialect]);
+  // Mỗi column rộng theo nội dung dài nhất của nó, để tên món không bị cắt khi còn chỗ.
+  const pickWidths = useMemo(() => (base ? base.columns.map((c, j) => Math.min(24, Math.max(5, c.length, ...base.rows.map((r) => show(r[j]).length)))) : []), [base]);
+  const pickCols = `28px ${pickWidths.map((n) => `minmax(0, ${n}fr)`).join(' ')}`;
+  const pickMin = 48 + pickWidths.reduce((a, n) => a + n * 8 + 8, 0);
+  const [pickRef, pickOverflows] = useOverflowX<HTMLDivElement>();
 
   const toggle = (id: number) => {
     play('tap');
@@ -114,15 +120,15 @@ export function PredictWork({ exercise, db }: { exercise: SqlExercise; db: Datab
 
       {base && (
         <section className="ex-work sheet">
-          <div className="ex-pick" role="group" aria-label={U.predictPick(picked.size)}>
-            <div className="ex-pick__head" style={{ gridTemplateColumns: `28px repeat(${base.columns.length}, minmax(0, 1fr))` }}>
+          <div className="ex-pick" role="group" aria-label={U.predictPick(picked.size)} ref={pickRef}>
+            <div className="ex-pick__head" style={{ gridTemplateColumns: pickCols, minWidth: pickMin }}>
               <span />
               {base.columns.map((c) => (
                 <span key={c}>{c}</span>
               ))}
             </div>
             {base.rows.map((r, i) => (
-              <button key={i} type="button" className={`ex-pick__row ex-pick__row--${state(base.rowIds[i])}`} aria-pressed={picked.has(base.rowIds[i])} onClick={() => toggle(base.rowIds[i])} style={{ gridTemplateColumns: `28px repeat(${base.columns.length}, minmax(0, 1fr))` }}>
+              <button key={i} type="button" className={`ex-pick__row ex-pick__row--${state(base.rowIds[i])}`} aria-pressed={picked.has(base.rowIds[i])} onClick={() => toggle(base.rowIds[i])} style={{ gridTemplateColumns: pickCols, minWidth: pickMin }}>
                 <span className="ex-pick__box" aria-hidden="true">
                   {picked.has(base.rowIds[i]) && <Icon name="check" size={14} />}
                 </span>
@@ -132,6 +138,7 @@ export function PredictWork({ exercise, db }: { exercise: SqlExercise; db: Datab
               </button>
             ))}
           </div>
+          <ScrollHint show={pickOverflows} />
           <div className="ex-actions">
             <button type="button" className="btn ex-run" onClick={check}>
               <Icon name="play" />

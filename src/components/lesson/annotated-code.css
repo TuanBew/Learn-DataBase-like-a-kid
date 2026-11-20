@@ -13,7 +13,8 @@
   margin: 0;
   min-width: 0;
   padding: var(--s3) var(--s4);
-  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   font-size: 0.9rem;
   line-height: 2.1;
   tab-size: 2;
@@ -28,7 +29,8 @@
   padding: 2px 3px;
   font: inherit;
   color: inherit;
-  white-space: pre;
+  white-space: pre-wrap;
+  text-align: left;
   background: color-mix(in srgb, var(--mango) 40%, transparent);
   border: 0;
   border-bottom: 2px dotted var(--ink);

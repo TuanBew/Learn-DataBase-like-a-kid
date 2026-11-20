@@ -68,7 +68,8 @@
 .hlad__code {
   margin: 0;
   padding: var(--s3);
-  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   line-height: 1.6;

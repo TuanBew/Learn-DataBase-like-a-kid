@@ -351,8 +351,8 @@
   background: var(--paper-2);
   border: 2px dashed var(--ink);
   border-radius: var(--r-md);
-  overflow-x: auto;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 /* Đoán row: mỗi row là một nút bấm chọn */
 .ex-pick {
@@ -367,7 +367,6 @@
   display: grid;
   gap: 8px;
   align-items: center;
-  min-width: 520px;
   padding: 0 10px;
 }
 .ex-pick__head {

@@ -5,7 +5,6 @@ import { Says, type Mood } from '../../components/Mascot';
 import { Rich } from '../../components/Rich';
 import { copy } from '../../content/scenes/pk-bonk';
 import { play } from '../../sfx/sfx';
-import '../kit.css';
 import './pk-bonk.css';
 
 interface Row {

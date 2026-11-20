@@ -45,8 +45,12 @@
 }
 .lesson-main {
   display: grid;
-  gap: var(--s6);
+  gap: var(--s7);
   min-width: 0;
+}
+/* Mọi khối cách nhau đúng một khoảng `gap`, không cộng thêm margin riêng. */
+.lesson-main > .lb {
+  margin-block: 0;
 }
 .lesson-goals {
   padding: var(--s4);

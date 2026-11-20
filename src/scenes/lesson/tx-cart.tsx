@@ -8,7 +8,6 @@ import { teashop } from '../../data/teashop';
 import { type Database, type Dialect, type Session, createSession } from '../../engine';
 import { niceNumber } from '../../engine/values';
 import { play } from '../../sfx/sfx';
-import '../kit.css';
 import './tx-cart.css';
 
 type Cells = (string | number | null)[];
@@ -207,11 +206,6 @@ export default function TxCart() {
         </div>
       </div>
 
-      <div className={`txc__sql ${last ? '' : 'is-hidden'}`}>
-        <span className="sk-label">{copy.lastSql}</span>
-        <pre className="sk-sql">{last || ' '}</pre>
-      </div>
-
       <div className="sk-stage txc__stage">
         <Table title={copy.mine} tone="mine" rows={shown} marks={marks} />
         <Table title={copy.theirs} tone="theirs" rows={theirs} />
@@ -258,6 +252,13 @@ export default function TxCart() {
           </div>
         </div>
       </div>
+
+      {last && (
+        <div className="txc__sql">
+          <span className="sk-label">{copy.lastSql}</span>
+          <pre className="sk-sql">{last}</pre>
+        </div>
+      )}
 
       <div className="sk-bar txc__foot">
         <Says mood={say?.mood ?? 'idle'} size={56} className="sk-say">

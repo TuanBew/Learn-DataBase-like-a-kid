@@ -16,6 +16,11 @@
   background: var(--paper-2);
   border: 1.5px solid var(--ink-line);
   border-radius: 6px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.rich-code--short {
+  white-space: nowrap;
 }
 .lb-link {
   color: var(--ink);
@@ -56,7 +61,6 @@
   border: var(--line);
   border-radius: var(--r-sm);
   box-shadow: var(--depth-sm);
-  transform: rotate(-0.6deg);
 }
 .lb-real__pin {
   position: absolute;
@@ -151,10 +155,11 @@
 .lb-code__pre {
   margin: 0;
   padding: var(--s3);
-  overflow-x: auto;
   font-size: var(--text-sm);
   line-height: 1.55;
   tab-size: 2;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 /* Nguồn */
@@ -162,8 +167,8 @@
   margin-top: var(--s6);
   padding-top: var(--s3);
   border-top: 1.5px dashed var(--edge);
-  font-size: var(--text-xs);
-  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
   line-height: 1.7;
 }
 .lb-sources__label {

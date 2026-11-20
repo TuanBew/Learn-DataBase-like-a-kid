@@ -6,7 +6,6 @@ import { Mascot, Says, type Mood } from '../../components/Mascot';
 import { Rich } from '../../components/Rich';
 import { copy, type WhBox, type WhSlip } from '../../content/scenes/warehouse';
 import { play } from '../../sfx/sfx';
-import '../kit.css';
 import './warehouse.css';
 
 type Phase = 'go' | 'pick' | 'back' | 'done';

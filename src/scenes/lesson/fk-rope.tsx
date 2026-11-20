@@ -5,7 +5,6 @@ import { Says, type Mood } from '../../components/Mascot';
 import { Rich } from '../../components/Rich';
 import { copy } from '../../content/scenes/fk-rope';
 import { play } from '../../sfx/sfx';
-import '../kit.css';
 import './fk-rope.css';
 
 const HEAD = 22;

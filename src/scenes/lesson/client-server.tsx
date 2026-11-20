@@ -6,7 +6,6 @@ import { Mascot, Says } from '../../components/Mascot';
 import { Rich } from '../../components/Rich';
 import { copy, type CsNode } from '../../content/scenes/client-server';
 import { play } from '../../sfx/sfx';
-import '../kit.css';
 import './client-server.css';
 
 const X: Record<CsNode, string> = { client: '16.667%', server: '50%', database: '83.333%' };
@@ -131,11 +130,6 @@ export default function ClientServer() {
         )}
       </div>
 
-      <div className={`cs__sql ${step >= 2 ? '' : 'is-hidden'}`}>
-        <span className="sk-label">{copy.sqlLabel}</span>
-        <pre className="sk-sql">{copy.sql}</pre>
-      </div>
-
       <div className="sk-bar">
         <button type="button" className="btn cs__next" onClick={next} disabled={done || !arrived}>
           {copy.next}
@@ -146,6 +140,13 @@ export default function ClientServer() {
           {copy.reset}
         </button>
       </div>
+
+      {step >= 2 && (
+        <div className="cs__sql">
+          <span className="sk-label">{copy.sqlLabel}</span>
+          <pre className="sk-sql">{copy.sql}</pre>
+        </div>
+      )}
 
       <Says mood={showMenu ? 'cheer' : step === 0 ? 'idle' : 'happy'} size={56} className="sk-say">
         <Rich text={cur ? cur.say : copy.says.start} />

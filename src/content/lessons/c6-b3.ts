@@ -83,7 +83,7 @@ export const lesson: Lesson = {
       type: 'text',
       title: 'Nối xong mới gom nhóm',
       paragraphs: [
-        'Bài Thứ tự query chạy thật đã nói: FROM chạy trước GROUP BY.',
+        'Bài "Thứ tự query chạy thật" đã nói: FROM chạy trước GROUP BY.',
         'JOIN nằm trong FROM. Vì vậy database nối table trước, rồi mới gom nhóm trên kết quả đã nối.',
         'Muốn đếm ly của từng món, bạn cần tên món và số lượng ở cùng một row. Nối ba table cho bạn điều đó.',
         'Rồi `GROUP BY p.name` gom các row cùng tên món, và `SUM(i.quantity)` cộng số ly trong mỗi nhóm.',

@@ -1,6 +1,7 @@
 import type { ResultSet } from '../engine';
 import { show } from '../engine';
 import { uiExercise } from '../content/ui-exercise';
+import { ScrollHint, useOverflowX } from './ScrollHint';
 import './result-table.css';
 
 export interface ResultTableProps {
@@ -20,10 +21,11 @@ export function ResultTable({ result, caption, rowMarks, emptyText, maxRows }: R
   const rows = result.rows.slice(0, shown);
   const isNum = result.types.map((t) => t === 'int' || t === 'decimal');
   const title = caption ?? T.defaultCaption;
+  const [scrollRef, overflows] = useOverflowX<HTMLDivElement>();
 
   return (
     <figure className="rtab">
-      <div className="rtab__scroll" role="region" aria-label={title} tabIndex={0}>
+      <div className="rtab__scroll" role="region" aria-label={title} tabIndex={0} ref={scrollRef}>
         <table className="rtab__table">
           <caption className="rtab__caption">{title}</caption>
           <thead>
@@ -57,8 +59,9 @@ export function ResultTable({ result, caption, rowMarks, emptyText, maxRows }: R
         {total === 0 && <p className="rtab__empty">{emptyText ?? T.empty}</p>}
       </div>
       <figcaption className="rtab__count">
-        <span className="mono">{T.counts(total, result.columns.length)}</span>
+        <span className="mono">{T.counts(total, result.columns.length)}.</span>
         {shown < total && <span> {T.truncated(shown, total)}</span>}
+        <ScrollHint show={overflows} />
       </figcaption>
     </figure>
   );

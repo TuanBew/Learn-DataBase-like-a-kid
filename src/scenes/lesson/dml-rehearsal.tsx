@@ -7,7 +7,6 @@ import { uiApp } from '../../content/ui-app';
 import { teashop } from '../../data/teashop';
 import { type Database, type DmlTrace, type Session, createSession } from '../../engine';
 import { play } from '../../sfx/sfx';
-import '../kit.css';
 import './dml-rehearsal.css';
 
 const LABELS = { more: uiApp.exercise.rehearsal.more, old: uiApp.exercise.rehearsal.old };

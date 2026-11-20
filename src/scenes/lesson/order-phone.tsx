@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import * as m from 'motion/react-m';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, useReducedMotion } from 'motion/react';
 import { Says } from '../../components/Mascot';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/Rich';
@@ -29,6 +29,7 @@ const clock = (n: number) => {
 /** Cảnh "Đặt một ly": mỗi lần bấm Đặt món, một row bay từ điện thoại vào table orders. */
 export default function OrderPhone() {
   const [pick, setPick] = useState(copy.drinks[0]?.id ?? '');
+  const reduce = useReducedMotion();
   const [orders, setOrders] = useState<Order[]>([]);
   const full = orders.length >= MAX;
 
@@ -111,7 +112,7 @@ export default function OrderPhone() {
                   key={o.id}
                   role="row"
                   className="otable__row"
-                  initial={{ x: -180, y: -30, opacity: 0, scale: 0.6, rotate: -8 }}
+                  initial={reduce ? false : { x: -180, y: -30, opacity: 0, scale: 0.6, rotate: -8 }}
                   animate={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
                   exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
                   transition={{ type: 'spring', duration: 0.6, bounce: 0.3 }}

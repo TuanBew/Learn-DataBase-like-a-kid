@@ -76,7 +76,6 @@ function NameParts() {
                 key={c.name}
                 type="button"
                 className={`ta__th${headLit(j) ? ' is-lit' : ''}`}
-                aria-label={`${copy.columnLabel} ${c.name}`}
                 aria-pressed={focus?.kind === 'column' && focus.j === j}
                 onClick={() => {
                   play('tap');
@@ -105,7 +104,7 @@ function NameParts() {
                   key={copy.columns[j].name}
                   type="button"
                   className={`ta__cell${lit(i, j) ? ' is-lit' : ''}${j === 0 || j === 2 ? ' ta__cell--num' : ''}`}
-                  aria-label={`${copy.cellLabel} ${copy.columns[j].name}, row ${i + 1}: ${v}`}
+                  aria-label={`${v}, ${copy.cellLabel} ${copy.columns[j].name}, row ${i + 1}`}
                   aria-pressed={focus?.kind === 'cell' && focus.i === i && focus.j === j}
                   onClick={() => {
                     play('tap');
@@ -211,7 +210,7 @@ function TryWrite() {
                     type="button"
                     className={`ta__cell ta__cell--pick${on ? ' is-lit' : ''}${edits[key] ? ' is-new' : ''}`}
                     aria-pressed={on}
-                    aria-label={`${copy.cellPickLabel}: ${c.key}, row ${i + 1}`}
+                    aria-label={`${val}, ${copy.cellPickLabel}: ${c.key}, row ${i + 1}`}
                     onClick={() => {
                       play('tap');
                       setSel({ i, col: c.key });

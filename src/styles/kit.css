@@ -129,8 +129,9 @@
   font-family: var(--font-mono);
   font-size: 0.82rem;
   line-height: 1.5;
-  color: var(--on-ink);
-  background: var(--ink);
+  color: var(--code-fg);
+  background: var(--code-bg);
+  box-shadow: inset 0 0 0 1.5px var(--code-line);
   border-radius: 10px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;

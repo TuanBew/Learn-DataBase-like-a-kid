@@ -52,6 +52,10 @@
   --code-str: #9a3d00;
   --code-num: #0a6976;
   --code-com: #6a6399;
+  /* Khối hiện một câu SQL: nền mực ở giao diện sáng, nền tối hơn mặt bảng ở giao diện tối */
+  --code-bg: var(--ink);
+  --code-fg: var(--on-ink);
+  --code-line: transparent;
 
   /* Chữ */
   --font-display: 'Baloo 2', 'Be Vietnam Pro', system-ui, sans-serif;
@@ -111,7 +115,7 @@
   --edge: #0e1513;
 
   --red: #ff7d70;
-  --red-ink: #ffa398;
+  --red-ink: #ffc0b8;
   --red-soft: #4c2c29;
 
   --milk: #69563a;
@@ -121,7 +125,7 @@
   --matcha-ink: #b3ea98;
   --taro: #564a94;
   --taro-deep: #b9a5f8;
-  --mango: #775b08;
+  --mango: #6a5207;
   --mango-deep: #f6bd3e;
   --peach: #894b32;
   --peach-deep: #ff9f7a;
@@ -142,4 +146,7 @@
   --code-str: #ffb783;
   --code-num: #84d8e3;
   --code-com: #9ea99a;
+  --code-bg: #111916;
+  --code-fg: var(--ink);
+  --code-line: var(--ink-line);
 }

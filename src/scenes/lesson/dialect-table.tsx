@@ -33,7 +33,7 @@ function MiniTable({ out }: { out: Extract<Outcome, { ok: true }> }) {
   if (out.rows.length === 0) return <p className="dlt-none">{copy.noRows}</p>;
   return (
     <div className="dlt-res">
-      <div className="dlt-res__scroll">
+      <div className="dlt-res__scroll" tabIndex={0}>
         <table className="dlt-tbl">
           <thead>
             <tr>

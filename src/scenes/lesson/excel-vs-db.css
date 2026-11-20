@@ -125,7 +125,7 @@
   font-family: var(--font-body);
   font-weight: 500;
   font-size: 0.82rem;
-  color: var(--ink-soft);
+  color: var(--ink-2);
 }
 .xdb__side-body {
   display: grid;

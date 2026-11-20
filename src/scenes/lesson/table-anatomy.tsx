@@ -65,17 +65,16 @@ function NameParts() {
       </div>
 
       <div className="ta__wrap">
-        <div className={`ta ${focus?.kind === 'table' ? 'ta--lit' : ''}`} role="table" aria-label={`table ${copy.tableName}`}>
+        <div className={`ta ${focus?.kind === 'table' ? 'ta--lit' : ''}`} role="group" aria-label={`table ${copy.tableName}`}>
           <div className="ta__tname">
             <span className="chip">table {copy.tableName}</span>
           </div>
-          <div className="ta__grid ta__grid--head" role="row">
+          <div className="ta__grid ta__grid--head">
             <span className="ta__gutter" aria-hidden="true" />
             {copy.columns.map((c, j) => (
               <button
                 key={c.name}
                 type="button"
-                role="columnheader"
                 className={`ta__th${headLit(j) ? ' is-lit' : ''}`}
                 aria-label={`${copy.columnLabel} ${c.name}`}
                 aria-pressed={focus?.kind === 'column' && focus.j === j}
@@ -90,7 +89,7 @@ function NameParts() {
             ))}
           </div>
           {copy.rows.map((r, i) => (
-            <div key={r[0]} className="ta__grid" role="row">
+            <div key={r[0]} className="ta__grid">
               <button
                 type="button"
                 className={`ta__gutter ta__gutter--btn${focus?.kind === 'row' && focus.i === i ? ' is-lit' : ''}`}
@@ -105,9 +104,9 @@ function NameParts() {
                 <button
                   key={copy.columns[j].name}
                   type="button"
-                  role="cell"
                   className={`ta__cell${lit(i, j) ? ' is-lit' : ''}${j === 0 || j === 2 ? ' ta__cell--num' : ''}`}
                   aria-label={`${copy.cellLabel} ${copy.columns[j].name}, row ${i + 1}: ${v}`}
+                  aria-pressed={focus?.kind === 'cell' && focus.i === i && focus.j === j}
                   onClick={() => {
                     play('tap');
                     setFocus({ kind: 'cell', i, j });
@@ -183,22 +182,22 @@ function TryWrite() {
       <p className="ta__intro">{copy.part2Intro}</p>
 
       <div className="ta__wrap">
-        <div className="ta ta--mini" role="table" aria-label={`table ${copy.tableName}`}>
-          <div className="ta__grid ta__grid--mini ta__grid--head" role="row">
+        <div className="ta ta--mini" role="group" aria-label={`table ${copy.tableName}`}>
+          <div className="ta__grid ta__grid--mini ta__grid--head">
             <span className="ta__th ta__th--static">
               <span className="ta__cname">{copy.nameHead}</span>
               <Type t="VARCHAR" />
             </span>
             {COL2.map((c) => (
-              <span key={c.key} role="columnheader" className="ta__th ta__th--static">
+              <span key={c.key} className="ta__th ta__th--static">
                 <span className="ta__cname">{c.key}</span>
                 <Type t={copy.columns[c.idx].type} />
               </span>
             ))}
           </div>
           {copy.rows.map((r, i) => (
-            <div key={r[0]} className="ta__grid ta__grid--mini" role="row">
-              <span role="cell" className="ta__cell ta__cell--static">
+            <div key={r[0]} className="ta__grid ta__grid--mini">
+              <span className="ta__cell ta__cell--static">
                 {r[1]}
               </span>
               {COL2.map((c) => {
@@ -210,7 +209,6 @@ function TryWrite() {
                   <button
                     key={c.key}
                     type="button"
-                    role="cell"
                     className={`ta__cell ta__cell--pick${on ? ' is-lit' : ''}${edits[key] ? ' is-new' : ''}`}
                     aria-pressed={on}
                     aria-label={`${copy.cellPickLabel}: ${c.key}, row ${i + 1}`}

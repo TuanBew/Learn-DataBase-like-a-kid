@@ -108,7 +108,7 @@ export function OracleCard({ body, mysql, oracle }: Of<'oracle'>) {
           {mysql && (
             <figure className="lb-code">
               <figcaption className="lb-code__cap">{uiLesson.oracleMysql}</figcaption>
-              <pre className="lb-code__pre">
+              <pre className="lb-code__pre" tabIndex={0}>
                 <code>{mysql}</code>
               </pre>
             </figure>
@@ -116,7 +116,7 @@ export function OracleCard({ body, mysql, oracle }: Of<'oracle'>) {
           {oracle && (
             <figure className="lb-code lb-code--oracle">
               <figcaption className="lb-code__cap">{uiLesson.oracleOracle}</figcaption>
-              <pre className="lb-code__pre">
+              <pre className="lb-code__pre" tabIndex={0}>
                 <code>{oracle}</code>
               </pre>
             </figure>

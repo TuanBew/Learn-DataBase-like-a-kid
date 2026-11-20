@@ -106,7 +106,7 @@ export function SqlWork({ exercise, db }: { exercise: SqlExercise; db: Database 
         {exercise.kind === 'translate' && exercise.from && (
           <section className="ex-from">
             <h2 className="ex-h ex-h--sm">{U.fromLabel}</h2>
-            <pre>{exercise.from}</pre>
+            <pre tabIndex={0}>{exercise.from}</pre>
           </section>
         )}
 

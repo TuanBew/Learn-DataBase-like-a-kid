@@ -109,7 +109,7 @@ export function PredictWork({ exercise, db }: { exercise: SqlExercise; db: Datab
       />
       <section className="ex-from">
         <h2 className="ex-h ex-h--sm">{U.queryLabel}</h2>
-        <pre>{sql}</pre>
+        <pre tabIndex={0}>{sql}</pre>
       </section>
 
       {base && (

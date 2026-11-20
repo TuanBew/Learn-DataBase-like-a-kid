@@ -46,8 +46,8 @@ export function HintLadder({ light, specific, skeleton, solution, onSolution, re
   const bodies: ReactNode[] = [
     <p key="1" className="hlad__text">{renderRich(light)}</p>,
     <p key="2" className="hlad__text">{renderRich(specific)}</p>,
-    <pre key="3" className="hlad__code">{skeleton}</pre>,
-    <pre key="4" className="hlad__code">{solution}</pre>,
+    <pre key="3" className="hlad__code" tabIndex={0}>{skeleton}</pre>,
+    <pre key="4" className="hlad__code" tabIndex={0}>{solution}</pre>,
   ];
 
   return (

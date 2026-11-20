@@ -73,7 +73,7 @@ export function AnnotatedCode({ title, intro, code, notes }: { title: string; in
         </p>
       )}
       <div className="acode__grid">
-        <pre className="acode__pre">
+        <pre className="acode__pre" tabIndex={0}>
           <code>{parts}</code>
         </pre>
         {note && (

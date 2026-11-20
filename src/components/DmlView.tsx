@@ -24,7 +24,7 @@ export function DmlView({ dml, labels }: { dml: DmlTrace; labels: { more: (n: nu
 
   return (
     <div className={`dmlv ${dml.noWhere ? 'dmlv--alarm' : ''}`}>
-      <div className="dmlv__scroll">
+      <div className="dmlv__scroll" tabIndex={0}>
         <table className="dmlv__table">
           <thead>
             <tr>

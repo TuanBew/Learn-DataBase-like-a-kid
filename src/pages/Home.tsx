@@ -26,6 +26,9 @@ const ROW = 46;
 export function Home() {
   const progress = useProgress();
   const lessonCount = chapters.reduce((n, c) => n + c.lessons.filter((l) => !l.exercise).length, 0);
+  // Người quay lại thì nút đầu trang dẫn tới bài học tiếp theo. Nút này không bao giờ dẫn thẳng vào bài tập.
+  const started = Object.keys(progress.lessons).length > 0;
+  const upNext = chapters.flatMap((c) => c.lessons).find((l) => !l.exercise && progress.lessons[l.id] === undefined);
 
   return (
     <>
@@ -35,14 +38,15 @@ export function Home() {
           <h1>{U.title}</h1>
           <p className="home-hero__lead">{U.lead}</p>
           <div className="home-hero__cta">
-            <Link href="/bai/c1-b1" className="btn">
-              {U.start}
+            <Link href={!started ? '/bai/c1-b1' : upNext ? `/bai/${upNext.id}` : '/chung-nhan'} className="btn">
+              {!started ? U.start : upNext ? U.resume : U.allDone}
               <Icon name="arrow" />
             </Link>
             <a href="#muc-luc" className="btn btn--paper">
               {U.toToc}
             </a>
           </div>
+          {started && <p className="home-hero__resume">{upNext ? U.resumeNote(upNext.title) : U.allDoneNote}</p>}
           <div className="home-hero__facts">
             <span className="chip">
               <b>{chapters.length}</b> {U.facts.chapters}

@@ -146,3 +146,23 @@
     transition: none;
   }
 }
+
+/* Kéo thả bằng chuột */
+.opieces__piece[draggable='true'] {
+  cursor: grab;
+}
+.opieces__piece[draggable='true']:active {
+  cursor: grabbing;
+}
+.opieces__slot.is-over .opieces__empty,
+.opieces__slot.is-over .opieces__piece {
+  outline: 3px solid var(--mango-deep);
+  outline-offset: 2px;
+}
+.opieces__slot.is-over .opieces__empty {
+  background: #fff7dc;
+}
+.opieces__pool.is-over {
+  border-color: var(--ink);
+  background: #fff7dc;
+}

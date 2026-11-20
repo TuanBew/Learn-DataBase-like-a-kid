@@ -124,8 +124,18 @@ function LessonView({ lesson }: { lesson: Lesson }) {
   const lastOfChapter = !next || next.chapter !== lesson.chapter;
   const left = (exerciseMap[lesson.id] ?? []).filter((id) => progress.exercises[id] === undefined).length;
 
+  // Chương xong khi mọi bài của chương đã xong, không kể học theo thứ tự nào.
+  const isDone = (id: string) => progress.lessons[id] !== undefined;
+  const chapterLessons = chapter?.lessons ?? [];
+  const chapterComplete = chapterLessons.length > 0 && chapterLessons.every((l) => isDone(l.id));
+  const chaptersDone = chapters.filter((c) => c.lessons.every((l) => isDone(l.id))).length;
+  const [closedChapter, setClosedChapter] = useState(false);
+  const showStamp = chapterComplete && (lastOfChapter || closedChapter);
+
   const finish = () => {
-    play(lastOfChapter ? 'chapter' : 'lesson');
+    const closes = chapterLessons.every((l) => l.id === lesson.id || isDone(l.id));
+    play(closes ? 'chapter' : 'lesson');
+    setClosedChapter(closes);
     markLesson(lesson.id);
     setJustDone(true);
   };
@@ -164,12 +174,38 @@ function LessonView({ lesson }: { lesson: Lesson }) {
           {extra.length > 0 && <ExerciseLinks ids={extra} />}
 
           <section className="lesson-end sheet">
-            {justDone && <Confetti count={lastOfChapter ? 64 : 34} />}
+            {justDone && <Confetti count={showStamp ? 64 : 34} />}
             {done ? (
               <>
-                <Says mood="cheer" size={lastOfChapter ? 96 : 72}>
-                  {!next ? U.courseSay : lastOfChapter && chapter ? U.chapterSay(chapter.id, chapter.title) : U.finishSay}
-                </Says>
+                <div className="lesson-end__top">
+                  <Says mood="cheer" size={showStamp ? 96 : 72}>
+                    {chaptersDone === chapters.length ? U.courseSay : showStamp && chapter ? U.chapterSay(chapter.id, chapter.title) : U.finishSay}
+                  </Says>
+                  {showStamp && chapter && (
+                    <div className={`chapter-stamp ${justDone ? 'is-fresh' : ''}`}>
+                      <svg viewBox="0 0 160 160" role="img" aria-label={`${U.stampTop(chapter.id)}: ${U.stampMain}`}>
+                        <path d="M80 9C41 8 10 39 11 79c1 41 30 71 70 71 41 0 70-31 69-71C149 38 120 10 80 9z" fill="none" stroke="var(--red)" strokeWidth="6" strokeLinecap="round" />
+                        <path d="M79 21C47 22 22 47 23 80c1 32 26 57 58 56 33-1 57-27 56-58-1-32-27-58-58-57z" fill="none" stroke="var(--red)" strokeWidth="2.5" strokeDasharray="3 7" strokeLinecap="round" />
+                        <text x="80" y="66" textAnchor="middle" className="chapter-stamp__top">
+                          {U.stampTop(chapter.id)}
+                        </text>
+                        <text x="80" y="112" textAnchor="middle" className="chapter-stamp__main">
+                          {U.stampMain}
+                        </text>
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                {showStamp && (
+                  <div className="chapter-pips" role="img" aria-label={U.chaptersDone(chaptersDone, chapters.length)}>
+                    {chapters.map((c) => (
+                      <span key={c.id} className={c.lessons.every((l) => isDone(l.id)) ? 'is-done' : ''}>
+                        {c.id}
+                      </span>
+                    ))}
+                    <em>{U.chaptersDone(chaptersDone, chapters.length)}</em>
+                  </div>
+                )}
                 {left > 0 && <p className="lesson-end__note">{U.exercisesLeft(left)}</p>}
                 <div className="lesson-end__links">
                   {next ? (

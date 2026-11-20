@@ -157,7 +157,9 @@ export function buildFrames(trace: Trace): Frame[] {
         const lonely = rows.filter((r) => !matches.has(r.id)).length;
         rows = rows.map((r) => {
           const n = matches.get(r.id) ?? 0;
-          if (n > 0) return { ...r, mark: 'passed' as const, note: T.joinNote(n) };
+          // Khớp đúng một row là chuyện thường gặp: chỉ đánh dấu tích, cho sân khấu đỡ rối. Khớp nhiều row mới ghi số.
+          if (n === 1) return { ...r, mark: 'passed' as const };
+          if (n > 1) return { ...r, mark: 'passed' as const, note: T.joinNote(n) };
           return kept.has(r.id) ? { ...r, mark: 'passed' as const, note: T.joinKeep } : { ...r, mark: 'fail' as const, note: T.joinNote(0) };
         });
         push({

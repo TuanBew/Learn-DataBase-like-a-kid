@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { type DragEvent, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { play } from '../sfx/sfx';
 import { Rich } from './Rich';
 import './order-pieces.css';
@@ -43,7 +43,7 @@ function shuffled(pieces: string[]): number[] {
   return order;
 }
 
-/** Trò xếp thứ tự: bấm mẩu ở khay để đưa lên hàng trả lời, bấm lại để trả về khay. */
+/** Trò xếp thứ tự: bấm mẩu ở khay để đưa lên hàng trả lời, bấm lại để trả về khay. Dùng chuột thì kéo thả được. */
 export function OrderPieces({ pieces, mono = false, onDone, onChange, onWrong, labels }: OrderPiecesProps) {
   const uid = useId();
   const key = pieces.join('\u0001');
@@ -53,6 +53,9 @@ export function OrderPieces({ pieces, mono = false, onDone, onChange, onWrong, l
   const [done, setDone] = useState(false);
   const refs = useRef<Record<number, HTMLButtonElement | null>>({});
   const focusNext = useRef<number | null>(null);
+  /** Mẩu đang bị kéo, và chỗ con trỏ đang đứng trên. Kéo thả dùng chuột, bấm vẫn chạy cho điện thoại và bàn phím. */
+  const drag = useRef<number | null>(null);
+  const [over, setOver] = useState<number | 'pool' | null>(null);
 
   useEffect(() => {
     if (focusNext.current !== null) {
@@ -83,6 +86,48 @@ export function OrderPieces({ pieces, mono = false, onDone, onChange, onWrong, l
       i,
     );
   };
+  /** Đặt mẩu `i` vào ô thứ `k` của hàng trả lời. Các mẩu phía sau lùi xuống một ô. */
+  const place = (i: number, k: number) => {
+    if (done) return;
+    const rest = answer.filter((x) => x !== i);
+    const at = Math.min(k, rest.length);
+    play('tap');
+    change([...rest.slice(0, at), i, ...rest.slice(at)], i);
+  };
+  const dragFrom = (i: number) =>
+    done
+      ? {}
+      : {
+          draggable: true,
+          onDragStart: (e: DragEvent) => {
+            drag.current = i;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', String(i));
+          },
+          onDragEnd: () => {
+            drag.current = null;
+            setOver(null);
+          },
+        };
+  const dropOn = (target: number | 'pool') => ({
+    onDragOver: (e: DragEvent) => {
+      if (drag.current === null) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (over !== target) setOver(target);
+    },
+    onDragLeave: () => setOver((o) => (o === target ? null : o)),
+    onDrop: (e: DragEvent) => {
+      e.preventDefault();
+      const i = drag.current;
+      drag.current = null;
+      setOver(null);
+      if (i === null) return;
+      if (target === 'pool') {
+        if (answer.includes(i)) remove(i);
+      } else place(i, target);
+    },
+  });
   const reset = () => {
     play('pop');
     setAnswer([]);
@@ -117,7 +162,7 @@ export function OrderPieces({ pieces, mono = false, onDone, onChange, onWrong, l
           const filled = i !== undefined;
           const bad = filled && wrong.includes(k);
           return (
-            <li key={k} className="opieces__slot">
+            <li key={k} className={`opieces__slot${over === k ? ' is-over' : ''}`} {...dropOn(k)}>
               <span className="opieces__num" aria-hidden="true">
                 {k + 1}
               </span>
@@ -130,6 +175,7 @@ export function OrderPieces({ pieces, mono = false, onDone, onChange, onWrong, l
                   className={`opieces__piece${bad ? ' is-wrong' : ''}${done ? ' is-right' : ''}`}
                   disabled={done}
                   onClick={() => remove(i)}
+                  {...dragFrom(i)}
                 >
                   {text(i)}
                 </button>
@@ -144,7 +190,7 @@ export function OrderPieces({ pieces, mono = false, onDone, onChange, onWrong, l
       <p className="opieces__label" id={`${uid}-p`}>
         {labels.pool}
       </p>
-      <div className="opieces__pool" role="group" aria-labelledby={`${uid}-p`}>
+      <div className={`opieces__pool${over === 'pool' ? ' is-over' : ''}`} role="group" aria-labelledby={`${uid}-p`} {...dropOn('pool')}>
         {pool.map((i) => (
           <button
             key={i}
@@ -154,6 +200,7 @@ export function OrderPieces({ pieces, mono = false, onDone, onChange, onWrong, l
             }}
             className="opieces__piece opieces__piece--pool"
             onClick={() => add(i)}
+            {...dragFrom(i)}
           >
             {text(i)}
           </button>

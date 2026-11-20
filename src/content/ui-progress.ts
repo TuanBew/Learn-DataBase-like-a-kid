@@ -1,6 +1,6 @@
 export const uiProgress = {
   title: 'Tiến trình',
-  bi: 'Mình nhớ bạn đã học tới đâu. Số liệu trong trang tính từ những gì bạn đã làm trên máy này.',
+  bi: 'Mình nhớ bạn đã học tới đâu. Trang này đếm theo những gì bạn đã làm trên máy này.',
   lessonsLabel: 'Bài đã xong',
   exercisesLabel: 'Bài tập đã xong',
   of: 'trên',
@@ -22,13 +22,13 @@ export const uiProgress = {
     import: 'Nhập mã',
     emptyCode: 'Ô đang trống. Dán mã vào ô rồi bấm Nhập mã.',
     ok: (n: number) => (n > 0 ? `Xong. Mình đã thêm ${n} mục vào tiến trình của bạn.` : 'Mã này hợp lệ, nhưng máy này đã có hết các mục trong mã. Mình không cần thêm gì.'),
-    errFormat: 'Mã này sai dạng. Mã đúng bắt đầu bằng LDB1- và bạn cần dán đủ, không thiếu ký tự. Hãy tạo mã mới ở máy cũ rồi dán lại.',
-    errVersion: 'Mã này do một bản mới hơn của site tạo ra, nên mình chưa đọc được. Tải lại trang để lấy bản mới nhất, rồi nhập lại.',
+    errFormat: 'Mã này sai dạng. Mã đúng bắt đầu bằng LDB1-. Dán đủ mã, không thiếu ký tự. Nếu vẫn lỗi, tạo mã mới ở máy cũ rồi dán lại.',
+    errVersion: 'Một bản mới hơn của site đã tạo mã này, nên mình chưa đọc được. Tải lại trang để lấy bản mới nhất, rồi nhập lại.',
   },
 
   reset: {
     title: 'Xóa tiến trình',
-    lead: 'Nút này xóa mọi bài và bài tập bạn đã xong trên máy này. Bạn không lấy lại được. Tạo mã trước nếu muốn giữ bản sao.',
+    lead: 'Nút này xóa mọi bài và bài tập bạn đã xong trên máy này. Bạn không lấy lại được. Nếu muốn giữ bản sao, tạo mã trước.',
     ask: 'Xóa hết tiến trình',
     confirm: 'Bạn chắc chứ? Bấm lần nữa để xóa.',
     confirmBtn: 'Xóa thật',

@@ -59,14 +59,14 @@ export const homeFlow = {
     server: 'server',
     database: 'database',
     saved: 'Đã lưu',
-    empty: 'Chưa có row nào. Chạm vào một ứng dụng ở trên.',
+    empty: 'Chưa có row nào. Bấm vào một ứng dụng ở trên.',
     send: (app: string) => `${app}: gửi dữ liệu vào database`,
   },
   say: {
-    start: 'Chạm vào một ứng dụng. Mình chỉ bạn xem dữ liệu đi đâu.',
+    start: 'Bấm vào một ứng dụng. Mình chỉ bạn xem dữ liệu đi đâu.',
     all: 'Ứng dụng nào cũng cất dữ liệu trong database. Bài đầu tiên bắt đầu từ chuyện này.',
   },
-  pen: 'Chạm thử vào đây!',
+  pen: 'Bấm thử vào đây!',
 } as const;
 
 /** Cảnh 2: bên trong database có table, row, column. */

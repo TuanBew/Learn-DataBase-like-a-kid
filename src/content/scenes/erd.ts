@@ -32,8 +32,8 @@ export const copy = {
       child: 'Một row của orders chỉ trỏ về một row của staff, qua column staff_id. Mỗi đơn có một người bán.',
     },
     'order_items.order_id': {
-      parent: 'Một row của orders có thể có nhiều row ở order_items. Một đơn gồm nhiều dòng món.',
-      child: 'Một row của order_items chỉ trỏ về một row của orders, qua column order_id. Mỗi dòng món nằm trong một đơn.',
+      parent: 'Một row của orders có thể có nhiều row ở order_items. Một đơn gồm nhiều món.',
+      child: 'Một row của order_items chỉ trỏ về một row của orders, qua column order_id. Mỗi món trong order_items nằm trong một đơn.',
     },
     'order_items.product_id': {
       parent: 'Một row của products có thể có nhiều row ở order_items. Một món được bán trong nhiều đơn.',

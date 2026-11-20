@@ -71,7 +71,7 @@ export const sources = {
       },
       {
         name: 'Oracle Database 19c SQL Language Reference và MySQL 8 Reference Manual',
-        usedFor: 'Kiểm cú pháp và table khác biệt giữa hai dialect.',
+        usedFor: 'Kiểm cú pháp và các điểm khác nhau giữa hai dialect.',
         note: 'Tài liệu chính thức.',
       },
       {

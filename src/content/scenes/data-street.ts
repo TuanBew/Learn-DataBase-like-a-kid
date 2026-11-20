@@ -2,7 +2,7 @@ import type { DataStreetCopy } from '../types';
 
 /** Chữ và dữ liệu của cảnh "Phố dữ liệu" (bài c1-b1). */
 export const copy: DataStreetCopy = {
-  hint: 'Chạm vào một nơi.',
+  hint: 'Bấm vào một nơi.',
   counterLabel: 'row đã ghi',
   places: [
     {

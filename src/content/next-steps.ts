@@ -19,7 +19,7 @@ export const nextSteps = {
     points: [
       'Có sẵn schema HR. Đây đúng là dữ liệu của nhiệm vụ cuối khóa.',
       'Bạn chọn được bản 19c hoặc 26ai.',
-      'Mở trang, gõ query, bấm chạy.',
+      'Mở trang, gõ query, bấm Chạy.',
     ],
     href: 'https://freesql.com',
     cta: 'Mở Oracle FreeSQL',

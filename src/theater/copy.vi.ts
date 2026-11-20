@@ -55,7 +55,7 @@ export const theaterCopy = {
   empty: 'Không còn row nào trên sân khấu.',
   step: (n: number, total: number) => `Bước ${n} trên ${total}`,
   jump: (clause: string) => `Tới bước ${clause}`,
-  reducedNote: 'Bạn đang bật chế độ giảm chuyển động. Bấm Tới để xem từng bước.',
+  reducedNote: 'Máy của bạn đang bật chế độ giảm chuyển động. Bấm nút Tới một bước để xem từng bước.',
   controls: {
     play: 'Phát',
     pause: 'Tạm dừng',

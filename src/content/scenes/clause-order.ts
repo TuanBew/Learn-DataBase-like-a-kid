@@ -35,5 +35,5 @@ export const copy = {
   progress: (n: number, total: number) => `Bạn đã xếp ${n} trên ${total} clause.`,
   full: 'Đủ bảy clause rồi. Bấm Kiểm tra.',
   wrong: 'Chưa đúng. Hỏi thử: database cần biết gì trước khi lọc row?',
-  done: 'Đúng rồi. FROM chạy đầu vì database cần biết lấy row từ table nào. SELECT chạy gần cuối vì nó chỉ chọn column để hiện, sau khi row đã được lọc và gom nhóm.',
+  done: 'Đúng rồi. FROM chạy đầu vì database cần biết lấy row từ table nào. SELECT chạy gần cuối vì chỉ chọn column để hiện. Lúc đó row đã lọc và gom nhóm xong.',
 } as const;

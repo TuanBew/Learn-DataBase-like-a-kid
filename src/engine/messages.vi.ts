@@ -15,7 +15,7 @@ export const friendly: Record<string, (p: P) => string> = {
   'as-table-alias': () => 'Oracle không cho viết AS trước alias của table. Xóa chữ AS, giữ lại tên alias.',
   'no-from-oracle': () => 'Ở Oracle 19c, SELECT luôn cần FROM. Nếu chỉ muốn tính toán, viết thêm FROM DUAL.',
   'missing-from': (p) =>
-    `Sau danh sách column, database chờ chữ FROM nhưng lại gặp ${p.tok}. Kiểm tra xem bạn có quên chữ FROM hoặc một dấu phẩy không.`,
+    `Sau danh sách column, database chờ chữ FROM nhưng lại gặp ${p.tok}. Có thể bạn quên chữ FROM hoặc một dấu phẩy.`,
   'missing-expression': (p) => `Sau ${p.after} đang thiếu một thứ: tên column, một con số hoặc một chuỗi.`,
   'trailing-comma': (p) => `Có một dấu phẩy thừa ngay trước ${p.tok}. Xóa dấu phẩy đó.`,
   'no-table': () => 'Sau FROM cần tên của một table.',
@@ -34,7 +34,7 @@ export const friendly: Record<string, (p: P) => string> = {
     `Query này không có table hay alias nào tên ${p.name}. Kiểm tra lại phần đứng trước dấu chấm.`,
   'dquote-oracle': (p) =>
     `Ở Oracle, nháy kép dành cho tên column. Chuỗi phải nằm trong nháy đơn: '${p.text}'.`,
-  'alias-quote-oracle': (p) => `Ở Oracle, tên mới của column phải nằm trong nháy kép: "${p.text}".`,
+  'alias-quote-oracle': (p) => `Ở Oracle, tên mới của column không nằm trong nháy đơn. Dùng nháy kép: "${p.text}", hoặc bỏ nháy.`,
   'quoted-case-oracle': (p) =>
     `Trong nháy kép, Oracle phân biệt chữ hoa và chữ thường. Column này tên là ${p.real}. Dễ nhất là bỏ nháy kép.`,
   'backtick-oracle': () => 'Oracle không dùng dấu `. Xóa dấu đó đi.',
@@ -50,7 +50,7 @@ export const friendly: Record<string, (p: P) => string> = {
   'invalid-number': (p) => `Oracle cần một con số ở chỗ này nhưng lại gặp chuỗi '${p.text}'.`,
   'divide-zero': () => 'Oracle không chia được cho 0.',
   'date-literal-oracle': (p) =>
-    `Oracle không tự đổi chuỗi '${p.text}' thành ngày. Viết DATE '${p.text}' hoặc dùng TO_DATE.`,
+    `Oracle đọc chuỗi ngày theo một dạng mặc định, và '${p.text}' không khớp dạng đó. Viết DATE '${p.text}' hoặc dùng TO_DATE.`,
   'need-condition': () =>
     'WHERE cần một phép so sánh, ví dụ price > 30000. Ở đây mới chỉ có một giá trị.',
   'condition-in-select': () =>

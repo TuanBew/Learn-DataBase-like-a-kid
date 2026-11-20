@@ -67,7 +67,7 @@ export const copy = {
     max: 10000000,
     /** Số row tối đa của một sheet Excel. */
     limit: 1048576,
-    limitLabel: 'trần 1.048.576',
+    limitLabel: 'limit 1.048.576',
     full: 'Hết chỗ',
     accepts: 'Còn chỗ',
     dbOk: 'Nhận được',
@@ -76,7 +76,7 @@ export const copy = {
     scaleNote: 'Thang đo tăng theo từng nấc ×10.',
     say: {
       small: 'Ít row thế này thì Excel chạy ổn. Hai bên đều nhận.',
-      near: 'Excel còn nhận được, nhưng đã gần trần của một sheet là 1.048.576 row.',
+      near: 'Excel còn nhận được, nhưng đã gần limit của một sheet là 1.048.576 row.',
       over: 'Số row đã vượt 1.048.576. Sheet Excel hết chỗ. Database vẫn nhận tiếp.',
       huge: 'Vài triệu row vẫn nằm gọn trong database. Excel dừng ở 1.048.576 row.',
     },

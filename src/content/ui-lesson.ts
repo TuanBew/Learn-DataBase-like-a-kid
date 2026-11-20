@@ -15,6 +15,6 @@ export const uiLesson = {
   quizMatchHint: 'Bấm một ô bên trái, rồi bấm ô bên phải khớp với nó.',
   quizPairNumber: 'Cặp số',
   exerciseLinks: 'Bài tập của bài này',
-  exerciseBoss: 'Boss',
-  exerciseDone: 'Đã làm xong',
+  exerciseBoss: 'Bài boss',
+  exerciseDone: 'Đã xong',
 } as const;

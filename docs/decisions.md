@@ -71,3 +71,17 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Trang đã tải sẵn thì vẽ thẳng, không qua `lazy()` của React.** Lý do: `lazy()` luôn hiện khung chờ ở lần vẽ đầu và giữ khung đó khoảng 300ms, kể cả khi chunk đã có. Nội dung chính vì thế hiện muộn, và Lighthouse mobile của trang bài học tụt còn 74 tới 89. `App.tsx` có hàm `page()` bọc từng trang, `useLoad` có thêm `preload()` để lần vẽ đầu có ngay bài học hoặc bài tập. Sau khi sửa, sáu trang đo lại đạt 99 tới 100.
 - **Trang chủ và phần lõi của Motion tách khỏi chunk chính.** JS tải lần đầu còn khoảng 88 KB gzip. Animation tải ngay sau lần vẽ đầu.
 - **Chân trang nằm trong cùng khung chờ với nội dung, và `#main` cao ít nhất một màn hình.** Lý do: chân trang hiện trước rồi bị nội dung đẩy xuống làm CLS lên 0,25.
+
+## Mốc 3
+
+- **Làm việc trong một git worktree** (`.claude/worktrees/`, đã cho git bỏ qua) theo yêu cầu của chủ dự án. Commit vẫn đẩy lên nhánh `claude/exciting-feynman-avsqfd`.
+- **Bài tập tiếp theo chỉ nằm trong cùng bài học.** Thẻ làm đúng trước đây dẫn sang bài tập kế tiếp của chương, tức là có thể nhảy sang bài tập của một bài học chưa học. Giờ hết bài tập của bài học thì thẻ dẫn về bài học, và trang bài tập có link về bài học ở đầu trang.
+- **Chương xong khi mọi bài học của chương đã xong**, không kể học theo thứ tự nào. Lúc đó cuối bài hiện con dấu bút đỏ "Chương n, Xong", bảy chấm chương và tiếng ăn mừng của chương.
+- **Trang chủ có nút Học tiếp cho người quay lại.** Nút dẫn tới bài học đầu tiên chưa xong, không bao giờ dẫn thẳng vào bài tập. Người mới vẫn thấy nút vào bài đầu tiên.
+- **Bài xếp clause nhận cả bấm lẫn kéo thả.** Kéo thả dùng chuột trên máy tính. Bấm vẫn là cách chính trên điện thoại và bàn phím.
+- **Bước JOIN của Theater chỉ ghi nhãn cho row không khớp hoặc khớp nhiều row.** Row khớp đúng một row chỉ có dấu tích. Lý do: trên màn hình 390px, nhãn ở mọi row đè lên dữ liệu.
+- **Một tên cho một nút:** nút chạy query là "Chạy" ở mọi nơi (kể cả bài đoán kết quả và trang tra cứu dialect), nút làm lại là "Làm lại".
+- **"Chữ trống" và "chuỗi rỗng" là một.** Chương 2 dùng "chữ trống" vì người học chưa biết từ "chuỗi". Bài function chuỗi ở Chương 4 giới thiệu "chuỗi rỗng" và nói rõ đó là chữ trống đã gặp.
+- **Lời báo lỗi ngày của Oracle nói đúng nguyên nhân:** Oracle đọc chuỗi ngày theo một dạng mặc định, và chuỗi dạng 2026-03-08 không khớp dạng đó. Câu cũ "Oracle không tự đổi chuỗi thành ngày" chưa đúng.
+- **Mỗi trang có tiêu đề tab riêng** (tên bài học, tên bài tập, tên trang), để lịch sử và dấu trang dễ nhận ra.
+- **Có script quét chữ** `scripts/qa/copy-scan.cjs`: dò từ cấm và dấu hiệu văn AI trong mọi chuỗi người học nhìn thấy, có danh sách cụm đời thường hợp lệ. Script chỉ là lưới đỡ sau các lượt đọc từng câu.

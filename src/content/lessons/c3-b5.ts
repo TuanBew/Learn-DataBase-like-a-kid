@@ -16,11 +16,11 @@ export const lesson: Lesson = {
   blocks: [
     {
       type: 'story',
-      title: 'Bi đọc query ở đâu trước?',
+      title: 'Mình đọc query ở đâu trước?',
       paragraphs: [
-        'Bạn viết query từ trên xuống: SELECT trước, FROM sau. Bi không đọc theo thứ tự đó.',
+        'Bạn viết query từ trên xuống: SELECT trước, FROM sau. Mình không đọc theo thứ tự đó.',
         'Khi nhận query, mình tìm sổ trước. Rồi mình lọc row, rồi mới chọn column, xếp, và cắt lấy vài row đầu.',
-        'Thứ tự bạn viết dành cho người đọc. Thứ tự Bi xử lý là thứ tự database chạy thật.',
+        'Thứ tự bạn viết dành cho người đọc. Thứ tự mình xử lý là thứ tự database chạy thật.',
         'Biết thứ tự này, bạn đoán trước được query nào chạy và query nào báo lỗi.',
       ],
     },
@@ -30,14 +30,14 @@ export const lesson: Lesson = {
       paragraphs: [
         'Database xử lý một query theo thứ tự sau. Với query bạn đã học, có năm bước: FROM, WHERE, SELECT, ORDER BY, rồi LIMIT hoặc FETCH FIRST.',
         'Hai bước nữa là GROUP BY và HAVING, nằm giữa WHERE và SELECT. Bạn sẽ học chúng ở chương sau.',
-        'Trong cảnh dưới đây, bạn xếp các clause theo thứ tự database chạy.',
+        'Ở cảnh sau, xếp các clause theo thứ tự database chạy.',
       ],
     },
     {
       type: 'scene',
       scene: 'clause-order',
       title: 'Xếp các clause theo thứ tự chạy',
-      intro: 'Kéo từng clause vào đúng vị trí. Mỗi clause cho thấy bước đó làm gì với dữ liệu.',
+      intro: 'Bấm từng clause theo thứ tự database chạy, rồi bấm Kiểm tra.',
     },
     {
       type: 'text',

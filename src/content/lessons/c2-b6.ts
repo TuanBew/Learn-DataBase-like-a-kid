@@ -33,7 +33,7 @@ export const lesson: Lesson = {
   chapter: 2,
   order: 6,
   title: 'Đọc ERD và CREATE TABLE',
-  lead: 'Sơ đồ cho bạn thấy các table nối nhau ra sao, còn CREATE TABLE cho thấy từng table được dựng thế nào.',
+  lead: 'Sơ đồ cho bạn thấy các table nối nhau ra sao. CREATE TABLE cho thấy cách dựng từng table.',
   minutes: 16,
   goals: [
     'Đọc sơ đồ 6 table của tiệm trà sữa',

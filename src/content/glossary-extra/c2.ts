@@ -35,7 +35,7 @@ export const entries: Record<string, GlossaryEntry> = {
   'create-table': {
     term: 'CREATE TABLE',
     short: 'Lệnh SQL dựng một table mới, khai tên table, các column và constraint.',
-    example: 'Bi dựng một cuốn sổ trống, kẻ sẵn các column, rồi mới ghi row vào.',
+    example: 'Dựng một cuốn sổ trống, kẻ sẵn các column, rồi mới ghi row vào.',
   },
   ddl: {
     term: 'DDL',

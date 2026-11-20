@@ -22,14 +22,14 @@ export const lesson: Lesson = {
         'Chị Hường đặt mười đơn. Số điện thoại của chị nằm ở cả mười đơn.',
         'Hôm nay chị Hường đổi số. Mình sửa số ở đơn mới nhất, rồi mình nghỉ.',
         'Hôm sau có người tra đơn cũ của chị. Đơn cũ ghi số cũ. Cùng một khách, nhưng sổ có hai số điện thoại.',
-        'Mình nên sửa gì để chuyện này không xảy ra nữa? Cùng thử nhé.',
+        'Mình nên sửa gì để chuyện này không xảy ra nữa? Thử xem nhé.',
       ],
     },
     {
       type: 'scene',
       scene: 'split-table',
       title: 'Một table to, hay hai table nhỏ',
-      intro: 'Sửa số điện thoại của một khách ở một row. Xem các row còn lại, rồi bấm Tách table và sửa lại.',
+      intro: 'Bấm Hường đổi số điện thoại và xem các row. Rồi bấm Tách thành hai table và thử lại.',
     },
     {
       type: 'text',
@@ -41,7 +41,7 @@ export const lesson: Lesson = {
         'Cách chữa là **[[normalizing]]**. Mỗi loại thông tin vào một table riêng.',
         'Họ tên và số điện thoại của khách nằm ở table customers, mỗi khách một row. Table orders chỉ giữ customer_id.',
         'Giờ số điện thoại chỉ nằm ở một chỗ. Sửa một lần ở customers, mọi đơn đều thấy số mới.',
-        'Tách table không làm mất thông tin. Từ customer_id trên đơn, bạn nối về khách bằng foreign key. Chương 6 dạy lệnh [[join]] để nối.',
+        'Tách table không làm mất thông tin. Từ customer_id trên đơn, bạn nối về khách bằng foreign key. Chương 6 dạy lệnh **[[join]]** để nối.',
       ],
     },
     {
@@ -72,7 +72,7 @@ export const lesson: Lesson = {
       type: 'realworld',
       title: 'Danh sách lớp',
       paragraphs: [
-        'Giả sử sổ lớp ghi tên giáo viên chủ nhiệm vào row của từng học sinh. Lớp có bốn mươi em, nên tên đó nằm ở bốn mươi row.',
+        'Giả sử sổ lớp ghi tên giáo viên chủ nhiệm vào row của từng học sinh. Lớp có bốn mươi học sinh, nên tên đó nằm ở bốn mươi row.',
         'Cô giáo mới nhận lớp thì phải sửa bốn mươi chỗ. Chỉ cần sót một chỗ là sổ có hai giáo viên chủ nhiệm.',
         'Tách table lớp ra riêng thì chỉ sửa một row.',
       ],

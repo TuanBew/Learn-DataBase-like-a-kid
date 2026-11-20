@@ -18,8 +18,8 @@ export const lesson: Lesson = {
       type: 'story',
       title: 'Món nào trên 40.000 đồng?',
       paragraphs: [
-        'Một khách hỏi Bi: "Món nào giá trên 40.000 đồng?"',
-        'Bi không đọc lại cả thực đơn. Mình xem giá từng món. Món đắt thì giữ, món rẻ thì bỏ.',
+        'Một khách hỏi mình: "Món nào giá trên 40.000 đồng?"',
+        'Mình không đọc lại cả thực đơn. Mình xem giá từng món. Món đắt thì giữ, món rẻ thì bỏ.',
         'Với mỗi row, mình chỉ làm một bước: kiểm điều kiện. Đạt thì giữ, không đạt thì bỏ.',
         'SQL có một clause lo đúng phần này.',
       ],
@@ -31,7 +31,7 @@ export const lesson: Lesson = {
         '**[[where]]** giữ lại row thỏa điều kiện và bỏ các row còn lại.',
         'WHERE đứng sau FROM. Database kiểm điều kiện cho từng row, mỗi row một lần.',
         'Điều kiện so một column với một giá trị. Các dấu so sánh gồm `=` (bằng), `<>` (khác), `<` (nhỏ hơn), `<=` (nhỏ hơn hoặc bằng), `>` (lớn hơn), `>=` (lớn hơn hoặc bằng).',
-        'Query dưới đây giữ món có price lớn hơn 40000.',
+        'Query sau giữ món có price lớn hơn 40000.',
       ],
     },
     {
@@ -131,7 +131,7 @@ export const lesson: Lesson = {
         'Oracle so từng ký tự đúng như bạn gõ. Khác hoa thường hoặc khác dấu là khác chữ.',
         'Cách so chữ do **[[collation]]** quyết định. Cả hai nơi đều cho đổi collation. Bài này dùng mặc định.',
         "Chữ luôn nằm trong nháy đơn, vì nháy kép khác nhau ở hai nơi. MySQL nhận cả nháy đơn lẫn nháy kép cho chữ. Oracle dùng nháy kép để bao tên column.",
-        'Gõ `category = "Topping"` trên Oracle, database tìm column tên Topping. Nó không thấy column đó và báo ORA-00904.',
+        'Gõ `category = "Topping"` trên Oracle, database tìm column tên Topping. Database không thấy column đó và báo ORA-00904.',
       ],
       mysql: "WHERE category = 'tra sua'\n-- 4 row",
       oracle: "WHERE category = 'tra sua'\n-- 0 row",
@@ -209,7 +209,7 @@ export const lesson: Lesson = {
           options: [
             { text: 'Oracle báo lỗi, vì nháy kép bao tên column', correct: true, feedback: 'Đúng. Ở Oracle, chữ phải nằm trong nháy đơn.' },
             { text: 'Oracle trả đúng các món Topping', feedback: 'MySQL làm được, nhưng Oracle thì không. Nháy kép ở Oracle không bao chữ.' },
-            { text: 'Oracle trả 0 row', feedback: 'Oracle không chạy được query này. Nó báo lỗi thay vì trả 0 row.' },
+            { text: 'Oracle trả 0 row', feedback: 'Oracle không chạy được query này. Oracle báo lỗi thay vì trả 0 row.' },
           ],
         },
       ],

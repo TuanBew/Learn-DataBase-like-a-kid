@@ -20,7 +20,7 @@ export const lesson: Lesson = {
         'Tiệm trà sữa mở thêm quầy thứ hai. Chủ tiệm có sẵn một file Excel ghi đơn, nên cả hai thu ngân cùng dùng file đó.',
         'Chiều thứ bảy khách đông. Hai thu ngân cùng thêm đơn vào cuối file, gần như cùng một giây.',
         'Cuối ngày chủ tiệm đếm lại. Thiếu một đơn. Không ai biết đơn nào mất.',
-        'Mình là Bi, người giữ kho của tiệm. Mình hay gặp chuyện này. Excel làm tốt việc của một người. Khi nhiều người cùng ghi thì nó dễ vấp.',
+        'Mình là Bi, người giữ kho của tiệm. Mình hay gặp chuyện này. Excel làm tốt khi chỉ một người dùng. Khi nhiều người cùng ghi thì Excel dễ vấp.',
         'Thử ba tình huống bên dưới để thấy database xử lý khác ra sao.',
       ],
     },
@@ -28,7 +28,7 @@ export const lesson: Lesson = {
       type: 'scene',
       scene: 'excel-vs-db',
       title: 'Excel và database, đặt cạnh nhau',
-      intro: 'Có ba thẻ. Làm lần lượt từng thẻ và so hai bên với nhau.',
+      intro: 'Có ba thẻ thí nghiệm. Bấm từng thẻ và so Excel với database.',
     },
     {
       type: 'text',
@@ -83,7 +83,7 @@ export const lesson: Lesson = {
         'Database nhận nhiều người ghi cùng lúc và không làm mất đơn.',
         'Mỗi column có data type, database từ chối giá trị sai kiểu.',
         'Một sheet Excel chứa tối đa 1.048.576 row.',
-        'Việc nhỏ và ít người thì Excel vẫn tốt.',
+        'Dữ liệu nhỏ và ít người dùng thì Excel vẫn tốt.',
       ],
     },
     {

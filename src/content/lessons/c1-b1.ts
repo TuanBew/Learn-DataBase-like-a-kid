@@ -30,7 +30,7 @@ export const lesson: Lesson = {
       type: 'scene',
       scene: 'data-street',
       title: 'Phố dữ liệu',
-      intro: 'Bốn nơi này đang mở cửa. Chạm vào từng nơi để xem họ ghi gì vào sổ.',
+      intro: 'Bốn nơi này đang mở cửa. Bấm vào từng nơi để xem họ ghi gì vào sổ.',
     },
     {
       type: 'text',

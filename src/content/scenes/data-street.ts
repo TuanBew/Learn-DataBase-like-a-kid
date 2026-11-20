@@ -58,5 +58,5 @@ export const copy: DataStreetCopy = {
       caption: 'Trường vừa ghi một điểm: học sinh, môn và số điểm.',
     },
   ],
-  done: 'Bạn thấy chưa? Nơi nào cũng ghi dữ liệu theo cùng một kiểu. Mỗi lần ghi một row, mỗi row đủ các ô.',
+  done: 'Bạn đã xem đủ bốn nơi. Nơi nào cũng ghi dữ liệu theo cùng một kiểu. Mỗi lần ghi một row, mỗi row đủ các ô.',
 };

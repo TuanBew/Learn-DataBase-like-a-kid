@@ -11,7 +11,7 @@ export const lesson: Lesson = {
     'Phân biệt NULL, số 0 và chữ trống ở MySQL',
     'Nói được vì sao so sánh bằng với NULL không bao giờ ra đúng',
     'Dùng IS NULL và IS NOT NULL để hỏi về ô trống',
-    'Biết Oracle coi chuỗi rỗng là NULL',
+    'Biết Oracle coi chữ trống là NULL',
   ],
   blocks: [
     {
@@ -28,13 +28,13 @@ export const lesson: Lesson = {
       type: 'scene',
       scene: 'null-box',
       title: 'Hộp quà rỗng',
-      intro: 'Đặt hai hộp lên bàn rồi so sánh. Sau đó hỏi bằng IS NULL.',
+      intro: 'Chọn giá trị cho hai hộp, rồi bấm So sánh bằng =. Sau đó bấm Hỏi hộp trái IS NULL.',
     },
     {
       type: 'text',
       title: 'NULL là ô không có giá trị',
       paragraphs: [
-        'Ô chưa có thông tin được ghi là **[[null]]**. NULL nghĩa là ô này không có giá trị nào.',
+        'Ô chưa có thông tin gọi là **[[null]]**. NULL nghĩa là ô này không có giá trị nào.',
         'Số 0 là một giá trị. Chữ trống cũng là một giá trị. Ở MySQL, hai thứ này khác NULL.',
         'Khi so sánh bằng `=` với NULL, kết quả là NULL. Kết quả NULL nghĩa là "không biết".',
         'Câu `WHERE` chỉ giữ row có kết quả đúng. Row có kết quả "không biết" bị bỏ.',
@@ -46,12 +46,12 @@ export const lesson: Lesson = {
     {
       type: 'oracle',
       body: [
-        'Oracle coi chuỗi rỗng là NULL. Ở MySQL, chuỗi rỗng là một giá trị.',
+        'Oracle coi chữ trống là NULL. Ở MySQL, chữ trống là một giá trị.',
         'Cùng ghi chữ trống vào một ô, MySQL lưu chữ trống, còn Oracle lưu NULL.',
-        'Oracle còn nhắc rằng hành vi này có thể đổi ở bản sau. Nếu code phải chạy ở cả hai nơi, đừng dựa vào chuỗi rỗng.',
+        'Oracle còn nhắc rằng hành vi này có thể đổi ở bản sau. Nếu code phải chạy ở cả hai nơi, đừng dựa vào chữ trống.',
       ],
       mysql: "SELECT '' IS NULL;\n-- kết quả: 0, nghĩa là chữ trống không phải NULL",
-      oracle: "-- Oracle: chuỗi rỗng được xem là NULL\nINSERT INTO customers (customer_id, full_name, phone)\nVALUES (20, 'Lê Thu Lan', '');\n-- ô phone của khách 20 là NULL",
+      oracle: "-- Oracle: chữ trống được xem là NULL\nINSERT INTO customers (customer_id, full_name, phone)\nVALUES (20, 'Lê Thu Lan', '');\n-- ô phone của khách 20 là NULL",
     },
     {
       type: 'quiz',
@@ -99,7 +99,7 @@ export const lesson: Lesson = {
         'NULL nghĩa là ô chưa có thông tin.',
         'NULL khác số 0 và khác chữ trống ở MySQL.',
         '`= NULL` không bao giờ ra đúng. Dùng `IS NULL`.',
-        'Oracle coi chuỗi rỗng là NULL.',
+        'Oracle coi chữ trống là NULL.',
       ],
     },
     {

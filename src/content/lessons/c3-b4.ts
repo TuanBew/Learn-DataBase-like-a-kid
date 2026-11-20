@@ -20,8 +20,8 @@ export const lesson: Lesson = {
       type: 'story',
       title: 'Ba món đắt nhất',
       paragraphs: [
-        'Một khách hỏi Bi: "Cho mình xem ba món đắt nhất thôi."',
-        'Bi xếp thực đơn từ đắt đến rẻ. Rồi mình đọc đúng ba món đầu và dừng lại.',
+        'Một khách hỏi mình: "Cho xem ba món đắt nhất thôi."',
+        'Mình xếp thực đơn từ đắt đến rẻ. Rồi mình đọc đúng ba món đầu và dừng lại.',
         'Query cũng làm hai bước đó. Bước đầu là ORDER BY. Bước sau là cắt lấy vài row đầu.',
       ],
     },
@@ -132,7 +132,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Nếu bạn mở code Oracle viết từ lâu, bạn sẽ gặp **[[rownum]]**.',
         'ROWNUM là số thứ tự Oracle gán cho từng row lúc lấy ra: 1, 2, 3 và tiếp tục. Người viết code cũ dùng nó để lấy vài row đầu.',
-        'Oracle gán ROWNUM trước khi ORDER BY chạy. Vì vậy `WHERE ROWNUM <= 3 ORDER BY price DESC` lấy 3 row đầu tiên database gặp, rồi mới xếp 3 row đó. Kết quả không phải ba món đắt nhất.',
+        'Oracle gán ROWNUM trước khi ORDER BY chạy. Vì vậy `WHERE ROWNUM <= 3 ORDER BY price DESC` lấy 3 row đầu tiên database gặp. Sau đó mới xếp 3 row này, nên kết quả không phải ba món đắt nhất.',
         'Muốn đúng, người viết cũ xếp trước ở một **[[subquery]]**, tức một query nằm trong query khác. Sau đó họ mới giữ ROWNUM nhỏ.',
         'Code mới nên dùng FETCH FIRST. Tài liệu Oracle cũng khuyên cách này.',
       ],
@@ -153,7 +153,7 @@ export const lesson: Lesson = {
           options: [
             { text: 'Oracle báo lỗi ORA-00933', correct: true, feedback: 'Đúng. Oracle 19c không có LIMIT. Dùng FETCH FIRST 3 ROWS ONLY.' },
             { text: 'Oracle trả 3 row', feedback: 'MySQL làm vậy, nhưng Oracle không hiểu LIMIT.' },
-            { text: 'Oracle bỏ qua LIMIT và trả mọi row', feedback: 'Oracle không bỏ qua. Nó báo lỗi vì không hiểu LIMIT.' },
+            { text: 'Oracle bỏ qua LIMIT và trả mọi row', feedback: 'Oracle không bỏ qua. Oracle báo lỗi vì không hiểu LIMIT.' },
           ],
         },
         {
@@ -189,7 +189,7 @@ export const lesson: Lesson = {
       items: [
         'MySQL lấy n row đầu bằng LIMIT n.',
         'Oracle lấy n row đầu bằng FETCH FIRST n ROWS ONLY. Gõ LIMIT ở Oracle ra ORA-00933.',
-        'OFFSET bỏ qua row đầu. Nó giúp chia trang.',
+        'OFFSET bỏ qua row đầu để chia trang.',
         'Lấy "n row đầu" chỉ có nghĩa khi đã có ORDER BY.',
         'ROWNUM có trong code Oracle cũ. Oracle gán nó trước khi ORDER BY chạy.',
       ],

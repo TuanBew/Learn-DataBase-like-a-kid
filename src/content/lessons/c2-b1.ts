@@ -29,7 +29,7 @@ export const lesson: Lesson = {
       type: 'scene',
       scene: 'pk-bonk',
       title: 'Số báo danh bật ra',
-      intro: 'Thêm một học sinh mới vào table. Thử dùng số báo danh đã có, rồi xem row bật ra.',
+      intro: 'Chọn một student_id cho row mới, rồi bấm Thêm row. Thử số báo danh đã có và xem row bật ra.',
     },
     {
       type: 'text',

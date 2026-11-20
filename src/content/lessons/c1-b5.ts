@@ -19,7 +19,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Bạn ngồi ở quán và gọi một ly trà. Bạn không vào bếp. Bạn nói với nhân viên, nhân viên chuyển phiếu vào bếp.',
         'Bếp làm xong, nhân viên mang ly ra cho bạn.',
-        'Điện thoại của bạn cũng làm đúng như vậy với database. Nó gửi yêu cầu đi, rồi chờ kết quả về.',
+        'Điện thoại của bạn cũng làm đúng như vậy với database. Điện thoại gửi yêu cầu đi, rồi chờ kết quả về.',
         'Mình là Bi. Xem một yêu cầu đi qua từng chặng nhé.',
       ],
     },
@@ -27,7 +27,7 @@ export const lesson: Lesson = {
       type: 'scene',
       scene: 'client-server',
       title: 'Yêu cầu đi đâu',
-      intro: 'Bấm từng bước. Xem chấm yêu cầu đi từ điện thoại tới server, tới database và quay về.',
+      intro: 'Bấm Bước tiếp. Theo dõi chấm yêu cầu đi tới server, tới database rồi quay về.',
     },
     {
       type: 'text',
@@ -58,7 +58,7 @@ export const lesson: Lesson = {
       items: [
         {
           kind: 'match',
-          question: 'Nối mỗi bên với việc của nó.',
+          question: 'Nối mỗi bên với vai của nó.',
           pairs: [
             { left: 'client', right: 'Gửi yêu cầu đi' },
             { left: 'server', right: 'Nhận yêu cầu và hỏi database' },
@@ -71,7 +71,7 @@ export const lesson: Lesson = {
           question: 'Trong `SELECT * FROM products;`, dấu `*` nghĩa là gì?',
           options: [
             { text: 'Lấy mọi column', correct: true, feedback: 'Đúng. Dấu * thay cho tên mọi column của table.' },
-            { text: 'Lấy một row đầu tiên', feedback: 'Dấu * nói về column, không nói về row. Nó nghĩa là lấy mọi column.' },
+            { text: 'Lấy một row đầu tiên', feedback: 'Dấu * thay cho mọi column, không nói về row.' },
           ],
         },
       ],

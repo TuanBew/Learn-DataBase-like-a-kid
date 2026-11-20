@@ -27,7 +27,7 @@ export const lesson: Lesson = {
       type: 'scene',
       scene: 'table-anatomy',
       title: 'Mổ xẻ một table',
-      intro: 'Bấm lần lượt table, row, column và một ô để thấy mỗi phần nằm ở đâu. Rồi thử ghi một giá trị sai data type.',
+      intro: 'Bấm lần lượt table, row, column và ô. Mỗi phần sẽ sáng màu vàng. Rồi chọn một ô và ghi giá trị sai data type.',
     },
     {
       type: 'text',

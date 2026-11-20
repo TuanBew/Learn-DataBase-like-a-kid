@@ -28,7 +28,7 @@ export const lesson: Lesson = {
       type: 'scene',
       scene: 'constraint-gate',
       title: 'Cổng kiểm luật',
-      intro: 'Chọn một row rồi đưa qua cổng. Đọc biển luật chặn nó và mã lỗi.',
+      intro: 'Chọn một thẻ row, rồi bấm Đưa qua cổng. Đọc biển luật chặn row và mã lỗi.',
     },
     {
       type: 'text',
@@ -63,7 +63,7 @@ export const lesson: Lesson = {
           question: 'Giá mỗi món phải lớn hơn 0. Nên dùng constraint nào?',
           options: [
             { text: 'CHECK', correct: true, feedback: 'Đúng. CHECK kiểm điều kiện, ví dụ giá lớn hơn 0.' },
-            { text: 'UNIQUE', feedback: 'UNIQUE chỉ cấm trùng. Nó không kiểm giá lớn hơn 0.' },
+            { text: 'UNIQUE', feedback: 'UNIQUE chỉ cấm trùng, không kiểm giá lớn hơn 0.' },
             { text: 'NOT NULL', feedback: 'NOT NULL chỉ bắt ô có giá trị. Giá âm vẫn là một giá trị.' },
           ],
         },

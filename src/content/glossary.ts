@@ -93,7 +93,7 @@ const base: Record<string, GlossaryEntry> = {
   },
   commit: {
     term: 'COMMIT',
-    short: 'Lệnh chốt transaction, mọi thay đổi trong đó được lưu thật.',
+    short: 'Lệnh chốt transaction và lưu thật mọi thay đổi trong đó.',
     example: 'Bạn ghi đơn vào giấy nháp, bấm chốt thì đơn mới vào sổ chính.',
   },
   rollback: {

@@ -83,7 +83,7 @@ export const copy = {
   },
 
   start: {
-    write: 'Bấm nút Lưu và nhìn hai đơn đi về đâu.',
+    write: 'Bấm Hai người cùng bấm Lưu. Nhìn hai đơn đi về đâu.',
     rules: 'Bấm một giá trị bên trên. Mình sẽ nói điều xảy ra.',
     size: 'Kéo thanh trượt sang phải. Mình sẽ nói khi có chuyện.',
   },

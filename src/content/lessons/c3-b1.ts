@@ -18,8 +18,8 @@ export const lesson: Lesson = {
       type: 'story',
       title: 'Tiệm nào, ở quận nào?',
       paragraphs: [
-        'Một khách hỏi Bi: "Chuỗi trà sữa có những tiệm nào, ở quận nào?"',
-        'Bi không đọc cả sổ cho khách nghe. Mình chỉ đọc hai thứ khách cần: tên tiệm và quận.',
+        'Một khách hỏi mình: "Chuỗi trà sữa có những tiệm nào, ở quận nào?"',
+        'Mình không đọc cả sổ cho khách nghe. Mình chỉ đọc hai thứ khách cần: tên tiệm và quận.',
         'Bạn cũng hỏi database theo cách đó. Bạn viết ra câu hỏi, database trả đúng phần bạn cần.',
         'Câu hỏi viết bằng **[[sql]]**. Mỗi câu hỏi gửi cho database gọi là một **[[query]]**.',
       ],

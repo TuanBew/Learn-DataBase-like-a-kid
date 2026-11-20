@@ -83,6 +83,7 @@ export const lesson: Lesson = {
         'MySQL dùng **[[concat]]**: `CONCAT(a, b, c)`. Bạn đưa vào bao nhiêu chuỗi cũng được.',
         'Oracle dùng hai dấu gạch đứng: `a || b || c`.',
         'Hai dialect xử lý NULL khác nhau. Nếu một chuỗi là NULL, CONCAT của MySQL trả NULL cho cả kết quả.',
+        'Chuỗi không có chữ nào gọi là chuỗi rỗng, viết `\'\'`. Ở bài NULL, mình gọi nó là chữ trống.',
         'Oracle coi NULL như chuỗi rỗng. Phần còn lại vẫn hiện ra.',
         'Query dưới đây ghép tên khách và số điện thoại. Vài khách chưa có số.',
       ],

@@ -18,8 +18,8 @@ export const lesson: Lesson = {
       type: 'story',
       title: 'Topping nào đắt nhất?',
       paragraphs: [
-        'Một khách muốn thêm topping và hỏi Bi: "Topping nào đắt nhất?"',
-        'Bi lấy các topping ra, rồi xếp theo giá từ cao xuống thấp. Món đắt nhất nằm trên cùng.',
+        'Một khách muốn thêm topping và hỏi mình: "Topping nào đắt nhất?"',
+        'Mình lấy các topping ra, rồi xếp theo giá từ cao xuống thấp. Món đắt nhất nằm trên cùng.',
         'Sổ của tiệm không tự xếp như vậy. Các món nằm theo thứ tự lúc mình ghi vào.',
         'Muốn có thứ tự khác, bạn phải nói rõ trong query.',
       ],
@@ -75,7 +75,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'ORDER BY nhận nhiều column, ngăn cách bằng dấu phẩy. Database xếp theo column đầu trước.',
         'Hai row bằng nhau ở column đầu thì database xếp tiếp theo column sau. Mỗi column có ASC hoặc DESC riêng.',
-        'Row nào có NULL thì đứng đâu? Mỗi hệ database có luật riêng. Query dưới đây xếp calories tăng dần, và hai món trong đó có calories là NULL.',
+        'Row nào có NULL thì đứng đâu? Mỗi DBMS có luật riêng. Query sau xếp calories tăng dần. Hai món trong kết quả có calories là NULL.',
       ],
     },
     {
@@ -203,7 +203,7 @@ export const lesson: Lesson = {
       type: 'keypoints',
       items: [
         'ORDER BY xếp row, mặc định là ASC.',
-        'DESC xếp giảm dần. Không có ORDER BY thì thứ tự row không được hứa.',
+        'DESC xếp giảm dần. Không có ORDER BY thì database không hứa thứ tự row.',
         'ORDER BY xếp được theo nhiều column, mỗi column có ASC hoặc DESC riêng.',
         'Xếp tăng dần: MySQL đặt NULL đầu, Oracle đặt NULL cuối.',
         'DISTINCT bỏ row trùng, và xét cả cặp column.',

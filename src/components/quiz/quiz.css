@@ -24,6 +24,13 @@
   font-weight: 600;
   font-size: var(--text-md);
 }
+.qz-opt__text {
+  min-width: 0;
+  line-height: 1.4;
+}
+.qz-opt {
+  padding-block: 9px;
+}
 .qz-opt.is-wrong {
   opacity: 0.45;
   animation: qz-shake 320ms var(--ease-out);

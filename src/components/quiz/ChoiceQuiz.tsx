@@ -48,7 +48,10 @@ export function ChoiceQuiz({ quiz, onDone }: { quiz: ChoiceQuizData; onDone?: ()
               aria-pressed={last === i}
               onClick={() => pick(i)}
             >
-              <Rich text={o.text} />
+              {/* Bọc một span để chữ và mã trong lựa chọn chảy thành một dòng, không tách thành các cột của flex. */}
+              <span className="qz-opt__text">
+                <Rich text={o.text} />
+              </span>
             </button>
           );
         })}

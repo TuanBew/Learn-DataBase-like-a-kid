@@ -1,10 +1,13 @@
 import { Link } from 'wouter';
 import { Says } from '../components/Mascot';
+import { chapters } from '../content/course';
 import { exercises } from '../content/exercises';
 import { uiApp } from '../content/ui-app';
 import { databases } from '../data';
 import { useLoad } from '../lib/useLoad';
+import { useTitle } from '../lib/useTitle';
 import { OrderWork, PredictWork, QuizWork, RehearsalWork } from './exercise/OtherWork';
+import { lessonOf } from './exercise/shared';
 import { SqlWork } from './exercise/SqlWork';
 import './exercise.css';
 
@@ -14,6 +17,9 @@ export default function ExercisePage({ id }: { id: string }) {
   const exercise = useLoad(exercises[id], `ex:${id}`);
   const sqlEx = exercise && exercise.kind !== 'quiz' ? exercise : null;
   const db = useLoad(sqlEx ? databases[sqlEx.database] : undefined, `db:${sqlEx?.database ?? ''}`);
+  useTitle(exercise?.title);
+  const lessonId = lessonOf(id);
+  const lesson = chapters.flatMap((c) => c.lessons).find((l) => l.id === lessonId);
   if (exercise === null) {
     return (
       <div className="wrap ex-missing">
@@ -29,7 +35,14 @@ export default function ExercisePage({ id }: { id: string }) {
   return (
     <div className={`wrap ex ${wide ? '' : 'ex--narrow'}`} key={id}>
       <header className="ex-top">
-        <p className="ex-kicker">{U.kicker(exercise.chapter)}</p>
+        <p className="ex-kicker">
+          {U.kicker(exercise.chapter)}
+          {lesson && (
+            <Link href={`/bai/${lesson.id}`} className="ex-kicker__lesson">
+              {U.fromLesson(lesson.title)}
+            </Link>
+          )}
+        </p>
         <h1 className="ex-title">{exercise.title}</h1>
       </header>
       {exercise.kind === 'quiz' && <QuizWork exercise={exercise} />}

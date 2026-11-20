@@ -128,6 +128,8 @@ export const uiApp = {
     },
     next: 'Bài tập tiếp theo',
     backToc: 'Về mục lục',
+    backLesson: 'Về bài học',
+    fromLesson: (title: string) => `Bài học: ${title}`,
     quizDone: (n: number, total: number) => `Đã xong ${n} trên ${total} câu`,
     chapterDone: (n: number) => `Xong Chương ${n}`,
     chapterSay: (n: number) => `Bạn vừa qua bài boss của Chương ${n}. Mình ghi vào sổ rồi nhé.`,

@@ -16,6 +16,7 @@ import type { Lesson, LessonBlock } from '../content/types';
 import { uiApp } from '../content/ui-app';
 import { markLesson, useProgress } from '../lib/progress';
 import { useLoad } from '../lib/useLoad';
+import { useTitle } from '../lib/useTitle';
 import { scenes } from '../scenes';
 import { play } from '../sfx/sfx';
 import './lesson.css';
@@ -26,6 +27,7 @@ const Playground = lazy(() => import('../components/Playground'));
 
 export default function LessonPage({ id }: { id: string }) {
   const lesson = useLoad(lessons[id], `lesson:${id}`);
+  useTitle(lesson?.title);
   if (lesson === null) {
     return (
       <div className="wrap lesson-missing">

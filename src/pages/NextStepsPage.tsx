@@ -1,8 +1,11 @@
 import { Says } from '../components/Mascot';
 import { nextSteps as T } from '../content/next-steps';
 import './next-steps.css';
+import { useTitle } from '../lib/useTitle';
+import { uiApp } from '../content/ui-app';
 
 export default function NextStepsPage() {
+  useTitle(uiApp.nav.next);
   return (
     <div className="wrap ns">
       <header className="ns__head">

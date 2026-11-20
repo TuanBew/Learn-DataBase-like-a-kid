@@ -1,6 +1,8 @@
 import { Says } from '../components/Mascot';
 import { sources as T } from '../content/sources';
 import './sources.css';
+import { useTitle } from '../lib/useTitle';
+import { uiApp } from '../content/ui-app';
 
 function Ext({ href, children }: { href: string; children: string }) {
   return (
@@ -12,6 +14,7 @@ function Ext({ href, children }: { href: string; children: string }) {
 }
 
 export default function SourcesPage() {
+  useTitle(uiApp.nav.sources);
   return (
     <div className="wrap src">
       <header className="src__head">

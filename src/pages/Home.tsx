@@ -10,6 +10,7 @@ import { useProgress } from '../lib/progress';
 import { HomeFlow } from '../scenes/HomeFlow';
 import { HomeInside } from '../scenes/HomeInside';
 import './home.css';
+import { useTitle } from '../lib/useTitle';
 
 const U = uiApp.home;
 
@@ -24,6 +25,7 @@ const RUN = [
 const ROW = 46;
 
 export function Home() {
+  useTitle(null);
   const progress = useProgress();
   const lessonCount = chapters.reduce((n, c) => n + c.lessons.filter((l) => !l.exercise).length, 0);
   // Người quay lại thì nút đầu trang dẫn tới bài học tiếp theo. Nút này không bao giờ dẫn thẳng vào bài tập.

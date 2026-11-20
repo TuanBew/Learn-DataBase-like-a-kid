@@ -6,6 +6,7 @@ import { Icon } from '../../components/Icon';
 import { Mascot, Says } from '../../components/Mascot';
 import { Rich } from '../../components/Rich';
 import { SchemaChips } from '../../components/sql/parts';
+import { exerciseMap } from '../../content/exercise-map';
 import { exercises } from '../../content/exercises';
 import type { Exercise } from '../../content/types';
 import { uiApp } from '../../content/ui-app';
@@ -14,13 +15,22 @@ import { play } from '../../sfx/sfx';
 
 const U = uiApp.exercise;
 
-/** Bài tập đứng ngay sau bài này trong cùng chương, nếu có. */
+/** Bài học mà bài tập này thuộc về. */
+export function lessonOf(id: string): string | null {
+  for (const [lesson, ids] of Object.entries(exerciseMap)) if (ids.includes(id)) return lesson;
+  return null;
+}
+
+/**
+ * Bài tập đứng ngay sau bài này trong cùng bài học, nếu có.
+ * Không nhảy sang bài tập của bài học khác: người học chưa học lý thuyết của bài đó.
+ */
 export function nextExerciseId(id: string): string | null {
-  const m = /^(c\d+)-e(\d+)$/.exec(id);
-  if (!m) return null;
-  const next = `${m[1]}-e${Number(m[2]) + 1}`;
-  if (next in exercises) return next;
-  return `${m[1]}-boss` in exercises ? `${m[1]}-boss` : null;
+  const lesson = lessonOf(id);
+  if (!lesson) return null;
+  const ids = exerciseMap[lesson];
+  const next = ids[ids.indexOf(id) + 1];
+  return next && next in exercises ? next : null;
 }
 
 /** Thẻ đề bài: lời Bi, các yêu cầu, và dữ liệu của bài. */
@@ -62,6 +72,7 @@ export function TaskCard({ exercise, db, dialect }: { exercise: Exercise; db?: D
 export function DoneCard({ exercise, why, children, actions }: { exercise: Exercise; why: string; children?: ReactNode; actions?: ReactNode }) {
   const boss = exercise.id.endsWith('-boss');
   const next = nextExerciseId(exercise.id);
+  const lesson = lessonOf(exercise.id);
   useEffect(() => {
     play(boss ? 'chapter' : 'ok');
   }, [boss]);
@@ -91,9 +102,16 @@ export function DoneCard({ exercise, why, children, actions }: { exercise: Exerc
             <Icon name="arrow" size={18} />
           </Link>
         )}
-        <Link href="/#muc-luc" className="btn btn--sm btn--paper">
-          {U.backToc}
-        </Link>
+        {lesson ? (
+          <Link href={`/bai/${lesson}`} className={`btn btn--sm ${next ? 'btn--paper' : ''}`}>
+            {U.backLesson}
+            {!next && <Icon name="arrow" size={18} />}
+          </Link>
+        ) : (
+          <Link href="/#muc-luc" className="btn btn--sm btn--paper">
+            {U.backToc}
+          </Link>
+        )}
       </div>
     </section>
   );

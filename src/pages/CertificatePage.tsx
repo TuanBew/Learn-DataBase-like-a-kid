@@ -8,6 +8,8 @@ import { canvasToPng, certificateStatus, drawCertificate, formatDate } from '../
 import { useProgress } from '../lib/progress';
 import { play } from '../sfx/sfx';
 import './certificate.css';
+import { useTitle } from '../lib/useTitle';
+import { uiApp } from '../content/ui-app';
 
 function readName(): string {
   try {
@@ -26,6 +28,7 @@ function saveName(name: string): void {
 }
 
 export default function CertificatePage() {
+  useTitle(uiApp.nav.certificate);
   const progress = useProgress();
   const st = certificateStatus(progress);
   const canvasRef = useRef<HTMLCanvasElement>(null);

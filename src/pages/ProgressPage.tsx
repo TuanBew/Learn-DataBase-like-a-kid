@@ -7,6 +7,8 @@ import { uiProgress as T } from '../content/ui-progress';
 import { exportCode, importCode, resetProgress, useProgress } from '../lib/progress';
 import { play } from '../sfx/sfx';
 import './progress.css';
+import { useTitle } from '../lib/useTitle';
+import { uiApp } from '../content/ui-app';
 
 interface Note {
   mood: Mood;
@@ -14,6 +16,7 @@ interface Note {
 }
 
 export default function ProgressPage() {
+  useTitle(uiApp.nav.progress);
   const progress = useProgress();
   const [code, setCode] = useState('');
   const [copyMsg, setCopyMsg] = useState('');

@@ -18,6 +18,18 @@
   font-weight: 700;
   color: var(--ink-2);
 }
+.ex-kicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  align-items: baseline;
+}
+.ex-kicker__lesson {
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--ink);
+  text-underline-offset: 3px;
+}
 .ex-title {
   font-size: clamp(1.8rem, 4vw, 2.75rem);
 }

@@ -178,7 +178,7 @@
 }
 .ex-dialect button[aria-pressed='true'] {
   background: var(--ink);
-  color: #fff;
+  color: var(--on-ink);
 }
 .ex-dialect button:focus-visible {
   outline-offset: -4px;
@@ -198,7 +198,7 @@
   padding: 2px 6px;
   border: 1.5px solid var(--ink);
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.6);
+  background: color-mix(in srgb, var(--sheet) 60%, transparent);
 }
 @media (hover: none) {
   .ex-run kbd {
@@ -223,7 +223,7 @@
   gap: 4px;
   padding: 10px 12px;
   background: var(--ink);
-  color: #fff;
+  color: var(--on-ink);
   border-radius: var(--r-sm);
 }
 .ex-error__real span {
@@ -405,11 +405,11 @@
   background: var(--mango);
 }
 .ex-pick__row--right {
-  background: #eef8e4;
+  background: var(--matcha-soft);
   border-color: var(--matcha-ink);
 }
 .ex-pick__row--missed {
-  background: #fff6d8;
+  background: var(--mango-soft);
   border-style: dashed;
 }
 .ex-pick__row--extra {
@@ -438,10 +438,10 @@
   border-radius: 4px;
 }
 .ex-legend--right::before {
-  background: #eef8e4;
+  background: var(--matcha-soft);
 }
 .ex-legend--missed::before {
-  background: #fff6d8;
+  background: var(--mango-soft);
   border-style: dashed;
 }
 .ex-legend--extra::before {

@@ -57,7 +57,7 @@
   background: var(--sheet);
   border: 3px solid var(--ink);
   border-radius: 16px;
-  box-shadow: 0 5px 0 var(--ink);
+  box-shadow: 0 5px 0 var(--slab);
 }
 .cs-phone__notch {
   position: absolute;
@@ -213,7 +213,7 @@
   background: var(--mango);
   border: 2px solid var(--ink);
   border-radius: 999px;
-  box-shadow: 0 3px 0 var(--ink);
+  box-shadow: 0 3px 0 var(--slab);
 }
 .cs-packet--query {
   background: var(--taro);

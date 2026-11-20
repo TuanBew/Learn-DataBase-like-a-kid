@@ -70,7 +70,7 @@
   border-radius: 999px;
 }
 .fkr-order.is-linked {
-  background: #f1ebff;
+  background: var(--taro-soft);
 }
 .fkr-order.is-tense,
 .fkr-customer.is-tense {
@@ -87,11 +87,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 .fkr-customer:hover {
-  background: #fffbea;
+  background: var(--mango-soft);
 }
 .fkr-customer[aria-checked='true'] {
   background: var(--mango);
-  box-shadow: 0 3px 0 var(--ink);
+  box-shadow: 0 3px 0 var(--slab);
 }
 .fkr-customer[aria-checked='true'] .fkr-pk {
   background: var(--sheet);

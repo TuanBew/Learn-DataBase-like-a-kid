@@ -76,7 +76,7 @@
   height: 24px;
   border-radius: 50%;
   background: var(--ink);
-  color: #fff;
+  color: var(--on-ink);
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 0.95rem;
@@ -98,7 +98,7 @@
 .qt-clause--active {
   background: var(--tone);
   transform: translateY(-2px);
-  box-shadow: 0 5px 0 var(--ink);
+  box-shadow: 0 5px 0 var(--slab);
 }
 .qt-clause--active code b {
   background: var(--sheet);
@@ -298,7 +298,7 @@
   z-index: 3;
 }
 .qt-row--pass {
-  background: #eef8e4;
+  background: var(--matcha-soft);
   border-color: var(--matcha-ink);
   box-shadow: 0 3px 0 var(--matcha-deep);
   z-index: 3;
@@ -505,7 +505,7 @@
   bottom: 0;
   left: 0;
   width: 22%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--sheet) 85%, transparent), transparent);
   animation: qt-sweep calc(var(--t) * 0.8s) linear infinite;
 }
 @keyframes qt-sweep {
@@ -546,7 +546,7 @@
   margin-top: -6px;
   border: var(--line);
   border-radius: 6px;
-  background: repeating-linear-gradient(90deg, var(--red) 0 16px, #fff 16px 32px);
+  background: repeating-linear-gradient(90deg, var(--red) 0 16px, var(--sheet) 16px 32px);
   transform-origin: left center;
   transform: scaleX(0.1);
   transition: transform calc(var(--t) * 480ms) cubic-bezier(0.34, 1.4, 0.64, 1);
@@ -632,7 +632,7 @@
 }
 .qt-speed__opt[aria-pressed='true'] {
   background: var(--ink);
-  color: #fff;
+  color: var(--on-ink);
 }
 .qt-speed__opt:focus-visible {
   outline-offset: -3px;

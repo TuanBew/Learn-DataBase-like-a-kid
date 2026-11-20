@@ -40,7 +40,7 @@ export function Mascot({ mood = 'idle', size = 96, className = '' }: { mood?: Mo
       {/* thân: khối trụ database */}
       <path d="M32 78 V102 A28 8 0 0 0 88 102 V78 Z" fill="var(--taro)" stroke={ink} strokeWidth="3.5" strokeLinejoin="round" />
       <path d="M32 90 A28 8 0 0 0 88 90" fill="none" stroke={ink} strokeWidth="2.5" />
-      <ellipse cx="60" cy="78" rx="28" ry="8" fill="#f1eaff" stroke={ink} strokeWidth="3.5" />
+      <ellipse cx="60" cy="78" rx="28" ry="8" fill="var(--taro-soft)" stroke={ink} strokeWidth="3.5" />
       <circle cx="44" cy="101" r="2.8" fill="var(--matcha-deep)" stroke={ink} strokeWidth="1.4" />
       <circle cx="53" cy="103.5" r="2.8" fill="var(--mango)" stroke={ink} strokeWidth="1.4" />
       {/* ăng ten */}
@@ -50,7 +50,7 @@ export function Mascot({ mood = 'idle', size = 96, className = '' }: { mood?: Mo
       <rect x="17" y="38" width="9" height="16" rx="4" fill="var(--taro-deep)" stroke={ink} strokeWidth="2.5" />
       <rect x="94" y="38" width="9" height="16" rx="4" fill="var(--taro-deep)" stroke={ink} strokeWidth="2.5" />
       {/* đầu: màn hình */}
-      <rect x="24" y="20" width="72" height="52" rx="17" fill="#fff" stroke={ink} strokeWidth="3.5" />
+      <rect x="24" y="20" width="72" height="52" rx="17" fill="var(--sheet)" stroke={ink} strokeWidth="3.5" />
       <rect x="31" y="27" width="58" height="38" rx="11" fill="var(--sky)" stroke={ink} strokeWidth="2" />
       {/* má */}
       <circle cx="40" cy="55" r="4.5" fill="var(--peach-deep)" opacity=".6" />
@@ -65,8 +65,8 @@ export function Mascot({ mood = 'idle', size = 96, className = '' }: { mood?: Mo
         <g className="mascot__eyes">
           <ellipse cx={mood === 'think' ? 49 : 47.5} cy={mood === 'think' ? 41 : 44} rx={wide ? 6.5 : 5} ry={wide ? 7.5 : 6.5} fill={ink} />
           <ellipse cx={mood === 'think' ? 74 : 72.5} cy={mood === 'think' ? 41 : 44} rx={wide ? 6.5 : 5} ry={wide ? 7.5 : 6.5} fill={ink} />
-          <circle cx={mood === 'think' ? 50.5 : 49} cy={mood === 'think' ? 38.5 : 41.5} r="1.8" fill="#fff" />
-          <circle cx={mood === 'think' ? 75.5 : 74} cy={mood === 'think' ? 38.5 : 41.5} r="1.8" fill="#fff" />
+          <circle cx={mood === 'think' ? 50.5 : 49} cy={mood === 'think' ? 38.5 : 41.5} r="1.8" fill="var(--sheet)" />
+          <circle cx={mood === 'think' ? 75.5 : 74} cy={mood === 'think' ? 38.5 : 41.5} r="1.8" fill="var(--sheet)" />
         </g>
       )}
       {/* miệng */}

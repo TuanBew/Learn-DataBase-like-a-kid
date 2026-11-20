@@ -37,6 +37,22 @@
   --sky-deep: #3f9dab;
   --pearl: #3a2623;
 
+  /* Các màu phụ: nền nhạt của từng màu, chữ trên nền mực, mặt bên của khối */
+  --mango-soft: #fff7dc;
+  --matcha-soft: #eef8e4;
+  --taro-soft: #f1ebff;
+  --milk-soft: #fff8ec;
+  --sky-soft: #eef9fb;
+  --on-ink: #ffffff;
+  --ink-deep: #120b3d;
+  --slab: var(--ink);
+
+  /* Màu chữ trong editor SQL */
+  --code-kw: #5a36d6;
+  --code-str: #9a3d00;
+  --code-num: #0a6976;
+  --code-com: #6a6399;
+
   /* Chữ */
   --font-display: 'Baloo 2', 'Be Vietnam Pro', system-ui, sans-serif;
   --font-body: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -67,10 +83,63 @@
 
   /* Khối có chiều sâu: viền mực và một mặt bên cứng, không dùng bóng mờ */
   --line: 2px solid var(--ink);
-  --depth-sm: 0 3px 0 var(--ink);
-  --depth-md: 0 5px 0 var(--ink);
+  --depth-sm: 0 3px 0 var(--slab);
+  --depth-md: 0 5px 0 var(--slab);
   --depth-card: 0 6px 0 var(--edge);
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --page: 1180px;
+}
+
+/*
+ * Giao diện tối: "bảng đen, phấn màu".
+ * Nền là mặt bảng xanh đậm, chữ và viền là phấn trắng, các khối tô phấn màu đậm để chữ phấn vẫn đọc rõ.
+ * Chỉ bật khi người học bấm công tắc ở đầu trang.
+ */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --paper: #1c2824;
+  --paper-2: #23322d;
+  --sheet: #2a3a35;
+  --grid: rgba(255, 255, 255, 0.04);
+  --grid-strong: rgba(255, 255, 255, 0.075);
+  --ink: #f1eee2;
+  --ink-2: #d0d7c9;
+  --ink-soft: #aab4a6;
+  --ink-line: #43574f;
+  --edge: #0e1513;
+
+  --red: #ff7d70;
+  --red-ink: #ffa398;
+  --red-soft: #4c2c29;
+
+  --milk: #69563a;
+  --milk-deep: #d8b07e;
+  --matcha: #3b692c;
+  --matcha-deep: #95d574;
+  --matcha-ink: #b3ea98;
+  --taro: #564a94;
+  --taro-deep: #b9a5f8;
+  --mango: #775b08;
+  --mango-deep: #f6bd3e;
+  --peach: #894b32;
+  --peach-deep: #ff9f7a;
+  --sky: #2a646e;
+  --sky-deep: #78cdd9;
+  --pearl: #eadfd9;
+
+  --mango-soft: #463c1c;
+  --matcha-soft: #2c4729;
+  --taro-soft: #3a3462;
+  --milk-soft: #46392a;
+  --sky-soft: #22454b;
+  --on-ink: #1c2824;
+  --ink-deep: #a9b2a4;
+  --slab: #0b100f;
+
+  --code-kw: #c6b6ff;
+  --code-str: #ffb783;
+  --code-num: #84d8e3;
+  --code-com: #9ea99a;
 }

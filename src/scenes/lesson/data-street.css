@@ -78,7 +78,7 @@
 }
 .place__btn:active .place__action {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--ink);
+  box-shadow: 0 1px 0 var(--slab);
 }
 .place__action {
   grid-area: action;

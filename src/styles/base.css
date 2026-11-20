@@ -136,12 +136,12 @@ svg {
 }
 .btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 0 var(--ink);
+  box-shadow: 0 6px 0 var(--slab);
 }
 .btn:active,
 .btn[aria-pressed='true'] {
   transform: translateY(4px);
-  box-shadow: 0 1px 0 var(--ink);
+  box-shadow: 0 1px 0 var(--slab);
 }
 .btn:disabled {
   opacity: 0.5;
@@ -154,14 +154,14 @@ svg {
 }
 .btn--ink {
   --bg: var(--ink);
-  color: #fff;
-  box-shadow: 0 5px 0 #120b3d;
+  color: var(--on-ink);
+  box-shadow: 0 5px 0 var(--ink-deep);
 }
 .btn--ink:hover {
-  box-shadow: 0 6px 0 #120b3d;
+  box-shadow: 0 6px 0 var(--ink-deep);
 }
 .btn--ink:active {
-  box-shadow: 0 1px 0 #120b3d;
+  box-shadow: 0 1px 0 var(--ink-deep);
 }
 .btn--matcha {
   --bg: var(--matcha);
@@ -174,12 +174,12 @@ svg {
   box-shadow: var(--depth-sm);
 }
 .btn--sm:hover {
-  box-shadow: 0 4px 0 var(--ink);
+  box-shadow: 0 4px 0 var(--slab);
 }
 .btn--sm:active,
 .btn--sm[aria-pressed='true'] {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--ink);
+  box-shadow: 0 1px 0 var(--slab);
 }
 .btn--icon {
   width: 46px;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
 import { uiApp } from '../content/ui-app';
+import { getTheme, onThemeChange, setTheme } from '../lib/theme';
 import { isMuted, onMuteChange, play, setMuted } from '../sfx/sfx';
 import { Mascot } from './Mascot';
 import { Icon } from './Icon';
@@ -9,6 +10,9 @@ import './header.css';
 export function Header() {
   const [muted, setM] = useState(isMuted());
   useEffect(() => onMuteChange(setM), []);
+  const [theme, setT] = useState(getTheme());
+  useEffect(() => onThemeChange(setT), []);
+  const dark = theme === 'dark';
   return (
     <header className="hdr">
       <a className="sr-only hdr__skip" href="#main">
@@ -25,6 +29,19 @@ export function Header() {
           <Link href="/#muc-luc" className="hdr__link">
             {uiApp.nav.toc}
           </Link>
+          <button
+            type="button"
+            className="btn btn--sm btn--paper btn--icon"
+            aria-pressed={dark}
+            aria-label={dark ? uiApp.nav.themeLight : uiApp.nav.themeDark}
+            title={dark ? uiApp.nav.themeLight : uiApp.nav.themeDark}
+            onClick={() => {
+              play('tap');
+              setTheme(dark ? 'light' : 'dark');
+            }}
+          >
+            <Icon name={dark ? 'sun' : 'moon'} />
+          </button>
           <button
             type="button"
             className="btn btn--sm btn--paper btn--icon"

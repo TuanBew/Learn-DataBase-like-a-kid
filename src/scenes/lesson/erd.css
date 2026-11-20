@@ -62,7 +62,7 @@
 }
 .erd__box.is-sel {
   background: var(--mango);
-  box-shadow: 0 5px 0 var(--ink);
+  box-shadow: 0 5px 0 var(--slab);
 }
 .erd__box.is-dim {
   opacity: 0.35;
@@ -83,7 +83,7 @@
 }
 .erd__box.is-sel .erd__name {
   background: var(--ink);
-  color: #fff;
+  color: var(--on-ink);
 }
 .erd__col {
   display: flex;

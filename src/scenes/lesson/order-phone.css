@@ -12,7 +12,7 @@
   background: var(--sheet);
   border: 3px solid var(--ink);
   border-radius: 26px;
-  box-shadow: 0 6px 0 var(--ink);
+  box-shadow: 0 6px 0 var(--slab);
 }
 .ophone__notch {
   position: absolute;

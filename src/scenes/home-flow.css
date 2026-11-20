@@ -61,11 +61,11 @@
 }
 .flow-app:hover .flow-app__icon {
   transform: translateY(-2px);
-  box-shadow: 0 7px 0 var(--ink);
+  box-shadow: 0 7px 0 var(--slab);
 }
 .flow-app:active .flow-app__icon {
   transform: translateY(4px);
-  box-shadow: 0 1px 0 var(--ink);
+  box-shadow: 0 1px 0 var(--slab);
 }
 .flow-app__name {
   margin-top: 4px;

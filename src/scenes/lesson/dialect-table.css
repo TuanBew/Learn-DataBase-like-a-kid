@@ -59,7 +59,7 @@
 }
 .dlt-topic[aria-pressed='true'] {
   background: var(--mango);
-  box-shadow: 0 3px 0 var(--ink);
+  box-shadow: 0 3px 0 var(--slab);
 }
 
 .dlt__card {

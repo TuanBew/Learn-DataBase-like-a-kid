@@ -137,5 +137,5 @@
 }
 .prg-danger {
   --bg: var(--red);
-  color: #fff;
+  color: var(--on-ink);
 }

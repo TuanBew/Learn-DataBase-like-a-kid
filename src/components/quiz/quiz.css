@@ -76,7 +76,7 @@
   opacity: 1;
   cursor: default;
   transform: translateY(3px);
-  box-shadow: 0 2px 0 var(--ink);
+  box-shadow: 0 2px 0 var(--slab);
 }
 .qz-cell--matcha {
   --bg: var(--matcha);

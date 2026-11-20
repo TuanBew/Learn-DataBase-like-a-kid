@@ -40,7 +40,7 @@ function Building({ id }: { id: PlaceId }) {
       <ellipse cx="60" cy="88" rx="46" ry="9" fill="var(--ink)" opacity=".12" />
       {id === 'tea' && (
         <>
-          <Box w={40} d={40} h={30} top="#fff8ec" left="var(--milk)" right="var(--milk-deep)" />
+          <Box w={40} d={40} h={30} top="var(--milk-soft)" left="var(--milk)" right="var(--milk-deep)" />
           <polygon points={door(40, 8, 20, 0, 20)} {...ink} />
           <polygon points={win(40, 8, 30, 10, 22)} {...glass} />
           <Box x={-3} y={-3} z={30} w={46} d={46} h={5} top="var(--peach)" left="var(--peach)" right="var(--peach-deep)" />
@@ -50,24 +50,24 @@ function Building({ id }: { id: PlaceId }) {
       )}
       {id === 'ride' && (
         <>
-          <Box w={46} d={36} h={20} top="#eef9fb" left="var(--sky)" right="var(--sky-deep)" />
+          <Box w={46} d={36} h={20} top="var(--sky-soft)" left="var(--sky)" right="var(--sky-deep)" />
           <polygon points={door(46, 6, 30, 0, 14)} {...ink} />
           <polygon points={win(36, 6, 20, 6, 15)} {...glass} />
           <polygon points={win(36, 26, 40, 6, 15)} {...glass} />
           <g transform="translate(60 14)">
             <path d="M0 26 C-13 10 -11 -6 0 -6 C11 -6 13 10 0 26 Z" fill="var(--red)" stroke="var(--ink)" strokeWidth="2" strokeLinejoin="round" />
-            <circle cx="0" cy="5" r="4" fill="#fff" stroke="var(--ink)" strokeWidth="1.6" />
+            <circle cx="0" cy="5" r="4" fill="var(--sheet)" stroke="var(--ink)" strokeWidth="1.6" />
           </g>
         </>
       )}
       {id === 'bank' && (
         <>
-          <Box w={40} d={40} h={36} top="#f5f0ff" left="var(--taro)" right="var(--taro-deep)" />
+          <Box w={40} d={40} h={36} top="var(--taro-soft)" left="var(--taro)" right="var(--taro-deep)" />
           <polygon points={door(40, 14, 26, 0, 22)} {...ink} />
           {[6, 16, 26].map((x) => (
             <polygon key={x} points={win(40, x, x + 6, 6, 28)} {...glass} />
           ))}
-          <Box x={-3} y={-3} z={36} w={46} d={46} h={5} top="#fff" left="#fff" right="var(--ink-line)" />
+          <Box x={-3} y={-3} z={36} w={46} d={46} h={5} top="var(--sheet)" left="var(--sheet)" right="var(--ink-line)" />
           <g transform="translate(60 12)">
             <ellipse cx="0" cy="0" rx="12" ry="12" fill="var(--mango)" stroke="var(--ink)" strokeWidth="2" />
             <text x="0" y="5" textAnchor="middle" fontFamily="var(--font-display)" fontWeight="800" fontSize="15" fill="var(--ink)">
@@ -78,7 +78,7 @@ function Building({ id }: { id: PlaceId }) {
       )}
       {id === 'school' && (
         <>
-          <Box w={48} d={36} h={24} top="#fff7d6" left="var(--mango)" right="var(--mango-deep)" />
+          <Box w={48} d={36} h={24} top="var(--mango-soft)" left="var(--mango)" right="var(--mango-deep)" />
           <polygon points={door(48, 12, 24, 0, 16)} {...ink} />
           {[6, 20, 34].map((x) => (
             <polygon key={x} points={win(36, x, x + 8, 8, 18)} {...glass} />

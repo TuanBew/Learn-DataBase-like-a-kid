@@ -7,6 +7,12 @@
     <meta name="description" content="Học database từ con số không: hiểu database trước, rồi mới viết query. MySQL để học nền, Oracle để đi làm." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Learn Database</title>
+    <script>
+      // Đặt giao diện tối trước khi trang vẽ, để không nháy màu sáng.
+      try {
+        if (localStorage.getItem('ldb:theme') === 'dark') document.documentElement.dataset.theme = 'dark';
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

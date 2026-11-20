@@ -41,11 +41,11 @@
   background: var(--sky);
 }
 .txc .sk-tr.is-changed {
-  background: #fff3c9;
+  background: var(--mango-soft);
   border-style: dashed;
 }
 .txc .sk-tr.is-new {
-  background: #eef8e4;
+  background: var(--matcha-soft);
   border-style: dashed;
 }
 .txc .sk-tr.is-gone {
@@ -71,7 +71,7 @@
     border-color 200ms;
 }
 .txc-cart.is-full {
-  background: #fff7dc;
+  background: var(--mango-soft);
   border-color: var(--ink);
 }
 .txc-cart__art {
@@ -97,7 +97,7 @@
   background: var(--mango);
   border: 2px solid var(--ink);
   border-radius: 6px;
-  box-shadow: 0 2px 0 var(--ink);
+  box-shadow: 0 2px 0 var(--slab);
 }
 .txc-cart__actions {
   display: grid;

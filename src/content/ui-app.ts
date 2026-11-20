@@ -5,6 +5,8 @@ export const uiApp = {
     toc: 'Mục lục',
     soundOn: 'Tắt tiếng',
     soundOff: 'Bật tiếng',
+    themeDark: 'Đổi sang giao diện tối',
+    themeLight: 'Đổi sang giao diện sáng',
     home: 'Learn Database, về trang chủ',
     skip: 'Tới nội dung chính',
     progress: 'Tiến trình',

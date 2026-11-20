@@ -56,7 +56,7 @@
   transition: background-color 200ms;
 }
 .wh-shelf.is-here {
-  background: #fff7dc;
+  background: var(--mango-soft);
   box-shadow: 0 6px 0 var(--mango-deep);
 }
 .wh-shelf__head {
@@ -107,7 +107,7 @@
 .wh-box.is-taken {
   background: var(--mango);
   transform: translateY(-3px);
-  box-shadow: 0 3px 0 var(--ink);
+  box-shadow: 0 3px 0 var(--slab);
 }
 .wh-box.is-new,
 .wh-box.is-copy {

@@ -23,12 +23,12 @@ const errorField = StateField.define<DecorationSet>({
 });
 
 const highlight = HighlightStyle.define([
-  { tag: t.keyword, color: '#5a36d6', fontWeight: '700' },
-  { tag: [t.string, t.special(t.string)], color: '#9a3d00' },
-  { tag: t.number, color: '#0a6976' },
-  { tag: t.comment, color: '#6a6399', fontStyle: 'italic' },
-  { tag: [t.operator, t.punctuation], color: '#2b1f6b' },
-  { tag: t.typeName, color: '#5a36d6' },
+  { tag: t.keyword, color: 'var(--code-kw)', fontWeight: '700' },
+  { tag: [t.string, t.special(t.string)], color: 'var(--code-str)' },
+  { tag: t.number, color: 'var(--code-num)' },
+  { tag: t.comment, color: 'var(--code-com)', fontStyle: 'italic' },
+  { tag: [t.operator, t.punctuation], color: 'var(--ink)' },
+  { tag: t.typeName, color: 'var(--code-kw)' },
 ]);
 
 interface Props {

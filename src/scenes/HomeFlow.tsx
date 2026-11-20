@@ -30,25 +30,25 @@ const L = homeFlow.labels;
 const ICONS: Record<App['id'], React.ReactNode> = {
   shop: (
     <>
-      <path d="M7 11h18l-2 16a2 2 0 0 1-2 1.7H11a2 2 0 0 1-2-1.7z" fill="#fff" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
+      <path d="M7 11h18l-2 16a2 2 0 0 1-2 1.7H11a2 2 0 0 1-2-1.7z" fill="var(--sheet)" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
       <path d="M12 12V9a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
     </>
   ),
   ride: (
     <>
-      <path d="M16 29C8 19 7 6 16 6s8 13 0 23z" fill="#fff" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
+      <path d="M16 29C8 19 7 6 16 6s8 13 0 23z" fill="var(--sheet)" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
       <circle cx="16" cy="13.5" r="3.2" fill="currentColor" />
     </>
   ),
   bank: (
     <>
-      <path d="M5 13l11-7 11 7z" fill="#fff" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
+      <path d="M5 13l11-7 11 7z" fill="var(--sheet)" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
       <path d="M8.5 14v10M16 14v10M23.5 14v10M5 27h22" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
     </>
   ),
   school: (
     <>
-      <path d="M4 13l12-6 12 6-12 6z" fill="#fff" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
+      <path d="M4 13l12-6 12 6-12 6z" fill="var(--sheet)" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" />
       <path d="M9 17v6c4 3.5 10 3.5 14 0v-6M28 13v8" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
     </>
   ),
@@ -188,7 +188,7 @@ export function HomeFlow() {
             <svg key={pulse.db} className={pulse.db ? 'flow-db--pulse' : ''} viewBox="0 0 96 92" width="96" height="92" aria-hidden="true">
               <path d="M6 16v58a42 12 0 0 0 84 0V16z" fill="var(--taro)" stroke="var(--ink)" strokeWidth="3" strokeLinejoin="round" />
               <path d="M6 36a42 12 0 0 0 84 0M6 55a42 12 0 0 0 84 0" fill="none" stroke="var(--ink)" strokeWidth="2.4" />
-              <ellipse cx="48" cy="16" rx="42" ry="12" fill="#f1eaff" stroke="var(--ink)" strokeWidth="3" />
+              <ellipse cx="48" cy="16" rx="42" ry="12" fill="var(--taro-soft)" stroke="var(--ink)" strokeWidth="3" />
               <circle cx="20" cy="48" r="3" fill="var(--matcha-deep)" stroke="var(--ink)" strokeWidth="1.4" />
               <circle cx="20" cy="67" r="3" fill="var(--mango)" stroke="var(--ink)" strokeWidth="1.4" />
             </svg>

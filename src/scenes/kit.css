@@ -129,7 +129,7 @@
   font-family: var(--font-mono);
   font-size: 0.82rem;
   line-height: 1.5;
-  color: #fff;
+  color: var(--on-ink);
   background: var(--ink);
   border-radius: 10px;
   white-space: pre-wrap;

@@ -21,7 +21,7 @@
   font-family: var(--font-mono);
   font-size: 0.8rem;
   background: var(--taro);
-  box-shadow: 0 3px 0 var(--ink);
+  box-shadow: 0 3px 0 var(--slab);
 }
 .pkb-new.is-bad {
   background: var(--red-soft);

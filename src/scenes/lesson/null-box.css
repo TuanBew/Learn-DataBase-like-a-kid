@@ -43,7 +43,7 @@
   font-family: var(--font-mono);
   font-size: 0.92rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--on-ink);
   background: var(--ink);
   border-radius: 8px;
   white-space: nowrap;
@@ -65,7 +65,7 @@
   gap: 2px;
   border: var(--line);
   border-radius: var(--r-md);
-  box-shadow: 0 5px 0 var(--ink);
+  box-shadow: 0 5px 0 var(--slab);
   backface-visibility: hidden;
   transition: transform 520ms var(--ease-out);
 }

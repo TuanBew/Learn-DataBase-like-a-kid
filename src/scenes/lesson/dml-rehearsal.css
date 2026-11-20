@@ -32,7 +32,7 @@
   background: var(--mango);
 }
 .dmr__hit--alarm {
-  color: #fff;
+  color: var(--on-ink);
   background: var(--red);
   border-color: var(--red-ink);
 }

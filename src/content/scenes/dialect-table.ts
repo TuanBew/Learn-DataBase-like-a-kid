@@ -91,7 +91,7 @@ export const copy = {
       mysql: 'SELECT 1 + 1 AS ket_qua',
       oracle: 'SELECT 1 + 1 AS ket_qua FROM DUAL',
       run: true,
-      say: 'MySQL cho SELECT không có FROM. Oracle 19c luôn đòi FROM, nên bạn viết `FROM DUAL`. DUAL là table có sẵn cho việc này.',
+      say: 'MySQL cho SELECT không có FROM. Oracle 19c luôn đòi FROM, nên bạn viết `FROM DUAL`. DUAL là table có sẵn để dùng ở chỗ này.',
     },
     {
       id: 'empty-string',

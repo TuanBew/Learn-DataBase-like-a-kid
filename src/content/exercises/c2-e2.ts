@@ -33,7 +33,7 @@ export const exercise: QuizExercise = {
       options: [
         { text: 'Chặn lệnh xóa và báo lỗi', correct: true, feedback: 'Đúng. Hai đơn đang trỏ tới khách này. Xóa khách thì các đơn mất chủ.' },
         { text: 'Xóa khách và để hai đơn lại', feedback: 'Hai đơn sẽ trỏ tới một khách không còn. Vì vậy database chặn lệnh xóa.' },
-        { text: 'Xóa khách và xóa luôn hai đơn', feedback: 'Database không tự xóa thêm gì. Nó chặn lệnh xóa để bạn xử lý hai đơn trước.' },
+        { text: 'Xóa khách và xóa luôn hai đơn', feedback: 'Database không tự xóa thêm gì. Database chặn lệnh xóa để bạn xử lý hai đơn trước.' },
       ],
     },
   ],

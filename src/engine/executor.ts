@@ -772,7 +772,9 @@ export function execSelect(stmt: SelectStmt, db: Database, d: Dialect, sql: stri
       getters.push((cx) => cx.cells[c.idx]);
     } else {
       const key = uniq(gk >= 0 ? `g${gk}` : ak >= 0 ? `a${ak}` : `x${xn++}`);
-      outCols.push({ key, header: alias ?? (d === 'oracle' ? oracleHeader(text) : text), type: 'expr' });
+      // MySQL đặt tiêu đề của một chuỗi đứng riêng bằng chính nội dung chuỗi, không kèm dấu nháy.
+      const plain = d === 'mysql' && e.t === 'str' ? e.v : text;
+      outCols.push({ key, header: alias ?? (d === 'oracle' ? oracleHeader(text) : plain), type: 'expr' });
       if (key.startsWith('x')) computed.push(key);
       getters.push((cx) => {
         const v = E.ev(e, cx);

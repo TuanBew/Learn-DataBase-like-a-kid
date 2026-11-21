@@ -3,9 +3,12 @@ import { type Span, runtimeError } from './errors';
 
 export const isDate = (v: Value): v is SqlDate => typeof v === 'object' && v !== null && v.kind === 'date';
 
-/** Bỏ dấu và hạ chữ thường, giống collation mặc định utf8mb4_0900_ai_ci của MySQL 8. */
+/**
+ * Bỏ dấu và hạ chữ thường, giống collation mặc định utf8mb4_0900_ai_ci của MySQL 8.
+ * Chữ đ không tách được thành d cộng dấu, nên đổi riêng: MySQL 8.0.46 thật coi 'đ' = 'd'.
+ */
 export function fold(s: string): string {
-  return s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+  return s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/đ/g, 'd');
 }
 
 const fullIso = (d: SqlDate) => (d.iso.length === 10 ? `${d.iso} 00:00:00` : d.iso);

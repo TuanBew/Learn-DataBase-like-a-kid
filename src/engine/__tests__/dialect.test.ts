@@ -130,6 +130,28 @@ describe('so sánh chuỗi', () => {
   it('Oracle: LIKE phân biệt dấu', () => {
     expect(ok("SELECT product_id FROM products WHERE name LIKE 'Ca %'", 'oracle').rows).toEqual([]);
   });
+
+  // Đã kiểm trên MySQL 8.0.46 thật với COLLATE utf8mb4_0900_ai_ci: cả bảy biểu thức ra đúng các số dưới đây.
+  it('MySQL: chữ đ bằng chữ d, ở cả = và LIKE', () => {
+    const sql = "SELECT 'đ' = 'd', 'Đ' = 'd', 'Đ' = 'đ', 'Hà' = 'ha', 'a' = 'a ', 'Đỗ Linh' LIKE 'd%', 'Đỗ Linh' LIKE 'đ%'";
+    expect(ok(sql, 'mysql').rows).toEqual([[1, 1, 1, 1, 0, 1, 1]]);
+  });
+
+  // Hệ quả của dòng trên khi xếp: bốn món cùng bán 5 ly, tên có chữ đ đứng ở chỗ của chữ d.
+  it('MySQL: ORDER BY xếp chữ đ như chữ d, Oracle xếp chữ đ sau mọi chữ không dấu', () => {
+    const sql = "SELECT name FROM products WHERE name LIKE 'Trà %' ORDER BY name";
+    const names = (d: Dialect) => ok(sql, d).rows.map((r) => r[0]);
+    const my = names('mysql');
+    const ora = names('oracle');
+    expect(my.indexOf('Trà đào cam sả')).toBeLessThan(my.indexOf('Trà sữa matcha'));
+    expect(my.indexOf('Trà đào cam sả')).toBeGreaterThan(my.indexOf('Trà chanh mật ong'));
+    expect(ora.indexOf('Trà đào cam sả')).toBeGreaterThan(ora.indexOf('Trà sữa trân châu'));
+  });
+
+  it('Oracle: chữ đ khác chữ d', () => {
+    expect(ok("SELECT product_id FROM products WHERE 'đ' = 'd'", 'oracle').rows).toEqual([]);
+    expect(ok("SELECT COUNT(*) FROM products WHERE 'đ' = 'đ'", 'oracle').rows).not.toEqual([[0]]);
+  });
 });
 
 describe('dấu nháy', () => {
@@ -187,10 +209,18 @@ describe('tiêu đề column', () => {
     expect(ok('SELECT * FROM stores', 'oracle').columns).toEqual(['STORE_ID', 'NAME', 'DISTRICT', 'CITY', 'OPENED_ON']);
   });
 
-  // CHỜ KIỂM TÀI LIỆU: tiêu đề của biểu thức ở Oracle bỏ khoảng trắng và in hoa ('PRICE*2'), ở MySQL giữ nguyên chữ gõ ('price * 2')
+  // CHỜ KIỂM TÀI LIỆU: tiêu đề của biểu thức ở Oracle bỏ khoảng trắng và in hoa ('PRICE*2').
+  // Vế MySQL đã kiểm trên MySQL 8.0.46: tiêu đề giữ nguyên chữ gõ, kể cả khoảng trắng và chữ hoa ('price * 2', 'price*2', 'PRICE * 2', 'count( * )').
   it('tiêu đề của biểu thức không có alias', () => {
     expect(ok('SELECT price * 2 FROM products LIMIT 1', 'mysql').columns).toEqual(['price * 2']);
     expect(ok('SELECT price * 2 FROM products FETCH FIRST 1 ROW ONLY', 'oracle').columns).toEqual(['PRICE*2']);
+  });
+
+  // Đã kiểm trên MySQL 8.0.46 thật: SELECT 'abc', 1 + 1 cho hai tiêu đề abc và 1 + 1.
+  it('MySQL: tiêu đề của một chuỗi đứng riêng là nội dung chuỗi, không kèm dấu nháy', () => {
+    expect(ok("SELECT 'abc', 1 + 1", 'mysql').columns).toEqual(['abc', '1 + 1']);
+    expect(ok("SELECT 'abc' = 'x'", 'mysql').columns).toEqual(["'abc' = 'x'"]);
+    expect(ok("SELECT 'abc' AS chu", 'mysql').columns).toEqual(['chu']);
   });
 });
 
@@ -549,6 +579,15 @@ describe('query rỗng và nhiều câu lệnh', () => {
     expect(fail('   \n ', 'mysql').code).toBe('1065');
   });
 
+  // Đã kiểm trên MySQL 8.0.46 thật bằng PyMySQL: gửi ";" ra 1065, gửi "SELECT 1;" chạy được.
+  it('MySQL: chỉ có dấu ; cũng là query rỗng', () => {
+    const e = fail(';', 'mysql');
+    expect(e.code).toBe('1065');
+    expect(e.dbMessage).toBe('ERROR 1065 (42000): Query was empty');
+    expect(fail('  ;\n', 'mysql').code).toBe('1065');
+    expect(ok('SELECT 1;', 'mysql').rows).toEqual([[1]]);
+  });
+
   // CHỜ KIỂM TÀI LIỆU: Oracle báo gì khi gửi câu lệnh rỗng (ORA-00900 hay không báo lỗi gì ở client)
   it('Oracle: query rỗng ra ORA-00900', () => {
     const e = fail('', 'oracle');
@@ -556,7 +595,7 @@ describe('query rỗng và nhiều câu lệnh', () => {
     expect(e.dbMessage).toBe('ORA-00900: invalid SQL statement');
   });
 
-  // Chạy nhiều câu lệnh một lần cần cờ CLIENT_MULTI_STATEMENTS (https://dev.mysql.com/doc/c-api/8.0/en/c-api-multiple-queries.html). Tài liệu không nói rõ mã lỗi khi cờ tắt (CHỜ KIỂM bằng MySQL thật).
+  // Chạy nhiều câu lệnh một lần cần cờ CLIENT_MULTI_STATEMENTS (https://dev.mysql.com/doc/c-api/8.0/en/c-api-multiple-queries.html). Đã kiểm trên MySQL 8.0.46 bằng PyMySQL (cờ mặc định): lỗi 1064 near 'SELECT 2' at line 1.
   it('MySQL: hai câu lệnh trong một lần chạy ra 1064 tại câu thứ hai', () => {
     const sql = 'SELECT 1 FROM DUAL; SELECT 2 FROM DUAL';
     const e = fail(sql, 'mysql');

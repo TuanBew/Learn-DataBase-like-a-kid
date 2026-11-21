@@ -113,6 +113,8 @@ export const lesson: Lesson = {
         'Khi xếp tăng dần, MySQL đặt NULL lên đầu. Oracle đặt NULL xuống cuối.',
         'Khi xếp giảm dần thì ngược lại: MySQL đặt NULL cuối, Oracle đặt NULL đầu.',
         'Oracle cho bạn chọn bằng `NULLS FIRST` hoặc `NULLS LAST` ở cuối ORDER BY. Bài này dùng cách xếp mặc định.',
+        'Chữ Đ cũng xếp khác nhau. MySQL coi Đ như D, nên tên Đinh đứng gần tên Dương.',
+        'Theo mặc định, Oracle xếp chữ có dấu sau chữ không dấu. Ở Oracle, tên Đinh đứng sau tên Vũ.',
       ],
       mysql: 'ORDER BY calories\n-- NULL đứng đầu',
       oracle: 'ORDER BY calories\n-- NULL đứng cuối',

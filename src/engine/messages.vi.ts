@@ -8,6 +8,7 @@ type P = Record<string, string | number | undefined>;
 /** Lời giải thích lỗi, bằng lời dễ hiểu. Khóa là tên tình huống. */
 export const friendly: Record<string, (p: P) => string> = {
   empty: () => 'Editor đang trống. Gõ một query rồi bấm Chạy.',
+  'only-semicolon': () => 'Editor chỉ có dấu ; mà chưa có query. Gõ một query trước dấu ; rồi bấm Chạy.',
   'multi-statement': () => 'Mỗi lần chỉ chạy một query. Xóa phần nằm sau dấu ; đi.',
   'limit-in-oracle': () => 'Oracle không hiểu LIMIT. Ở Oracle, viết FETCH FIRST n ROWS ONLY.',
   'fetch-in-mysql': () => 'MySQL không hiểu FETCH FIRST. Ở MySQL, viết LIMIT n.',

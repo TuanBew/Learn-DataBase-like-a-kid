@@ -139,6 +139,10 @@ class Parser {
     if (t.type === 'eof') {
       throw new SqlError('syntax', this.d === 'mysql' ? '1065' : 'ORA-00900', this.d === 'mysql' ? 'ERROR 1065 (42000): Query was empty' : 'ORA-00900: invalid SQL statement', 'empty', friendly.empty({}), { s: 0, e: 0 });
     }
+    // MySQL coi một dấu ; đứng một mình là query rỗng (đã kiểm trên MySQL 8.0.46).
+    if (this.d === 'mysql' && this.sql.trim() === ';') {
+      throw new SqlError('syntax', '1065', 'ERROR 1065 (42000): Query was empty', 'only-semicolon', friendly['only-semicolon']({}), this.at());
+    }
     if (this.isW('SELECT')) {
       const stmt = this.select();
       this.end(stmt);

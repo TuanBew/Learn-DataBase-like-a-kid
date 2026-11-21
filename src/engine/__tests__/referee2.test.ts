@@ -112,7 +112,8 @@ const queries: Q[] = [
   { sql: 'SELECT product_id, COUNT(*) FROM order_items GROUP BY product_id HAVING COUNT(*) = 1' },
   { sql: 'SELECT category, AVG(price) FROM products GROUP BY category HAVING AVG(price) < 40000' },
   // WHERE + JOIN + GROUP BY
-  { sql: "SELECT p.name, SUM(i.quantity) AS ly FROM orders o JOIN order_items i ON i.order_id = o.order_id JOIN products p ON p.product_id = i.product_id WHERE o.status = 'done' GROUP BY p.name ORDER BY ly DESC, p.name" },
+  // Món bằng số ly thì xếp theo product_id, không theo tên: SQLite xếp chữ đ theo mã ký tự, còn MySQL coi đ như d (xem dialect.test.ts).
+  { sql: "SELECT p.name, SUM(i.quantity) AS ly FROM orders o JOIN order_items i ON i.order_id = o.order_id JOIN products p ON p.product_id = i.product_id WHERE o.status = 'done' GROUP BY p.product_id, p.name ORDER BY ly DESC, p.product_id" },
   { sql: "SELECT o.store_id, COUNT(*), SUM(i.quantity * i.unit_price) FROM orders o JOIN order_items i ON i.order_id = o.order_id WHERE o.status = 'done' AND o.payment <> 'thẻ' GROUP BY o.store_id ORDER BY o.store_id" },
   { sql: "SELECT c.customer_id, COUNT(*) AS don FROM customers c JOIN orders o ON o.customer_id = c.customer_id WHERE o.status = 'done' GROUP BY c.customer_id HAVING COUNT(*) >= 2 ORDER BY c.customer_id" },
   { sql: 'SELECT c.customer_id, COUNT(o.order_id) FROM customers c LEFT JOIN orders o ON o.customer_id = c.customer_id GROUP BY c.customer_id ORDER BY c.customer_id' },

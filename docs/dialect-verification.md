@@ -50,4 +50,15 @@ Tóm tắt: 17 dòng của bảng gốc. 13 dòng đúng, 4 dòng cần chỉnh 
 
 - Sửa dòng 2, 11, 16 (và ghi chú ở dòng 9) của bảng ở `docs/PROMPT.md` mục 7 theo cột "Hành vi theo tài liệu" ở trên; ghi vào `docs/decisions.md`. Phiên này không được sửa hai file đó.
 - Engine không lệch tài liệu ở điểm nào đã kiểm được (106/106 test của `dialect.test.ts` xanh).
-- Còn chưa kiểm được: `đ` và `d` ở collation 0900_ai_ci; tiêu đề biểu thức không alias; ORA-00911 cho `%`; ORA-00900 cho câu rỗng; mã lỗi của hai câu lệnh liền nhau ở cả hai dialect; ORA-01861 cho chuỗi ISO cụ thể; vế "tiêu đề in hoa" ở Oracle và "Tool thường chờ COMMIT".
+- Còn chưa kiểm được (chỉ còn vế Oracle và các vế tool): tiêu đề biểu thức không alias ở Oracle; ORA-00911 cho `%`; ORA-00900 cho câu rỗng; mã lỗi của hai câu lệnh liền nhau ở Oracle; ORA-01861 cho chuỗi ISO cụ thể; vế "tiêu đề in hoa" ở Oracle và "Tool thường chờ COMMIT". Các vế MySQL đã chốt ở mục "Kiểm trên MySQL thật" bên dưới.
+
+## Kiểm trên MySQL thật
+
+Phiên bản: MySQL 8.0.46 (Ubuntu 24.04, gói `mysql-server`). Client `mysql -t --default-character-set=utf8mb4` và PyMySQL với cờ mặc định. Ngày chạy: 2026-11-21.
+
+- Mặc định: `@@character_set_connection` là `utf8mb4`, `@@collation_connection` và `@@collation_server` là `utf8mb4_0900_ai_ci`. Đúng như dòng 9.
+- Collation `utf8mb4_0900_ai_ci` (COLLATE ghi tường minh): `'đ' = 'd'` ra 1, `'Đ' = 'd'` ra 1, `'Đ' = 'đ'` ra 1, `'Hà' = 'ha'` ra 1, `'a' = 'a '` ra 0, `'Đỗ Linh' LIKE 'd%'` ra 1, `'Đỗ Linh' LIKE 'đ%'` ra 1. Vậy `đ` bằng `d`. Engine trước đó coi hai chữ này khác nhau. Engine đã sửa: ở dialect mysql, `đ` gấp thành `d` khi so bằng `=`, `LIKE`, khi xếp và khi gom nhóm.
+- Tiêu đề column của biểu thức không alias: MySQL giữ nguyên chữ người gõ, gồm khoảng trắng và chữ hoa. `price * 2`, `price*2`, `PRICE * 2`, `COUNT(*)`, `count( * )`, `UPPER(name)`, `price + 1000`, `1 + 1` đều ra đúng như gõ. Riêng chuỗi `'abc'` ra tiêu đề `abc` (không có nháy). Engine khớp mọi trường hợp trên. Riêng `'abc'` engine trước đó ra `'abc'`, và đã sửa thành `abc`.
+- Hai câu lệnh một lần gửi (PyMySQL, không multi-statement): `SELECT 1; SELECT 2` ra lỗi 1064, "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'SELECT 2' at line 1". Engine khớp.
+- `SELECT 1;` chạy được. Chuỗi rỗng `""` ra lỗi 1065 "Query was empty". Chuỗi `";"` cũng ra 1065 "Query was empty". Engine khớp với `""` và `SELECT 1;`. Với `";"` engine trước đó ra 1064, và đã sửa thành 1065.
+- Hệ quả khi xếp: ở MySQL, tên có chữ Đ đứng ở chỗ của chữ D (Đinh đứng gần Dương). Oracle vẫn so binary, nên chữ Đ đứng sau mọi chữ không dấu. Bài `c3-b3` và `c6-b3` có câu giải thích. Vế Oracle này chưa chạy trên Oracle thật.

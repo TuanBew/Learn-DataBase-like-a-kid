@@ -140,6 +140,7 @@ export const lesson: Lesson = {
         'Hai dialect nối ba table giống nhau. Chỉ có hai chỗ khác ở query trên.',
         'MySQL giữ năm row đầu bằng `LIMIT 5`. Oracle viết `FETCH FIRST 5 ROWS ONLY`.',
         'Alias của table không có AS ở Oracle: `orders o`, không phải `orders AS o`.',
+        'Kết quả cũng khác ở row thứ năm. Bốn món cùng bán 5 ly, và MySQL xếp chữ đ như chữ d.',
         'Sau khi nối, mọi column trong SELECT phải nằm trong GROUP BY hoặc trong function gom. Thêm `p.category` vào SELECT mà quên GROUP BY, Oracle báo ORA-00979.',
       ],
       mysql: 'ORDER BY cups DESC, p.name\nLIMIT 5;',

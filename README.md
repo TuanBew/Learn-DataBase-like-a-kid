@@ -112,7 +112,7 @@ Cả ba mốc đã xong: đủ 7 chương, engine, Query Theater, toàn bộ bà
 Con số của lượt kiểm cuối, chạy ngày 21/11/2026:
 
 - Nội dung: 33 bài học, 49 bài tập, 17 cảnh motion.
-- `npm test`: 1094 test qua. `copy-scan.cjs`: 0 dòng nghi phạm trong 184 file.
+- `npm test`: 1099 test qua. `copy-scan.cjs`: 0 dòng nghi phạm trong 184 file.
 - `crawl.cjs` trên 164 trang: không lỗi console, không tràn ngang.
 - `axe.cjs` trên 87 trang ở hai chiều rộng, giao diện sáng và tối: 0 vi phạm.
 - `checks-4.cjs`: 15 PASS. `checks-5.cjs`: 132 PASS. `sfx-check.cjs`: 18 PASS.
@@ -123,12 +123,11 @@ Con số của lượt kiểm cuối, chạy ngày 21/11/2026:
 
 ## Những điểm chưa kiểm được
 
-Các điểm sau cần chạy trên MySQL và Oracle thật mới chốt được, vì tài liệu chính thức không nói rõ. Test liên quan mang comment `CHỜ KIỂM TÀI LIỆU`. Chi tiết ở `docs/dialect-verification.md`.
+Các điểm MySQL đã kiểm trên MySQL 8.0.46 thật (xem `docs/dialect-verification.md`). Các điểm sau cần chạy trên Oracle thật mới chốt được, vì tài liệu chính thức không nói rõ. Test liên quan mang comment `CHỜ KIỂM TÀI LIỆU`. Chi tiết ở `docs/dialect-verification.md`.
 
-- Chữ `đ` có bằng `d` ở collation `utf8mb4_0900_ai_ci` không. Engine đang coi hai chữ này khác nhau.
-- Tiêu đề column của biểu thức không có alias, ở cả hai dialect.
 - Oracle báo mã gì cho dấu `%` (engine báo ORA-00911), cho query rỗng (ORA-00900) và cho chuỗi ngày ISO như `'2026-02-15'` (ORA-01861).
-- Mã lỗi khi gửi hai câu lệnh liền nhau, ở cả MySQL và Oracle.
+- Tiêu đề column của biểu thức không alias ở Oracle.
+- Mã lỗi khi gửi hai câu lệnh liền nhau ở Oracle.
 - Vế "tiêu đề kết quả in hoa" ở Oracle, và việc tool Oracle thường chờ COMMIT. Tài liệu SQL Reference xem đây là hành vi của từng tool.
 
 Âm thanh mới được kiểm bằng đo tín hiệu (`scripts/qa/sfx-check.cjs`): cả 15 hiệu ứng có tiếng ở mức nhỏ. Chưa ai nghe bằng tai, vì môi trường dựng site không có loa.

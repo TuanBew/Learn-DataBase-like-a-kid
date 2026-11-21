@@ -48,7 +48,7 @@ Kết quả: 33 bài học, 49 bài tập (mỗi chương 6 bài và một bài 
 
 ## Mốc 3 (đã xong)
 
-Kết quả kiểm cuối ngày 21/11/2026: 1094 test qua, lượt quét 164 trang không lỗi, axe-core 0 vi phạm ở cả giao diện sáng và tối, 81 lượt giải bài tập trong giao diện thật đều qua. Lighthouse mobile trên 13 trang: Performance từ 94 tới 100, Accessibility 100. Con số đầy đủ ở mục "Trạng thái" của `README.md`.
+Kết quả kiểm cuối ngày 21/11/2026: 1099 test qua, lượt quét 164 trang không lỗi, axe-core 0 vi phạm ở cả giao diện sáng và tối, 81 lượt giải bài tập trong giao diện thật đều qua. Lighthouse mobile trên 13 trang: Performance từ 94 tới 100, Accessibility 100. Con số đầy đủ ở mục "Trạng thái" của `README.md`.
 
 1. Đánh bóng: con dấu bút đỏ cuối chương, nút Học tiếp ở trang chủ, kéo thả ở bài xếp clause, Theater trên điện thoại, tiêu đề tab riêng cho từng trang.
 2. Giao diện tối "bảng đen, phấn màu", bật bằng công tắc ở đầu trang. Mọi màu đi qua token.
@@ -57,4 +57,6 @@ Kết quả kiểm cuối ngày 21/11/2026: 1094 test qua, lượt quét 164 tra
 5. Kiểm theo danh sách "Chỉ được báo xong khi": build, test, console, lời giải mẫu ở từng dialect, tiến trình và mã tiến trình, nút tắt tiếng, reduced motion, bàn phím.
 6. `README.md` có hướng dẫn deploy Vercel và danh sách script kiểm.
 
-Chưa kiểm được: nghe âm thanh bằng tai, và vài điểm dialect cần MySQL và Oracle thật (ghi ở `README.md` và `docs/dialect-verification.md`). Trang bài tập mở thẳng tải 306 KB JS gzip, cao hơn mức 250 KB; trang chủ và bài học nằm dưới mức này.
+7. Các điểm dialect của MySQL đã chạy trên MySQL 8.0.46 thật. Engine sửa ba chỗ lệch, rồi chạy lại lượt kiểm.
+
+Chưa kiểm được: nghe âm thanh bằng tai, và vài điểm dialect cần Oracle thật (ghi ở `README.md` và `docs/dialect-verification.md`). Trang bài tập mở thẳng tải 306 KB JS gzip, cao hơn mức 250 KB; trang chủ và bài học nằm dưới mức này.

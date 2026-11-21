@@ -74,7 +74,8 @@ Luật áp cho mọi kiểu dịch tương tự. Cũng giữ tiếng Anh: functi
 - CSS dùng chung của các cảnh nằm ở `src/styles/kit.css` và đã import trong `base.css`. Không import file này trong từng cảnh: ở bản build, CSS chung tải sau sẽ đè CSS riêng.
 - Ảnh kiểm tra chụp từ bản build (`npm run build` rồi `npm run preview`), không chụp từ dev server. Hai bên tải CSS theo thứ tự khác nhau.
 - Bài tập tiếp theo chỉ nằm trong cùng bài học. Không dẫn người học sang bài tập của bài chưa học.
-- Trước khi báo xong: `npm test`, `node scripts/qa/copy-scan.cjs`, rồi chạy trên bản build các script `crawl`, `axe` (cả `THEME=dark`), `checks-4`, `checks-5`, `solve-all` trong `scripts/qa/`.
+- Trước khi báo xong: `npm test`, `node scripts/qa/copy-scan.cjs`, rồi chạy trên bản build các script `crawl`, `axe` (cả `THEME=dark`), `checks-4`, `checks-5` trong `scripts/qa/`. Hai script `solve-all` và `sfx-check` import module từ `/src`, nên chạy trên dev server.
+- Các lượt chạy kiểm, chụp ảnh và Lighthouse giao cho subagent Sonnet (`qa-runner`). Phiên chính chỉ đọc con số và các dòng FAIL.
 
 ## Lệnh
 

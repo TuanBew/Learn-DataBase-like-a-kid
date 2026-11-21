@@ -88,20 +88,22 @@ Thêm một file vào các thư mục trên là site tự nhận, không cần s
 
 `npm test` chạy hơn 1000 test. Trong đó có test so kết quả của engine với SQLite, test hành vi từng dialect, và test chạy mọi lời giải mẫu của bài tập.
 
-Các script trong `scripts/qa/` cần dev server đang chạy ở `http://127.0.0.1:5173` và Playwright cài sẵn trên máy (repo không khai báo Playwright trong `package.json`).
+Các script trong `scripts/qa/` cần site đang chạy và Playwright cài sẵn trên máy (repo không khai báo Playwright trong `package.json`). Mặc định script mở dev server ở `http://127.0.0.1:5173`.
 
 - `crawl.cjs`: mở mọi bài học và bài tập ở 1440px và 390px, tìm lỗi console, trang trắng và nội dung tràn ngang.
 - `axe.cjs`: quét accessibility (WCAG 2.1 AA) bằng axe-core trên mọi trang. Đặt `THEME=dark` để quét giao diện tối.
 - `checks-4.cjs`: kiểm tiến trình không mất khi tải lại, xuất và nhập mã tiến trình, nút tắt tiếng, dùng bằng bàn phím và dấu focus.
 - `checks-5.cjs`: kiểm chế độ reduced motion ở mọi cảnh motion, trang chủ và Query Theater.
-- `sfx-check.cjs`: đo tín hiệu của 15 hiệu ứng âm thanh (có tiếng, không vỡ tiếng, tắt tiếng thì im).
+- `solve-all.cjs`: giải mọi bài tập trong giao diện thật, ở từng dialect mà bài đó dùng. Chỉ chạy trên dev server.
+- `sfx-check.cjs`: đo tín hiệu của 15 hiệu ứng âm thanh (có tiếng, không vỡ tiếng, tắt tiếng thì im). Chỉ chạy trên dev server.
 - `copy-scan.cjs`: dò từ cấm và dấu hiệu văn AI trong mọi chữ người học nhìn thấy. Không cần dev server.
 - `all-shots.cjs`: chụp toàn trang mọi màn hình ở 1440px và 390px. Dùng `node scripts/qa/all-shots.cjs <thư mục ra> [lọc]`.
 - `scene-shot.cjs`: chụp một cảnh motion sau một chuỗi thao tác. Dùng `node scripts/qa/scene-shot.cjs <bài> <chiều rộng> <file ra> [thao tác...]`.
 - `moc2-shots.cjs`: chụp bộ ảnh Mốc 2 (Theater với JOIN và GROUP BY, vài dạng bài tập, mục lục, giấy chứng nhận).
+- `moc3-shots.cjs`: chụp bộ ảnh Mốc 3 (trang chủ sáng và tối, con dấu cuối chương, bài học và Theater ở giao diện tối).
 - `checks.cjs`, `checks-2.cjs`, `checks-3.cjs`, `page-shots.cjs`, `theater-shots.cjs`: các script kiểm và chụp của Mốc 1.
 
-Mọi script nhận địa chỉ gốc qua biến `BASE`, ví dụ `BASE=http://127.0.0.1:4173 node scripts/qa/crawl.cjs` để kiểm bản build đang chạy bằng `npm run preview`.
+Mọi script nhận địa chỉ gốc qua biến `BASE`, ví dụ `BASE=http://127.0.0.1:4173 node scripts/qa/crawl.cjs` để kiểm bản build đang chạy bằng `npm run preview`. Ảnh và các lượt kiểm giao diện nên chạy trên bản build, vì dev server tải CSS theo thứ tự khác.
 
 ## Trạng thái
 
@@ -149,4 +151,4 @@ Font tự host qua Fontsource, đều giấy phép SIL OFL 1.1: Baloo 2, Be Viet
 - `docs/exercise-guide.md`: hướng dẫn soạn bài tập.
 - `docs/scene-guide.md`: hướng dẫn dựng một cảnh motion.
 - `docs/dialect-verification.md`: kết quả đối chiếu table dialect với tài liệu chính thức.
-- `docs/screenshots/`: ảnh chụp của Mốc 1 và Mốc 2.
+- `docs/screenshots/`: ảnh chụp của Mốc 1, Mốc 2 và Mốc 3.

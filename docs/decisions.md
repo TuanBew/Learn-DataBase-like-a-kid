@@ -101,3 +101,6 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Cụm code có chú thích là chữ bấm được, không phải nút.** Thẻ `<button>` không xuống dòng giữa chừng, nên một cụm dài đẩy cả dòng xuống và mất thụt lề. Cụm giờ là `span` có `role="button"`, bấm bằng chuột, Enter hoặc phím cách.
 - **Khối SQL ở giao diện tối có nền tối riêng** (`--code-bg`), đậm hơn mặt bảng, để từ khóa màu phấn đủ tương phản.
 - **Kiểm cuối chạy trên bản build đứng yên.** Bản build được chép sang một thư mục riêng rồi mới chạy các script, để các lần build sau không đổi file giữa lúc đang kiểm.
+- **Các lượt chạy kiểm lại giao cho subagent Sonnet** (`qa-runner`), theo lời chủ dự án. Phiên chính chỉ đọc con số và các dòng FAIL, rồi quyết định sửa gì.
+- **`solve-all` và `sfx-check` chạy trên dev server.** Hai script này import module từ `/src`, nên bản build không phục vụ được. Các script còn lại chạy trên bản build.
+- **Checkout chính đã nhận lại mọi commit của worktree** bằng fast-forward. Từ đây làm thẳng trên nhánh `claude/exciting-feynman-avsqfd` ở checkout chính.

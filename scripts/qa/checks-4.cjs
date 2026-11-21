@@ -168,7 +168,8 @@ async function focusTour(page, path, n, label) {
   const C = await newCtx();
   await check('C7 tat-tieng', async () => {
     const p = C.page;
-    const btn = () => p.locator('.hdr button[aria-pressed]');
+    // nút tắt tiếng là nút aria-pressed cuối nav (nút giao diện tối đứng trước)
+    const btn = () => p.locator('.hdr__nav button[aria-pressed]').last();
     await go(p, '/');
     await btn().click();
     if ((await btn().getAttribute('aria-pressed')) !== 'true') return 'aria-pressed không thành true';

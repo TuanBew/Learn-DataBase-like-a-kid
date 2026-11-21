@@ -15,7 +15,7 @@ const SCENES = [
   { id: 'c1-b2', idx: 0, name: 'excel-vs-db', steps: ['Hai người cùng bấm Lưu'], marker: 'reset' },
   { id: 'c1-b2', idx: 0, name: 'excel-vs-db/rule', steps: ['Luật giữ dữ liệu đúng', '-5000'] },
   { id: 'c1-b2', idx: 0, name: 'excel-vs-db/scale', steps: ['Dữ liệu rất lớn', { fill: 'max' }] },
-  { id: 'c1-b3', idx: 0, name: 'table-anatomy', steps: ['Chọn column price'], marker: '[aria-pressed="true"]' },
+  { id: 'c1-b3', idx: 0, name: 'table-anatomy', steps: ['price'] /* tiêu đề column không còn aria-label, tên là chữ hiển thị */, marker: '[aria-pressed="true"]' },
   { id: 'c1-b4', idx: 0, name: 'warehouse', steps: ['Đưa phiếu cho Bi'], marker: 'reset' },
   { id: 'c1-b5', idx: 0, name: 'client-server', steps: ['Bước tiếp'], marker: 'reset' },
   { id: 'c2-b1', idx: 0, name: 'pk-bonk', steps: ['17', 'Thêm row'], marker: 'reset' },

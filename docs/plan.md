@@ -46,6 +46,15 @@ Kết quả: 33 bài học, 49 bài tập (mỗi chương 6 bài và một bài 
 4. Đủ 7 chương, mỗi chương ít nhất 6 bài tập và một bài boss. Dataset 200 row và dataset HR.
 5. Trang Học tiếp, Nguồn và ghi công, giấy chứng nhận, xuất và nhập mã tiến trình.
 
-## Mốc 3
+## Mốc 3 (đã xong)
 
-Đánh bóng, kiểm theo danh sách ở mục 13 của `docs/PROMPT.md`, dark mode nếu kịp, hướng dẫn deploy Vercel.
+Kết quả kiểm cuối ngày 21/11/2026: 1094 test qua, lượt quét 164 trang không lỗi, axe-core 0 vi phạm ở cả giao diện sáng và tối, 81 lượt giải bài tập trong giao diện thật đều qua. Lighthouse mobile trên 13 trang: Performance từ 94 tới 100, Accessibility 100. Con số đầy đủ ở mục "Trạng thái" của `README.md`.
+
+1. Đánh bóng: con dấu bút đỏ cuối chương, nút Học tiếp ở trang chủ, kéo thả ở bài xếp clause, Theater trên điện thoại, tiêu đề tab riêng cho từng trang.
+2. Giao diện tối "bảng đen, phấn màu", bật bằng công tắc ở đầu trang. Mọi màu đi qua token.
+3. Đọc lại toàn bộ chữ trên site theo luật viết. Có thêm `scripts/qa/copy-scan.cjs` làm lưới đỡ.
+4. Chụp 87 trang ở 1440px và 390px, cắt thành 428 mảnh để soi, sửa rồi soi lại một mẫu 133 mảnh.
+5. Kiểm theo danh sách "Chỉ được báo xong khi": build, test, console, lời giải mẫu ở từng dialect, tiến trình và mã tiến trình, nút tắt tiếng, reduced motion, bàn phím.
+6. `README.md` có hướng dẫn deploy Vercel và danh sách script kiểm.
+
+Chưa kiểm được: nghe âm thanh bằng tai, và vài điểm dialect cần MySQL và Oracle thật (ghi ở `README.md` và `docs/dialect-verification.md`). Trang bài tập mở thẳng tải 306 KB JS gzip, cao hơn mức 250 KB; trang chủ và bài học nằm dưới mức này.

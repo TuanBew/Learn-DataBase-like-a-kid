@@ -107,7 +107,19 @@ Mọi script nhận địa chỉ gốc qua biến `BASE`, ví dụ `BASE=http://
 
 ## Trạng thái
 
-Mốc 1 và Mốc 2 đã xong: đủ 7 chương, engine, Query Theater và toàn bộ bài tập. Mốc 3 (đánh bóng và kiểm theo danh sách ở mục 13 của `docs/PROMPT.md`) đang làm.
+Cả ba mốc đã xong: đủ 7 chương, engine, Query Theater, toàn bộ bài tập, giao diện tối và lượt kiểm theo danh sách ở mục 13 của `docs/PROMPT.md`.
+
+Con số của lượt kiểm cuối, chạy ngày 21/11/2026:
+
+- Nội dung: 33 bài học, 49 bài tập, 17 cảnh motion.
+- `npm test`: 1094 test qua. `copy-scan.cjs`: 0 dòng nghi phạm trong 184 file.
+- `crawl.cjs` trên 164 trang: không lỗi console, không tràn ngang.
+- `axe.cjs` trên 87 trang ở hai chiều rộng, giao diện sáng và tối: 0 vi phạm.
+- `checks-4.cjs`: 15 PASS. `checks-5.cjs`: 132 PASS. `sfx-check.cjs`: 18 PASS.
+- `solve-all.cjs`: 81 lượt giải bài tập trong giao diện thật, tất cả PASS.
+- Lighthouse mobile trên 13 trang: Performance từ 94 tới 100, Accessibility 100.
+- JS tải ở lần vào đầu, tính theo gzip: trang chủ 138 KB, một bài học 159 KB.
+- Trang bài tập mở thẳng tải 306 KB JS gzip, cao hơn mức 250 KB của yêu cầu. Trong đó trình soạn SQL chiếm 118 KB và tải sau khi trang đã hiện.
 
 ## Những điểm chưa kiểm được
 

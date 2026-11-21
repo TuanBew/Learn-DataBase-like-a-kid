@@ -37,7 +37,7 @@ Site là web tĩnh. Không cần backend, không cần database thật.
 2. Vào vercel.com, bấm Add New, rồi Project.
 3. Chọn repo vừa đẩy.
 4. Để nguyên cấu hình mà Vercel tự nhận từ `vercel.json`: Framework Vite, Build Command `npm run build`, Output Directory `dist`. Không cần biến môi trường.
-5. Chọn nhánh production.
+5. Chọn nhánh production. Repo hiện chỉ có một nhánh là `claude/exciting-feynman-avsqfd`, nên Vercel tự lấy nhánh này.
 6. Bấm Deploy.
 
 `vercel.json` chuyển mọi đường dẫn về `index.html`, nhờ đó các trang `/bai/...` và `/tap/...` mở trực tiếp được. File này cũng đặt cache dài cho `/assets/`.

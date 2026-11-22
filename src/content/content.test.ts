@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { databases } from '../data';
-import { run } from '../engine';
+import { createSession, run } from '../engine';
 import { glossary } from './glossary';
 import { lessons } from './lessons';
 import type { Lesson, LessonBlock } from './types';
@@ -44,6 +44,33 @@ describe('nội dung bài học', () => {
           }
         }
         expect([...missing]).toEqual([]);
+      });
+
+      it('mọi lệnh trong workshop chạy được ở dialect đã khai', async () => {
+        lesson ??= await lessons[id]();
+        const bad: string[] = [];
+        for (const b of lesson.blocks) {
+          if (b.type !== 'workshop') continue;
+          for (const d of b.dialects) {
+            const s = createSession({ name: 'saomai', tables: [] }, d);
+            const exec = (label: string, sql: string | undefined, expect: 'ok' | 'error') => {
+              if (!sql) {
+                bad.push(`${d}: thiếu lệnh cho "${label}"`);
+                return;
+              }
+              const { failedAt, results } = s.runScript(sql);
+              const last = results[results.length - 1];
+              if (expect === 'ok' && failedAt !== undefined) {
+                bad.push(`${d} [${label}]: lẽ ra chạy được -> ${!last.ok ? `${last.error.code} ${last.error.friendly}` : ''}`);
+              }
+              if (expect === 'error' && failedAt === undefined) bad.push(`${d} [${label}]: lẽ ra phải báo lỗi mà chạy qua`);
+            };
+            if (b.setup) exec('setup', b.setup[d], 'ok');
+            exec('sql', b.sql[d], 'ok');
+            for (const t of b.tries ?? []) exec(t.label, t.sql[d], t.expect ?? 'ok');
+          }
+        }
+        expect(bad).toEqual([]);
       });
 
       it('mọi query trong playground chạy được ở dialect đã khai', async () => {

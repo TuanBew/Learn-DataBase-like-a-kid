@@ -26,9 +26,22 @@ export const chapters: Chapter[] = [
       { id: 'c2-b1', title: 'primary key' },
       { id: 'c2-b2', title: 'foreign key' },
       { id: 'c2-b3', title: 'Vì sao phải tách table' },
+      { id: 'c2-b4', title: 'Ba kiểu quan hệ' },
       { id: 'c2-b5', title: 'NULL' },
       { id: 'c2-b6', title: 'constraint' },
       { id: 'c2-b7', title: 'Đọc ERD và CREATE TABLE' },
+    ],
+  },
+  {
+    id: 3,
+    title: 'Tạo table từ A đến Z',
+    about: 'Từ tờ ghi chép tới câu CREATE TABLE: chọn data type, đặt primary key và các luật.',
+    lessons: [
+      { id: 'c3-b1', title: 'Từ tờ ghi chép tới bản thiết kế' },
+      { id: 'c3-b2', title: 'Chọn data type cho từng column' },
+      { id: 'c3-b3', title: 'Câu CREATE TABLE đầu tiên' },
+      { id: 'c3-b4', title: 'primary key và mã tự tăng' },
+      { id: 'c3-b5', title: 'Đặt luật ngay lúc tạo' },
     ],
   },
   {

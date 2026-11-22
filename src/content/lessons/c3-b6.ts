@@ -69,7 +69,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Công ty Sao Mai đã có table departments. Chị Hạnh, trưởng phòng hành chính, nhờ bạn dựng thêm danh sách nhân viên.',
         'Mỗi nhân viên thuộc một phòng. Bạn thử ghi thẳng tên phòng lên row của nhân viên: "Kinh doanh".',
-        'Ba tháng sau, công ty đổi tên phòng thành "Bán hàng". Bạn phải sửa từng row nhân viên. Sót một row là danh sách có hai tên cho một phòng.',
+        'Ba tháng sau, công ty đổi tên phòng thành "Bán lẻ". Bạn phải sửa từng row nhân viên. Sót một row là danh sách có hai tên cho một phòng.',
         'Bi nói: "Ghi mã phòng thôi. Tên phòng chỉ nằm ở table departments, đổi một chỗ là xong."',
         'Còn một điều cần giữ chắc: mã phòng trên row nhân viên phải là mã có thật. Database canh chuyện này giúp bạn.',
       ],
@@ -102,7 +102,7 @@ export const lesson: Lesson = {
     FOREIGN KEY (department_id) REFERENCES departments (department_id)
 );`,
       notes: [
-        { find: 'department_id INT,', text: 'Column giữ mã phòng. Nó là INT, giống department_id bên departments.' },
+        { find: 'department_id INT,', text: 'Column giữ mã phòng. Data type là INT, giống department_id bên departments.' },
         { find: 'CONSTRAINT fk_employees_department', text: 'Tên của foreign key. Lỗi sẽ nhắc tên này, nên đặt tên có nghĩa.' },
         { find: 'FOREIGN KEY (department_id)', text: 'Column department_id của employees là foreign key.' },
         { find: 'REFERENCES departments (department_id)', text: 'Mã phải có sẵn trong column department_id của table departments.' },

@@ -64,12 +64,16 @@ export const chapters: Chapter[] = [
   {
     id: 5,
     title: 'Function và biểu thức',
-    about: 'Phép tính, function chuỗi, ngày giờ, NULL và CASE WHEN.',
+    about: 'Phép tính, function chuỗi, ngày giờ, đổi data type, NULL và CASE WHEN.',
     lessons: [
-      { id: 'c5-b1', title: 'Phép tính trong SELECT', minutes: 12 },
+      { id: 'c5-b1', title: 'Phép tính và function số', minutes: 17 },
       { id: 'c5-b2', title: 'function chuỗi', minutes: 16 },
+      { id: 'c5-b3', title: 'function chuỗi nâng cao', minutes: 15 },
       { id: 'c5-b4', title: 'Ngày giờ', minutes: 18 },
-      { id: 'c5-b7', title: 'Xử lý NULL và CASE WHEN', minutes: 16 },
+      { id: 'c5-b5', title: 'Ngày giờ: cộng trừ và khoảng cách', minutes: 18 },
+      { id: 'c5-b6', title: 'Đổi data type', minutes: 17 },
+      { id: 'c5-b7', title: 'Xử lý NULL', minutes: 16 },
+      { id: 'c5-b8', title: 'CASE WHEN và DECODE', minutes: 16 },
     ],
   },
   {

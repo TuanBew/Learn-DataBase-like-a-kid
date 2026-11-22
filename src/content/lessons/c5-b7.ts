@@ -4,14 +4,15 @@ export const lesson: Lesson = {
   id: 'c5-b7',
   chapter: 5,
   order: 7,
-  title: 'Xử lý NULL và CASE WHEN',
-  lead: 'Bạn thay NULL bằng giá trị rõ ràng và gắn nhãn cho row theo điều kiện.',
+  title: 'Xử lý NULL: NVL, NVL2, COALESCE, IFNULL, NULLIF',
+  lead: 'Bạn thay NULL bằng giá trị rõ ràng, giữ NULL khỏi làm hỏng phép tính, và biến giá trị giữ chỗ thành NULL.',
   minutes: 16,
   goals: [
     'Thay NULL bằng IFNULL, NVL hoặc COALESCE',
     'Biết function nào chạy ở dialect nào',
-    'Gắn nhãn cho row bằng CASE WHEN',
-    'Hiểu CASE WHEN dừng ở điều kiện đúng đầu tiên',
+    'Biết NULL làm phép tính và phép nối chuỗi ra kết quả gì',
+    'Chọn kết quả theo NULL bằng NVL2 hoặc IF',
+    'Biến một giá trị thành NULL bằng NULLIF, và tránh chia cho 0',
   ],
   blocks: [
     {
@@ -20,8 +21,8 @@ export const lesson: Lesson = {
       paragraphs: [
         'Bi in thực đơn mới cho khách. Cạnh mỗi món có số calo.',
         'Ba món chưa đo calo, nên ô calories còn trống. Khách nhìn ô trống thì không biết đó là 0 hay chưa đo.',
-        'Bi muốn ghi một con số rõ ràng. Mình cũng muốn thêm nhãn cạnh giá, như Rẻ hoặc Đắt.',
-        'Query làm được cả hai.',
+        'Bi muốn ghi một con số rõ ràng ở những ô trống đó.',
+        'Query làm được. Bài này dạy các function xử lý NULL.',
       ],
     },
     {
@@ -80,69 +81,129 @@ export const lesson: Lesson = {
       say: 'Column plus_ten vẫn là NULL ở hai món đó, vì phép cộng dùng calories gốc, không dùng calories_filled.',
     },
     {
-      type: 'oracle',
-      body: [
-        'IFNULL chỉ có ở MySQL. NVL chỉ có ở Oracle. Gõ nhầm thì database báo không biết function đó.',
-        'MySQL báo lỗi 1305 khi gặp NVL. Oracle báo ORA-00904 khi gặp IFNULL.',
-        'Muốn một query chạy ở cả hai dialect, dùng COALESCE. COALESCE của Oracle cần ít nhất hai tham số.',
-      ],
-      mysql: 'IFNULL(calories, 0)\n-- NVL(calories, 0) báo lỗi 1305',
-      oracle: 'NVL(calories, 0)\n-- IFNULL(calories, 0) báo ORA-00904',
-    },
-    {
       type: 'text',
-      title: 'CASE WHEN chia row thành nhóm',
+      title: 'NULL trong phép tính và khi nối chuỗi',
       paragraphs: [
-        '**[[case-when]]** chọn một giá trị theo điều kiện. Cách đọc giống câu "nếu... thì...".',
-        'Khung viết: `CASE WHEN điều kiện THEN giá trị ... ELSE giá trị khác END`.',
-        'Database xét các WHEN từ trên xuống. Gặp điều kiện đúng đầu tiên thì dừng và lấy giá trị của điều kiện đó.',
-        'Nếu không điều kiện nào đúng, database lấy giá trị sau ELSE. Thiếu ELSE thì kết quả là NULL.',
-        'Query dưới đây gắn nhãn giá cho các món Trà sữa và Cà phê.',
+        'NULL nghĩa là chưa biết. Phép tính với một giá trị chưa biết cho kết quả chưa biết.',
+        'Công ty trả thu nhập bằng lương cộng hoa hồng. Hoa hồng bằng lương nhân `commission_pct`.',
+        'Nhiều người không có hoa hồng, nên commission_pct của họ là NULL. Với họ, `salary + salary * commission_pct` ra NULL, không ra lương.',
+        'Bạn thay NULL bằng 0 trước khi tính: `COALESCE(commission_pct, 0)`. Người không có hoa hồng nhận hoa hồng 0.',
+        'Nối chuỗi cũng gặp NULL. CONCAT của MySQL ra NULL khi một mảnh là NULL. Phép `||` của Oracle coi NULL như chuỗi rỗng.',
+        'Query dưới đây tính thu nhập của năm người, và nối tên với hoa hồng.',
       ],
     },
     {
       type: 'playground',
-      title: 'Thử tay ngay: nhãn giá',
-      intro: 'Bấm Chạy. Dưới 30000 là Rẻ, từ 30000 tới dưới 45000 là Vừa, còn lại là Đắt. CASE WHEN viết giống nhau ở hai dialect.',
-      database: 'teashop',
-      tables: ['products'],
+      title: 'Thử tay ngay: thu nhập có hoa hồng',
+      intro: 'Bấm Chạy. Column raw_total dùng commission_pct thẳng. Column total thay NULL bằng 0 trước khi tính.',
+      database: 'company',
+      tables: ['employees'],
       dialects: ['mysql', 'oracle'],
       sql: {
         mysql:
-          "SELECT name, price,\n  CASE WHEN price < 30000 THEN 'Rẻ'\n       WHEN price < 45000 THEN 'Vừa'\n       ELSE 'Đắt' END AS price_level\nFROM products\nWHERE category IN ('Trà sữa', 'Cà phê');",
+          "SELECT last_name, salary, commission_pct,\n  salary + salary * commission_pct AS raw_total,\n  ROUND(salary * (1 + COALESCE(commission_pct, 0))) AS total,\n  CONCAT(last_name, ' - ', commission_pct) AS label\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118);",
         oracle:
-          "SELECT name, price,\n  CASE WHEN price < 30000 THEN 'Rẻ'\n       WHEN price < 45000 THEN 'Vừa'\n       ELSE 'Đắt' END AS price_level\nFROM products\nWHERE category IN ('Trà sữa', 'Cà phê')",
+          "SELECT last_name, salary, commission_pct,\n  salary + salary * commission_pct AS raw_total,\n  ROUND(salary * (1 + COALESCE(commission_pct, 0))) AS total,\n  last_name || ' - ' || commission_pct AS label\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118)",
       },
       tries: [
         {
-          label: 'Đổi mốc 30000 thành 40000',
+          label: 'Đổi COALESCE thành IFNULL (MySQL) hoặc NVL (Oracle)',
           sql: {
             mysql:
-              "SELECT name, price,\n  CASE WHEN price < 40000 THEN 'Rẻ'\n       WHEN price < 45000 THEN 'Vừa'\n       ELSE 'Đắt' END AS price_level\nFROM products\nWHERE category IN ('Trà sữa', 'Cà phê');",
+              "SELECT last_name, salary, commission_pct,\n  salary + salary * commission_pct AS raw_total,\n  ROUND(salary * (1 + IFNULL(commission_pct, 0))) AS total,\n  CONCAT(last_name, ' - ', commission_pct) AS label\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118);",
             oracle:
-              "SELECT name, price,\n  CASE WHEN price < 40000 THEN 'Rẻ'\n       WHEN price < 45000 THEN 'Vừa'\n       ELSE 'Đắt' END AS price_level\nFROM products\nWHERE category IN ('Trà sữa', 'Cà phê')",
+              "SELECT last_name, salary, commission_pct,\n  salary + salary * commission_pct AS raw_total,\n  ROUND(salary * (1 + NVL(commission_pct, 0))) AS total,\n  last_name || ' - ' || commission_pct AS label\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118)",
           },
         },
         {
-          label: "Bỏ ELSE 'Đắt'",
+          label: 'Đổi 0 thành 0.05',
           sql: {
             mysql:
-              "SELECT name, price,\n  CASE WHEN price < 30000 THEN 'Rẻ'\n       WHEN price < 45000 THEN 'Vừa' END AS price_level\nFROM products\nWHERE category IN ('Trà sữa', 'Cà phê');",
+              "SELECT last_name, salary, commission_pct,\n  salary + salary * commission_pct AS raw_total,\n  ROUND(salary * (1 + COALESCE(commission_pct, 0.05))) AS total,\n  CONCAT(last_name, ' - ', commission_pct) AS label\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118);",
             oracle:
-              "SELECT name, price,\n  CASE WHEN price < 30000 THEN 'Rẻ'\n       WHEN price < 45000 THEN 'Vừa' END AS price_level\nFROM products\nWHERE category IN ('Trà sữa', 'Cà phê')",
+              "SELECT last_name, salary, commission_pct,\n  salary + salary * commission_pct AS raw_total,\n  ROUND(salary * (1 + COALESCE(commission_pct, 0.05))) AS total,\n  last_name || ' - ' || commission_pct AS label\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118)",
           },
         },
         {
-          label: 'Đảo thứ tự hai WHEN',
+          label: 'Bọc commission_pct trong COALESCE ở column label',
           sql: {
             mysql:
-              "SELECT name, price,\n  CASE WHEN price < 45000 THEN 'Vừa'\n       WHEN price < 30000 THEN 'Rẻ'\n       ELSE 'Đắt' END AS price_level\nFROM products\nWHERE category IN ('Trà sữa', 'Cà phê');",
+              "SELECT last_name, salary, commission_pct,\n  salary + salary * commission_pct AS raw_total,\n  ROUND(salary * (1 + COALESCE(commission_pct, 0))) AS total,\n  CONCAT(last_name, ' - ', COALESCE(commission_pct, 0)) AS label\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118);",
             oracle:
-              "SELECT name, price,\n  CASE WHEN price < 45000 THEN 'Vừa'\n       WHEN price < 30000 THEN 'Rẻ'\n       ELSE 'Đắt' END AS price_level\nFROM products\nWHERE category IN ('Trà sữa', 'Cà phê')",
+              "SELECT last_name, salary, commission_pct,\n  salary + salary * commission_pct AS raw_total,\n  ROUND(salary * (1 + COALESCE(commission_pct, 0))) AS total,\n  last_name || ' - ' || COALESCE(commission_pct, 0) AS label\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118)",
           },
         },
       ],
-      say: 'Thử mục đảo thứ tự. Mọi món dưới 45000 dừng ở nhãn Vừa, nên nhãn Rẻ không bao giờ hiện.',
+      say: 'Nhìn kết quả của Bảo ở column label. MySQL ra NULL, Oracle ra "Bảo - ". Cùng query, hai kết quả.',
+    },
+    {
+      type: 'text',
+      title: 'Chọn theo NULL và biến giá trị thành NULL',
+      paragraphs: [
+        '**[[nvl2]]** của Oracle xét một giá trị có NULL hay không, rồi chọn một trong hai kết quả.',
+        'Viết `NVL2(x, khi_có, khi_NULL)`. Nếu x khác NULL, kết quả là giá trị thứ hai. Nếu x là NULL, kết quả là giá trị thứ ba.',
+        'MySQL không có NVL2. Bạn viết `IF(x IS NULL, khi_NULL, khi_có)`. IF ra giá trị thứ hai khi điều kiện đúng, và giá trị thứ ba khi điều kiện sai.',
+        '**[[nullif]]** làm ngược lại với COALESCE: NULLIF biến một giá trị thành NULL. `NULLIF(a, b)` ra NULL nếu a bằng b. Nếu a khác b, kết quả là a.',
+        'Dùng NULLIF khi một giá trị giữ chỗ thực ra nghĩa là chưa có. Ở công ty này, hoa hồng 10% là mức mặc định.',
+        'NULLIF còn tránh lỗi chia cho 0. `x / NULLIF(y, 0)` ra NULL khi y bằng 0, thay vì báo lỗi.',
+        'Query dưới đây gắn nhãn Có hoặc Không cho hoa hồng, và biến mức mặc định 10% thành NULL.',
+      ],
+    },
+    {
+      type: 'playground',
+      title: 'Thử tay ngay: NVL2, IF và NULLIF',
+      intro: 'Bấm Chạy. Column has_commission cho Có hoặc Không. Column special_rate chỉ giữ hoa hồng khác mức mặc định 10%.',
+      database: 'company',
+      tables: ['employees'],
+      dialects: ['mysql', 'oracle'],
+      sql: {
+        mysql:
+          "SELECT last_name, commission_pct,\n  IF(commission_pct IS NULL, 'Không', 'Có') AS has_commission,\n  NULLIF(commission_pct, 0.1) AS special_rate\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118);",
+        oracle:
+          "SELECT last_name, commission_pct,\n  NVL2(commission_pct, 'Có', 'Không') AS has_commission,\n  NULLIF(commission_pct, 0.1) AS special_rate\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118)",
+      },
+      tries: [
+        {
+          label: "Đổi 'Có' và 'Không' cho nhau",
+          sql: {
+            mysql:
+              "SELECT last_name, commission_pct,\n  IF(commission_pct IS NULL, 'Có', 'Không') AS has_commission,\n  NULLIF(commission_pct, 0.1) AS special_rate\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118);",
+            oracle:
+              "SELECT last_name, commission_pct,\n  NVL2(commission_pct, 'Không', 'Có') AS has_commission,\n  NULLIF(commission_pct, 0.1) AS special_rate\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118)",
+          },
+        },
+        {
+          label: 'Đổi NULLIF(..., 0.1) thành NULLIF(..., 0.15)',
+          sql: {
+            mysql:
+              "SELECT last_name, commission_pct,\n  IF(commission_pct IS NULL, 'Không', 'Có') AS has_commission,\n  NULLIF(commission_pct, 0.15) AS special_rate\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118);",
+            oracle:
+              "SELECT last_name, commission_pct,\n  NVL2(commission_pct, 'Có', 'Không') AS has_commission,\n  NULLIF(commission_pct, 0.15) AS special_rate\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118)",
+          },
+        },
+        {
+          label: 'Thêm column chia cho NULLIF(0, 0)',
+          sql: {
+            mysql:
+              "SELECT last_name, commission_pct,\n  IF(commission_pct IS NULL, 'Không', 'Có') AS has_commission,\n  NULLIF(commission_pct, 0.1) AS special_rate,\n  salary / NULLIF(0, 0) AS safe_divide\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118);",
+            oracle:
+              "SELECT last_name, commission_pct,\n  NVL2(commission_pct, 'Có', 'Không') AS has_commission,\n  NULLIF(commission_pct, 0.1) AS special_rate,\n  salary / NULLIF(0, 0) AS safe_divide\nFROM employees\nWHERE employee_id IN (103, 104, 105, 107, 118)",
+          },
+        },
+      ],
+      say: 'Mục cuối chia lương cho NULL, nên cả năm người ra NULL và query không báo lỗi. Nếu chia thẳng cho 0, Oracle báo ORA-01476.',
+    },
+    {
+      type: 'oracle',
+      body: [
+        'IFNULL chỉ có ở MySQL. NVL chỉ có ở Oracle. Gõ nhầm thì database báo không biết function đó.',
+        'MySQL báo lỗi 1305 khi gặp NVL hoặc NVL2. Oracle báo ORA-00904 khi gặp IFNULL hoặc IF.',
+        'Muốn một query chạy ở cả hai dialect, dùng COALESCE và NULLIF. COALESCE của Oracle cần ít nhất hai tham số.',
+        'Chia cho 0: MySQL ra NULL, Oracle báo ORA-01476. Bọc mẫu số bằng NULLIF, như `salary / NULLIF(y, 0)`, thì cả hai cùng ra NULL.',
+        'Oracle coi chuỗi rỗng là NULL, nên `NVL(\'\', \'trống\')` ra `trống`. MySQL giữ chuỗi rỗng, nên `IFNULL(\'\', \'trống\')` ra chuỗi rỗng.',
+      ],
+      mysql: "IFNULL(commission_pct, 0)\nIF(commission_pct IS NULL, 'Không', 'Có')\nsalary / 0   -- ra NULL",
+      oracle: "NVL(commission_pct, 0)\nNVL2(commission_pct, 'Có', 'Không')\nsalary / 0   -- lỗi ORA-01476",
     },
     {
       type: 'quiz',
@@ -159,39 +220,40 @@ export const lesson: Lesson = {
         },
         {
           kind: 'choice',
-          question: "Query có `CASE WHEN price < 45000 THEN 'Vừa' WHEN price < 30000 THEN 'Rẻ' END`. Món giá 25000 nhận nhãn gì?",
+          question: 'Column commission_pct của anh Bảo là NULL. Query tính `salary + salary * commission_pct`. Kết quả là gì?',
           options: [
-            { text: 'Rẻ', feedback: 'Database dừng ở WHEN đầu tiên đúng. 25000 nhỏ hơn 45000 nên dừng ngay ở đó.' },
-            { text: 'Vừa', correct: true, feedback: 'Đúng. WHEN đầu tiên đã đúng, nên database không xét WHEN sau.' },
-            { text: 'NULL', feedback: 'Điều kiện đầu đã đúng, nên đã có nhãn.' },
+            { text: '38000000, đúng bằng lương', feedback: 'Database không tự coi NULL là 0. Muốn ra lương, viết `COALESCE(commission_pct, 0)`.' },
+            { text: 'NULL', correct: true, feedback: 'Đúng. Một giá trị NULL làm cả phép tính thành NULL.' },
+            { text: '0', feedback: 'NULL là chưa biết, không phải 0. Kết quả cũng chưa biết, nên là NULL.' },
           ],
         },
         {
           kind: 'choice',
-          question: 'Một CASE WHEN không có ELSE, và không điều kiện nào đúng. Kết quả là gì?',
+          question: "Bạn dùng Oracle: `NVL2(commission_pct, 'Có', 'Không')`. Với anh Bảo, commission_pct là NULL. Kết quả là gì?",
           options: [
-            { text: 'NULL', correct: true, feedback: 'Đúng. Thiếu ELSE thì kết quả là NULL.' },
-            { text: 'Chuỗi rỗng', feedback: 'Database không tự điền chữ nào. Kết quả là NULL.' },
-            { text: 'Lỗi', feedback: 'Query vẫn chạy bình thường. Kết quả là NULL.' },
+            { text: 'Có', feedback: 'Giá trị thứ hai chỉ hiện khi x khác NULL. Anh Bảo có x là NULL.' },
+            { text: 'Không', correct: true, feedback: 'Đúng. x là NULL thì NVL2 ra giá trị thứ ba.' },
+            { text: 'NULL', feedback: 'NVL2 luôn ra một trong hai giá trị bạn viết. Ở đây là giá trị thứ ba.' },
           ],
         },
       ],
     },
     {
       type: 'realworld',
-      title: 'Hạng khách thân thiết',
+      title: 'Phiếu lương thiếu số tiền',
       paragraphs: [
-        'Một app có thể chia khách thành hạng đồng, bạc và vàng theo số tiền đã chi.',
-        'Query dùng CASE WHEN: chi trên mức thứ nhất là vàng, trên mức thứ hai là bạc, còn lại là đồng.',
+        'Cuối tháng, kế toán in phiếu lương. Tổng thu nhập bằng lương cộng thưởng cộng hoa hồng.',
+        'Người không có hoa hồng làm cả tổng thành NULL, và phiếu của họ trống. Kế toán thêm COALESCE cho từng khoản, và phiếu hiện đủ.',
+        'Câu hỏi đầu tiên khi một con số biến mất là: có column nào trong phép tính đang là NULL không?',
       ],
     },
     {
       type: 'keypoints',
       items: [
-        'IFNULL chỉ có ở MySQL. NVL chỉ có ở Oracle. COALESCE chạy ở cả hai.',
-        'Các function này chỉ đổi kết quả hiện ra, table vẫn giữ NULL.',
-        'CASE WHEN xét điều kiện từ trên xuống và dừng ở điều kiện đúng đầu tiên.',
-        'Thiếu ELSE thì kết quả của CASE là NULL.',
+        'IFNULL chỉ có ở MySQL. NVL và NVL2 chỉ có ở Oracle. COALESCE và NULLIF chạy ở cả hai.',
+        'Một giá trị NULL làm phép tính ra NULL. CONCAT của MySQL ra NULL, còn `||` của Oracle bỏ qua NULL.',
+        'NVL2(x, khi_có, khi_NULL) ở Oracle, `IF(x IS NULL, khi_NULL, khi_có)` ở MySQL.',
+        'NULLIF(a, b) ra NULL khi a bằng b. `x / NULLIF(y, 0)` tránh lỗi chia cho 0.',
       ],
     },
     {
@@ -199,7 +261,9 @@ export const lesson: Lesson = {
       items: [
         { name: 'MySQL 8.0 Reference Manual, Flow Control Functions', url: 'https://dev.mysql.com/doc/refman/8.0/en/flow-control-functions.html' },
         { name: 'Oracle Database 19c SQL Language Reference, NVL', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/NVL.html' },
+        { name: 'Oracle Database 19c SQL Language Reference, NVL2', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/NVL2.html' },
         { name: 'Oracle Database 19c SQL Language Reference, COALESCE', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/COALESCE.html' },
+        { name: 'Oracle Database 19c SQL Language Reference, NULLIF', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/NULLIF.html' },
       ],
     },
   ],

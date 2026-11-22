@@ -22,7 +22,11 @@ export type Expr =
   | { t: 'fn'; name: string; args: Expr[]; star?: boolean; distinct?: boolean; unit?: string; bare?: boolean; span: Span; nameSpan: Span }
   | { t: 'case'; operand?: Expr; whens: { when: Expr; then: Expr }[]; else?: Expr; span: Span }
   /** Scalar subquery: một query trong ngoặc trả về đúng một giá trị. */
-  | { t: 'sub'; q: SelectStmt; span: Span };
+  | { t: 'sub'; q: SelectStmt; span: Span }
+  /** `seq.NEXTVAL`, `seq.CURRVAL` của Oracle. */
+  | { t: 'seq'; seq: string; which: 'NEXTVAL' | 'CURRVAL'; span: Span; seqSpan: Span }
+  /** Từ khóa DEFAULT đứng thay một giá trị trong INSERT hay UPDATE. */
+  | { t: 'default'; span: Span };
 
 export interface SelectItem {
   /** null nghĩa là dấu `*`. */
@@ -79,6 +83,8 @@ export interface InsertStmt {
   table: TableRef;
   columns?: { name: string; span: Span }[];
   rows: { values: Expr[]; span: Span }[];
+  /** INSERT ... SELECT: lấy row từ một câu SELECT thay cho VALUES. */
+  select?: SelectStmt;
   span: Span;
 }
 
@@ -102,18 +108,40 @@ export interface TxStmt {
   span: Span;
 }
 
+type Named = { name: string; span: Span };
+
+/** Một luật viết trong CREATE TABLE hoặc ALTER TABLE, ngay sau column hoặc ở cấp table. */
+export interface ConstraintSpec {
+  kind: 'pk' | 'unique' | 'fk' | 'check';
+  /** Tên đặt bằng CONSTRAINT. Không có thì engine tự đặt. */
+  name?: string;
+  nameSpan?: Span;
+  columns: Named[];
+  ref?: { table: string; tableSpan: Span; columns: Named[]; onDelete?: 'cascade' | 'set null' };
+  /** CHECK: nguyên văn biểu thức trong ngoặc. */
+  expr?: string;
+  exprSpan?: Span;
+  /** Viết ngay sau column, không phải ở cấp table. */
+  inline: boolean;
+  span: Span;
+}
+
 export interface ColumnSpec {
   name: string;
-  /** Tên data type đúng như người học gõ, in hoa: INT, VARCHAR2... */
+  /** Tên data type đúng như người học gõ, in hoa: INT, VARCHAR2... Rỗng nếu không viết (Oracle MODIFY). */
   typeName: string;
   type: ColumnType;
-  notNull?: boolean;
-  unique?: boolean;
-  pk?: boolean;
+  length?: number;
+  charLength?: boolean;
+  precision?: number;
+  scale?: number;
+  /** NOT NULL hoặc NULL viết rõ ra. */
+  nullSpec?: 'not null' | 'null';
   /** AUTO_INCREMENT hoặc GENERATED ... AS IDENTITY. */
   identity?: boolean;
-  check?: string;
-  fk?: { table: string; column: string };
+  default?: { text: string; span: Span };
+  /** Luật viết ngay sau column. */
+  constraints: ConstraintSpec[];
   span: Span;
 }
 
@@ -121,13 +149,77 @@ export interface CreateTableStmt {
   t: 'create';
   name: string;
   nameSpan: Span;
+  ifNotExists?: boolean;
+  /** MySQL: AUTO_INCREMENT=n sau dấu ngoặc. */
+  autoInc?: number;
   columns: ColumnSpec[];
-  /** CHECK viết ở cấp table. */
-  checks: string[];
+  /** Luật viết ở cấp table. */
+  constraints: ConstraintSpec[];
   span: Span;
 }
 
-export type Statement = SelectStmt | InsertStmt | UpdateStmt | DeleteStmt | TxStmt | CreateTableStmt;
+export type AlterAction =
+  | { a: 'add-column'; cols: ColumnSpec[]; span: Span }
+  | { a: 'modify'; cols: ColumnSpec[]; span: Span }
+  | { a: 'drop-column'; names: Named[]; span: Span }
+  | { a: 'rename-column'; from: Named; to: Named; span: Span }
+  | { a: 'rename-to'; to: Named; span: Span }
+  | { a: 'add-constraint'; c: ConstraintSpec; span: Span }
+  /** `via` là cách người học viết: DROP CONSTRAINT, DROP PRIMARY KEY, DROP FOREIGN KEY, DROP CHECK. */
+  | { a: 'drop-constraint'; via: 'constraint' | 'primary' | 'foreign' | 'check'; name?: string; span: Span };
+
+export interface AlterTableStmt {
+  t: 'alter';
+  table: TableRef;
+  actions: AlterAction[];
+  span: Span;
+}
+
+export interface DropTableStmt {
+  t: 'drop';
+  table: TableRef;
+  ifExists: boolean;
+  /** Oracle: CASCADE CONSTRAINTS. */
+  cascade: boolean;
+  span: Span;
+}
+
+export interface TruncateStmt {
+  t: 'truncate';
+  table: TableRef;
+  span: Span;
+}
+
+export interface CreateSequenceStmt {
+  t: 'createseq';
+  name: string;
+  nameSpan: Span;
+  start?: number;
+  increment?: number;
+  /** Vị trí của số INCREMENT BY, để gạch chân khi bằng 0. */
+  incrementSpan?: Span;
+  span: Span;
+}
+
+export interface DropSequenceStmt {
+  t: 'dropseq';
+  name: string;
+  nameSpan: Span;
+  span: Span;
+}
+
+export type Statement =
+  | SelectStmt
+  | InsertStmt
+  | UpdateStmt
+  | DeleteStmt
+  | TxStmt
+  | CreateTableStmt
+  | AlterTableStmt
+  | DropTableStmt
+  | TruncateStmt
+  | CreateSequenceStmt
+  | DropSequenceStmt;
 
 /** Thứ tự chạy thật của các clause. */
 export const RUN_ORDER: ClauseKind[] = ['FROM', 'WHERE', 'GROUP BY', 'HAVING', 'SELECT', 'ORDER BY', 'LIMIT', 'FETCH'];

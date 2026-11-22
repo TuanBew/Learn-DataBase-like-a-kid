@@ -6,6 +6,11 @@ import { isDate, parseIsoDate, toNumber, toText } from './values';
 export interface FnEnv {
   /** "Bây giờ" của khóa học, cố định để kết quả không đổi theo ngày. */
   now: SqlDate;
+  /** Sequence của Oracle. Session cấp hai hàm này. Không có thì mọi sequence đều không tồn tại. */
+  seq?: {
+    next(name: string, span: Span): number;
+    curr(name: string, span: Span): number;
+  };
 }
 
 export interface FnDef {

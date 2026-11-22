@@ -32,8 +32,8 @@ export function tokenize(sql: string, dialect: Dialect): Token[] {
       i++;
       continue;
     }
-    // chú thích
-    if (c === '-' && sql[i + 1] === '-') {
+    // chú thích. MySQL chỉ coi `--` là chú thích khi sau nó có dấu cách (đã kiểm: `SELECT 4--5` ra 9).
+    if (c === '-' && sql[i + 1] === '-' && (dialect === 'oracle' || i + 2 >= n || /[\s\x00-\x1f]/.test(sql[i + 2]))) {
       while (i < n && sql[i] !== '\n') i++;
       continue;
     }

@@ -213,6 +213,9 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
       case 'sub':
         runSub(e.q, true);
         return;
+      case 'seq':
+      case 'default':
+        return;
       case 'insub':
         check(e.e, where, agg);
         runSub(e.q, false);
@@ -324,6 +327,13 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
         const r = runSub(e.q, true);
         return r.rows.length === 0 ? null : r.rows[0][0];
       }
+      case 'seq': {
+        if (!env.seq) throw runtimeError(d, ['1064', '42000', ''], '02289', e.seqSpan, 'seq-missing', { name: e.seq });
+        return e.which === 'NEXTVAL' ? env.seq.next(e.seq, e.seqSpan) : env.seq.curr(e.seq, e.seqSpan);
+      }
+      case 'default':
+        // Từ khóa DEFAULT chỉ có nghĩa trong VALUES và SET: session xử lý trước khi tới đây.
+        throw unsupported('DEFAULT ở chỗ này', e.span);
       case 'insub': {
         const v = ev(e.e, cx);
         if (v === null) return null;
@@ -774,7 +784,9 @@ export function execSelect(stmt: SelectStmt, db: Database, d: Dialect, sql: stri
       const key = uniq(gk >= 0 ? `g${gk}` : ak >= 0 ? `a${ak}` : `x${xn++}`);
       // MySQL đặt tiêu đề của một chuỗi đứng riêng bằng chính nội dung chuỗi, không kèm dấu nháy.
       const plain = d === 'mysql' && e.t === 'str' ? e.v : text;
-      outCols.push({ key, header: alias ?? (d === 'oracle' ? oracleHeader(text) : plain), type: 'expr' });
+      // Oracle đặt tiêu đề của s.NEXTVAL là NEXTVAL.
+      const header = e.t === 'seq' ? e.which : d === 'oracle' ? oracleHeader(text) : plain;
+      outCols.push({ key, header: alias ?? header, type: 'expr' });
       if (key.startsWith('x')) computed.push(key);
       getters.push((cx) => {
         const v = E.ev(e, cx);

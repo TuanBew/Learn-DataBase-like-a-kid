@@ -1173,8 +1173,11 @@ class Parser {
         }
         case 'MODIFY': {
           this.i++;
-          if (this.d === 'mysql') this.eatW('COLUMN');
-          else this.noColumnWordInOracle();
+          if (this.d === 'mysql') {
+            this.eatW('COLUMN');
+            // MySQL không nhận MODIFY (a ..., b ...) trong ngoặc, chỉ Oracle nhận.
+            if (this.isOp('(')) throw this.fail('00900', 'unexpected', { tok: '(' });
+          } else this.noColumnWordInOracle();
           const { cols } = this.columnItems('modify');
           if (this.isW('FIRST') || this.isW('AFTER')) throw unsupported('FIRST và AFTER trong ALTER TABLE', this.at());
           return [{ a: 'modify', cols, span: done() }];

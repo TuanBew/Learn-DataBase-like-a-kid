@@ -137,6 +137,8 @@ export function makeDdl(ctx: DdlCtx) {
   /** Kiểm DEFAULT bằng cách thử tính và cất vào đúng column. MySQL gọi mọi hỏng hóc là 1067. */
   const checkDefault = (t: TableDef, c: ColumnDef, span: Span) => {
     if (c.default === undefined) return;
+    // DEFAULT s.NEXTVAL: tạo table không được tiêu một số của sequence.
+    if (/\b(NEXTVAL|CURRVAL)\b/i.test(c.default)) return;
     try {
       const v = rules.defaultOf(t, c, span);
       if (v === null && c.notNull && my) throw new Error('null');

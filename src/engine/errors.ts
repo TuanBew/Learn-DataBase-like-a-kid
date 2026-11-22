@@ -102,7 +102,7 @@ const ORA: Record<string, string> = {
   '02443': 'Cannot drop constraint  - nonexistent constraint',
   '02449': 'unique/primary keys in table referenced by foreign keys',
   '03290': 'Invalid truncate command - missing CLUSTER or TABLE keyword',
-  '04002': 'INCREMENT must be a nonzero integer',
+  '04002': 'INCREMENT must be a non-zero integer',
   '12983': 'cannot drop all columns in a table',
   '12991': 'column is referenced in a multi-column constraint',
   '12992': 'cannot drop parent key column',

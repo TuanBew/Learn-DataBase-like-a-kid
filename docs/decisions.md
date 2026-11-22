@@ -118,3 +118,11 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Phần tự bấm của bài mới dùng khối có sẵn** (khối thử tay ở chế độ giữ database, cạnh một khung hiện cấu trúc table). Dàn ý tả nhiều kiểu kéo thả riêng cho từng bài; bản dựng chỉ làm riêng vài cảnh đáng công nhất, để giữ chi phí thấp.
 - **MySQL 8.0.46 thật trong máy dựng site là trọng tài cho dialect mysql.** Hành vi Oracle theo tài liệu 19c; chỗ chưa kiểm được mang comment `CHỜ KIỂM TÀI LIỆU`.
 
+- **Bài học dùng xưởng bắt đầu từ database trống, bài tập mới dựng trên "Database của bạn".** Xưởng trong bài tự chạy ngầm các lệnh của bài trước, nên bài nào cũng mở ra là chạy được. Chuỗi bài tập `c3-e1`, `e3`, `e4`, `e5`, `e6`, `e7` mới là nơi người học dựng dần database Sao Mai của mình.
+- **"Database của bạn" lưu ở localStorage (`ldb:mydb`), không nằm trong mã tiến trình.** Người học đổi máy thì bài tập hiện nút "Dựng theo mẫu" để dựng lại phần của các bài trước.
+- **Mở lại một bài dựng table đã xong là luyện lại**: database dựng từ trạng thái trước bài, và lần luyện không ghi đè "Database của bạn".
+- **Bài boss Chương 3 dùng một tình huống mới** (trung tâm tiếng Anh), để người học tự áp dụng thay vì dựng lại Sao Mai lần hai.
+- **Bài `c2-b7` giữ phần đọc câu CREATE TABLE.** Dàn ý ghi chuyển phần này sang Chương 3; mình để lại như một lần làm quen trước, đỡ một lượt viết lại.
+- **Máy chấm dựng table chấm theo nhóm data type.** NUMBER của Oracle thuộc nhóm số thập phân của engine, nên column mã nhận cả nhóm số nguyên lẫn nhóm số thập phân.
+- **Engine giữ hai chỗ lệch MySQL thật vì test cũ đang dựa vào**: `REFERENCES` viết ở column vẫn được kiểm (MySQL thật bỏ qua), và INSERT thiếu primary key của table mẫu báo 1048 thay vì 1364.
+- **Số giờ học ở trang chủ tính từ tổng số phút của các bài**, không ghi cứng.

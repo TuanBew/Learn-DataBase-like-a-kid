@@ -1,5 +1,6 @@
 import type { ClauseKind } from './ast';
 import type { ColumnType, Dialect, Value } from './types';
+import type { Warning } from './values';
 
 /** Một clause trong câu query: thứ tự viết và thứ tự chạy thật. */
 export interface TraceClause {
@@ -61,6 +62,8 @@ export type TraceStep =
       kind: 'group';
       /** true khi không có GROUP BY: mọi row vào chung một nhóm. */
       implicit: boolean;
+      /** Số key đứng cuối GROUP BY được cuộn lên thành dòng tổng (ROLLUP). Các nhóm khi đó có thể chung row. */
+      rollup?: number;
       keys: string[];
       aggs: string[];
       columns: TraceCol[];
@@ -107,6 +110,8 @@ export interface ResultSet {
   rows: Value[][];
   /** id của row gốc ứng với từng row kết quả. */
   rowIds: number[];
+  /** Cảnh báo kèm kết quả (SHOW WARNINGS của MySQL), ví dụ khi đổi chuỗi '12abc' thành số. Chỉ MySQL có. */
+  warnings?: Warning[];
 }
 
 export interface Trace {

@@ -24,7 +24,23 @@ export type Expr =
   | { t: 'between'; e: Expr; lo: Expr; hi: Expr; not: boolean; span: Span }
   | { t: 'like'; e: Expr; pat: Expr; not: boolean; span: Span }
   /** `star` là COUNT(*). `distinct` là COUNT(DISTINCT x). `unit` là EXTRACT(unit FROM x). */
-  | { t: 'fn'; name: string; args: Expr[]; star?: boolean; distinct?: boolean; unit?: string; bare?: boolean; span: Span; nameSpan: Span }
+  | {
+      t: 'fn';
+      name: string;
+      args: Expr[];
+      star?: boolean;
+      distinct?: boolean;
+      /** EXTRACT(unit FROM x), và đơn vị của INTERVAL, TIMESTAMPDIFF. */
+      unit?: string;
+      bare?: boolean;
+      /** CAST(x AS type) và CONVERT(x, type). */
+      cast?: CastType;
+      /** GROUP_CONCAT và LISTAGG: ORDER BY trong ngoặc, và chuỗi nối. */
+      within?: OrderItem[];
+      sep?: string;
+      span: Span;
+      nameSpan: Span;
+    }
   | { t: 'case'; operand?: Expr; whens: { when: Expr; then: Expr }[]; else?: Expr; span: Span }
   /** Scalar subquery: một query trong ngoặc trả về đúng một giá trị. */
   | { t: 'sub'; q: Query; span: Span }
@@ -32,6 +48,16 @@ export type Expr =
   | { t: 'seq'; seq: string; which: 'NEXTVAL' | 'CURRVAL'; span: Span; seqSpan: Span }
   /** Từ khóa DEFAULT đứng thay một giá trị trong INSERT hay UPDATE. */
   | { t: 'default'; span: Span };
+
+/** Data type đích của CAST. */
+export interface CastType {
+  kind: 'signed' | 'unsigned' | 'decimal' | 'char' | 'date' | 'datetime' | 'double' | 'number' | 'text';
+  /** DECIMAL(p,s), NUMBER(p,s). */
+  p?: number;
+  s?: number;
+  /** CHAR(n), VARCHAR2(n). */
+  n?: number;
+}
 
 export interface SelectItem {
   /** null nghĩa là dấu `*`. */
@@ -96,6 +122,8 @@ export interface SelectStmt {
   joins: Join[];
   where?: Expr;
   groupBy?: Expr[];
+  /** Số key đứng cuối GROUP BY được cuộn lên thành dòng tổng: WITH ROLLUP (MySQL) hay ROLLUP(...) (Oracle). */
+  rollup?: number;
   having?: Expr;
   orderBy?: OrderItem[];
   limit?: { style: 'limit' | 'fetch'; count: number | null; offset: number; span: Span };
@@ -272,4 +300,4 @@ export type Statement =
 /** Thứ tự chạy thật của các clause. */
 export const RUN_ORDER: ClauseKind[] = ['FROM', 'WHERE', 'GROUP BY', 'HAVING', 'SELECT', 'ORDER BY', 'LIMIT', 'FETCH'];
 
-export const AGGREGATES = new Set(['COUNT', 'SUM', 'AVG', 'MIN', 'MAX']);
+export const AGGREGATES = new Set(['COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'GROUP_CONCAT', 'LISTAGG']);

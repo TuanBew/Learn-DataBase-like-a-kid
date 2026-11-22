@@ -10,12 +10,13 @@ API: `run(sql, db, dialect)` cho SELECT. `createSession(db, dialect).run(sql)` c
 - `FROM table [alias]`, `FROM (SELECT ...) alias`. Oracle không nhận `AS` trước alias của table. `FROM DUAL`. MySQL cho `SELECT` không có FROM, kể cả khi còn `WHERE`, `ORDER BY`, `LIMIT`.
 - `[INNER] JOIN ... ON ...`, `LEFT [OUTER] JOIN`, `RIGHT [OUTER] JOIN`, `CROSS JOIN`, nối nhiều table, nối kiểu cũ bằng dấu phẩy và điều kiện trong WHERE. Chi tiết ở mục "JOIN" bên dưới.
 - `WHERE`: `= <> != < <= > >=`, AND, OR, NOT, `IN (danh sách)`, `IN (subquery)`, `EXISTS (subquery)`, `= ANY (subquery)`, BETWEEN, LIKE với `%` và `_`, IS NULL, IS NOT NULL.
-- `GROUP BY` một hay nhiều biểu thức. `HAVING`. COUNT(*), COUNT(column), COUNT(DISTINCT column), SUM, AVG, MIN, MAX.
+- `GROUP BY` một hay nhiều biểu thức. `HAVING`. COUNT(*), COUNT(column), COUNT(DISTINCT column), SUM, AVG, MIN, MAX. Thêm GROUP_CONCAT, LISTAGG, ROLLUP và GROUPING: xem mục "Gom nhóm mở rộng" bên dưới.
+- MySQL cho `GROUP BY` viết số thứ tự column của SELECT (`GROUP BY 1, 2`) hoặc alias (`GROUP BY thang`, khi alias không trùng tên column của table). Gom theo alias của function gom báo 1056. Oracle không cho cả hai (ORA-00904 với alias, ORA-00979 với số).
 - Column đứng ngoài function gom mà không nằm trong GROUP BY: Oracle báo ORA-00979 (có GROUP BY) hoặc ORA-00937 (không có GROUP BY); MySQL báo 1055 hoặc 1140. Riêng MySQL cho chọn column khác của một table khi đã GROUP BY primary key của table đó.
 - Function gom trong WHERE: MySQL 1111, Oracle ORA-00934.
 - `ORDER BY` nhiều biểu thức, ASC, DESC, theo alias, theo số thứ tự column. Oracle có `NULLS FIRST`, `NULLS LAST`.
 - MySQL: `LIMIT n`, `LIMIT m, n`, `LIMIT n OFFSET m`. Oracle: `FETCH FIRST n ROWS ONLY`, `OFFSET m ROWS FETCH NEXT n ROWS ONLY`, và `ROWNUM` trong WHERE (ROWNUM được gán trước ORDER BY).
-- Subquery, ghép kết quả và WITH: xem các mục "Subquery", "Ghép kết quả" và "WITH" bên dưới. Chưa có: window function, CAST, WITH RECURSIVE.
+- Subquery, ghép kết quả và WITH: xem các mục "Subquery", "Ghép kết quả" và "WITH" bên dưới. Chưa có: window function, WITH RECURSIVE.
 - `CASE WHEN ... THEN ... ELSE ... END`, `CASE x WHEN ...`.
 - Phép tính `+ - * /`. MySQL có `%` và `MOD`; Oracle chỉ có `MOD(a, b)`. Chia cho 0: MySQL ra NULL, Oracle báo ORA-01476.
 
@@ -71,23 +72,58 @@ Chạy ở cả hai dialect, trừ khi ghi riêng. Mã MySQL đã kiểm trên M
 
 ## Function
 
+`functionCatalog(dialect)` (export từ `src/engine/index.ts`) trả `{ name, min, max, kind }[]` cho mọi function chạy được ở dialect đó, kể cả function gom (`kind: 'aggregate'`). `max` là null khi không giới hạn số tham số. Test `functions-catalog.test.ts` gọi thử từng tên trong danh mục, nên thêm function mới thì phải thêm mẫu gọi vào test đó.
+
+Function chỉ có ở một dialect: dialect kia báo lỗi kèm lời chỉ sang function tương đương (MySQL 1305, Oracle ORA-00904). Sai số tham số: MySQL 1582 (hầu hết function) hoặc 1064 (function nằm trong cú pháp: REVERSE, REPEAT, ASCII, CHAR, TRUNCATE, FORMAT, IF, QUARTER, SUBSTR, MOD, COALESCE ít hơn 1 tham số...); Oracle ORA-00909.
+
 | Việc | MySQL | Oracle |
 |---|---|---|
 | Chữ hoa, chữ thường | UPPER, LOWER | UPPER, LOWER, INITCAP |
 | Độ dài | LENGTH (đếm byte), CHAR_LENGTH (đếm ký tự) | LENGTH (đếm ký tự) |
 | Cắt chuỗi | SUBSTR, SUBSTRING, LEFT, RIGHT | SUBSTR |
 | Bỏ dấu cách, thay chữ | TRIM, LTRIM, RTRIM, REPLACE | TRIM, LTRIM, RTRIM, REPLACE |
-| Nối chuỗi | CONCAT(a, b, c...). Có NULL thì ra NULL. `\|\|` là OR | `a \|\| b`. CONCAT chỉ nhận 2 tham số. NULL coi như chuỗi rỗng |
-| Số | ABS, ROUND, FLOOR, CEIL, CEILING, TRUNCATE, MOD | ABS, ROUND, FLOOR, CEIL, TRUNC, MOD |
-| Thay NULL | IFNULL, COALESCE, NULLIF | NVL, COALESCE, NULLIF |
-| Bây giờ | NOW(), CURDATE(), CURRENT_DATE | SYSDATE, CURRENT_DATE (viết không ngoặc) |
-| Định dạng ngày | DATE_FORMAT(d, '%Y-%m-%d %H:%i') | TO_CHAR(d, 'YYYY-MM-DD HH24:MI') |
-| Chuỗi thành ngày | STR_TO_DATE(s, '%d/%m/%Y'), hoặc so thẳng với chuỗi ISO | TO_DATE(s, 'DD/MM/YYYY'), `DATE '2026-03-02'`. So ngày với chuỗi báo ORA-01861 |
-| Cắt phần giờ | DATE(d) | TRUNC(d) |
-| Lấy một phần | YEAR, MONTH, DAY, HOUR, EXTRACT(YEAR FROM d) | EXTRACT(YEAR FROM d), TO_CHAR |
-| Khoảng cách ngày | DATEDIFF(a, b) | `a - b` ra số ngày, `d + 7` cộng 7 ngày |
+| Nối chuỗi | CONCAT(a, b, c...), CONCAT_WS(sep, a, b...). CONCAT có NULL thì ra NULL, CONCAT_WS bỏ qua NULL. `\|\|` là OR | `a \|\| b`. CONCAT chỉ nhận 2 tham số. NULL coi như chuỗi rỗng |
+| Tìm chuỗi con | INSTR(s, sub), LOCATE(sub, s [, vị trí]), POSITION(sub IN s). Không phân biệt hoa thường, có phân biệt dấu (`INSTR('á', 'a')` ra 0) | INSTR(s, sub [, vị trí [, lần thứ]]), phân biệt hoa thường. Vị trí âm là tìm ngược |
+| Đệm chuỗi | LPAD(s, n, pad), RPAD (cần đủ 3 tham số). n âm ra NULL | LPAD(s, n [, pad]), RPAD. Pad rỗng hay n = 0 ra NULL |
+| Lật, lặp | REVERSE, REPEAT | không có |
+| Mã ký tự | ASCII (byte đầu của chữ: `ASCII('đ')` ra 196), CHAR(n, ...) | ASCII (mã của chữ đầu trong database UTF-8: `ASCII('đ')` ra 50321), CHR(n) |
+| Số | ABS, ROUND, FLOOR, CEIL, CEILING, TRUNCATE, MOD, POWER, POW, SQRT, SIGN | ABS, ROUND, FLOOR, CEIL, TRUNC, MOD, POWER, SQRT, SIGN |
+| Làm tròn, cắt số | ROUND(n, d), TRUNCATE(n, d). d âm làm tròn tới chục, trăm. Số .5 làm tròn ra xa số 0 | ROUND(n, d), TRUNC(n, d), cùng luật |
+| So lớn nhỏ | GREATEST, LEAST (từ 2 tham số). Có NULL thì ra NULL. Có một chuỗi thì so tất cả như chuỗi (`GREATEST(10, '9')` ra '9') | GREATEST, LEAST. Có NULL thì ra NULL. Kiểu tham số đầu quyết định cách so |
+| Định dạng số | FORMAT(n, d): `FORMAT(1234567.891, 2)` ra `1,234,567.89` | TO_CHAR(n, 'mẫu'): 9, 0, dấu phẩy, G, dấu chấm, D, FM. `TO_CHAR(1234, '999,999,999')` ra `'       1,234'` (có ô dấu và đệm trái), `'FM999,999,999'` ra `'1,234'`. Số dài hơn mẫu ra `####`. Mẫu lạ: ORA-01481 |
+| Thay NULL | IFNULL, COALESCE, NULLIF, IF(dk, a, b) | NVL, NVL2(x, a, b), COALESCE (từ 2 tham số), NULLIF, DECODE(x, v1, r1, ..., mặc định) |
+| Đổi data type | CAST(x AS SIGNED, UNSIGNED, DECIMAL(p,s), CHAR(n), DATE, DATETIME, DOUBLE), CONVERT(x, type). Type khác (INT, NUMBER, VARCHAR) báo 1064 | CAST(x AS NUMBER, NUMBER(p,s), INTEGER, VARCHAR2(n), DATE, TIMESTAMP), TO_NUMBER(s). Type của MySQL báo ORA-00902 |
+| Đổi chuỗi sang số, ngầm | Dễ tính: `'12abc'` thành 12 kèm cảnh báo 1292, `'abc'` thành 0, `'1e2'` thành 100 | Chặt: ORA-01722 khi chuỗi không phải số |
+| Bây giờ | NOW(), CURDATE(), CURRENT_DATE | SYSDATE, SYSTIMESTAMP, CURRENT_DATE (viết không ngoặc). SYSTIMESTAMP chỉ có ngày giờ như SYSDATE, không có phần lẻ giây và múi giờ |
+| Định dạng ngày | DATE_FORMAT(d, '%Y-%m-%d %H:%i'): %Y %y %m %c %d %e %D %j %w %H %k %h %I %l %i %s %f %p %r %T %M %b %W %a. Chưa có %U %u %V %v %X %x | TO_CHAR(d, 'YYYY-MM-DD HH24:MI'): YYYY RRRR YY RR MM DD DDD Q HH HH12 HH24 MI SS AM PM A.M. P.M. MON MONTH DY DAY FM. MONTH và DAY đệm cho đủ 9 chữ, trừ khi có FM (FM bật rồi tắt mỗi lần gặp) |
+| Chuỗi thành ngày | STR_TO_DATE(s, '%d/%m/%Y'), hoặc so thẳng với chuỗi ISO. Chuỗi ngày dễ tính: `'2026-3-9'`, `'20260309'`. Ngày không có thật (30 tháng 2) hay chuỗi lạ ra NULL kèm cảnh báo | TO_DATE(s, 'DD/MM/YYYY'), `DATE '2026-03-02'`, TO_DATE(s) với `'09-MAR-26'`. So ngày với chuỗi báo ORA-01861 |
+| Cắt phần giờ | DATE(d) | TRUNC(d), TRUNC(d, 'DD' \| 'MM' \| 'MON' \| 'MONTH' \| 'YYYY' \| 'YEAR' \| 'Q' \| 'HH' \| 'MI'). Mẫu lạ: ORA-01899. TRUNC(d, 'DAY') chưa có |
+| Lấy một phần | YEAR, MONTH, DAY, HOUR, EXTRACT(YEAR FROM d), DAYNAME, MONTHNAME, DAYOFWEEK (Chủ nhật là 1), WEEKDAY (thứ Hai là 0), QUARTER | EXTRACT(YEAR FROM d), TO_CHAR |
+| Cộng trừ ngày | DATE_ADD(d, INTERVAL n unit), DATE_SUB, `d + INTERVAL n unit`, `d - INTERVAL n unit`, `INTERVAL n unit + d`. unit: SECOND, MINUTE, HOUR, DAY, WEEK, MONTH, QUARTER, YEAR. Cộng tháng vào ngày 31 lùi về cuối tháng. Unit lạ: 1064 | `d + 7`, `d - 7`, ADD_MONTHS(d, n) (ngày cuối tháng giữ là ngày cuối tháng), `d1 - d2` ra số ngày. `d1 + d2` báo ORA-00975 |
+| Khoảng cách | DATEDIFF(a, b) ra số ngày, TIMESTAMPDIFF(unit, a, b) ra số đơn vị trọn vẹn | `a - b` ra số ngày, MONTHS_BETWEEN(a, b) (phần lẻ tính trên tháng 31 ngày) |
+| Cuối tháng, thứ kế | LAST_DAY(d) (ra ngày thuần) | LAST_DAY(d) (giữ giờ), NEXT_DAY(d, 'MONDAY' hay 'MON'). Tên thứ lạ: ORA-01846 |
 
 "Bây giờ" của engine cố định là 2026-03-09 10:30:00. Chuỗi rỗng `''` là NULL ở Oracle. MySQL so chữ không phân biệt hoa thường và dấu; Oracle có phân biệt.
+
+Giới hạn vì engine dùng số của JavaScript: `CAST(12 AS DECIMAL(5,2))` ra 12 chứ không ra `12.00`; `CAST(12.50 AS CHAR)` ra `12.5`; MONTHS_BETWEEN ra khoảng 10 chữ số thập phân thay vì 38. `CAST('-5' AS UNSIGNED)` ra chuỗi `'18446744073709551611'`.
+
+### Cảnh báo của MySQL
+
+`result.warnings` (kiểu `Warning[]`: `{ code, message }`) chỉ có ở MySQL, khi kết quả đi kèm cảnh báo như `SHOW WARNINGS`. Mỗi câu chỉ ghi một lần, tối đa 20. Có: 1292 (`Truncated incorrect DOUBLE value: '12abc'` khi đổi chuỗi sang số, `Truncated incorrect INTEGER value`, `Truncated incorrect DECIMAL value`, `Incorrect datetime value: 'abc'`, `Truncated incorrect CHAR(n) value`), 1264 (số vượt DECIMAL(p,s) trong CAST), 1105 (CAST âm sang UNSIGNED), 1260 (GROUP_CONCAT bị cắt). Oracle không có cảnh báo: gặp chuỗi không phải số là báo lỗi.
+
+### Lỗi mới
+
+Mọi lỗi dưới đây có lời tiếng Việt trong `messages.vi.ts`. MySQL: 1690 (POWER vượt trần), 1064 (CAST sang data type lạ, INTERVAL sai, dạng gọi sai, ROLLUP(...) kiểu Oracle), 1056 (GROUP BY alias của function gom), 3602 (GROUPING nhận column ngoài GROUP BY), 1111 (GROUPING không có GROUP BY). Oracle: ORA-01428 (SQRT số âm, INSTR lần thứ < 1, POWER không tính được), ORA-01426, ORA-01481, ORA-01846, ORA-01899, ORA-00932 (CAST số sang DATE), ORA-00975, ORA-01438 (CAST NUMBER(p,s) tràn), ORA-01489 (LISTAGG dài hơn 4000 byte), ORA-00902 (CAST sang data type của MySQL), ORA-00905 (LISTAGG thiếu WITHIN GROUP, chưa có nguồn xác nhận), ORA-00933 (`WITH ROLLUP`, chưa có nguồn xác nhận).
+
+## Gom nhóm mở rộng
+
+- `GROUP_CONCAT([DISTINCT] a [, b...] [ORDER BY x [ASC|DESC], ...] [SEPARATOR 'chuỗi'])` (MySQL). Chuỗi nối mặc định là dấu phẩy. Row có NULL ở bất kỳ tham số nào bị bỏ. Không còn row nào thì ra NULL. Kết quả dài hơn 1024 byte bị cắt kèm cảnh báo 1260.
+- `LISTAGG([DISTINCT] a [, 'chuỗi nối']) WITHIN GROUP (ORDER BY x, ...)` (Oracle 19c). Chuỗi nối mặc định là rỗng. Bỏ NULL. Dài hơn 4000 byte: ORA-01489. Thiếu `WITHIN GROUP`: lỗi cú pháp.
+- `GROUP BY a, b WITH ROLLUP` (MySQL) và `GROUP BY ROLLUP(a, b)` hoặc `GROUP BY x, ROLLUP(a, b)` (Oracle, ROLLUP đứng cuối). Mỗi nhóm có thêm row tổng: cuộn lần lượt key cuối thành NULL, cuối cùng là row tổng cộng. Chưa có CUBE và GROUPING SETS.
+- `GROUPING(col [, col...])` (cả hai): 1 khi col là NULL do cuộn lên ở row tổng, 0 trong các trường hợp khác (kể cả NULL thật của dữ liệu). Nhiều col cho số nhị phân, col đầu là bit cao nhất. Dùng được trong SELECT, HAVING, ORDER BY.
+- Thứ tự row: engine xếp các nhóm theo key tăng dần, row tổng đứng ngay sau các row chi tiết của nó (MySQL cho đúng như vậy, đã kiểm). Key NULL đứng đầu ở MySQL, đứng cuối ở Oracle (chưa có nguồn xác nhận cho Oracle: nên viết ORDER BY).
+- Trace: bước `group` mang `rollup: n` (số key được cuộn). Một row gốc có thể nằm trong nhiều nhóm (nhóm chi tiết và các row tổng), nên `rowIds` của các nhóm không còn rời nhau.
+- Đã kiểm GROUP BY theo biểu thức (`DATE_FORMAT(d, '%Y-%m')`, `TO_CHAR(d, 'YYYY-MM')`, `TRUNC(d, 'MM')`), nhiều column, function gom bọc CASE (`SUM(CASE ...)`, `COUNT(CASE ...)`), HAVING với biểu thức gom và ORDER BY theo function gom. Chưa có `COUNT(DISTINCT a, b)` nhiều column.
 
 ## Sửa dữ liệu (chỉ qua `createSession`)
 

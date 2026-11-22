@@ -15,6 +15,7 @@ import {
   type DropTableStmt,
   type Expr,
   type InsertStmt,
+  type Join,
   type OrderItem,
   type SelectItem,
   type SelectStmt,
@@ -228,28 +229,60 @@ class Parser {
       const jt = this.tok;
       if (this.eatOp(',')) {
         const ref = this.tableRef();
-        stmt.joins.push({ kind: 'cross', ref, span: { s: jt.s, e: this.prev.e } });
+        stmt.joins.push({ kind: 'cross', ref, comma: true, span: { s: jt.s, e: this.prev.e } });
         continue;
       }
+      // MySQL đọc FULL ngay sau table như alias. Gặp OUTER ngay sau đó thì mới biết người học định viết FULL OUTER JOIN.
+      if (this.d === 'mysql' && this.isW('OUTER') && this.isW('JOIN', this.peek()) && (stmt.joins.at(-1)?.ref ?? stmt.from)?.fullAlias) {
+        throw this.fail('00933', 'full-join-mysql');
+      }
       if (jt.type !== 'word' || !JOIN_WORDS.has(jt.value)) break;
-      let kind: 'inner' | 'left' = 'inner';
+      if (jt.value === 'FULL' && this.d === 'mysql') throw this.fail('00933', 'full-join-mysql');
+      const natural = this.eatW('NATURAL');
+      let kind: Join['kind'] = 'inner';
       if (this.eatW('LEFT')) {
         kind = 'left';
         this.eatW('OUTER');
+      } else if (this.eatW('RIGHT')) {
+        kind = 'right';
+        this.eatW('OUTER');
+      } else if (this.isW('FULL')) {
+        if (this.d === 'mysql') throw this.fail('00933', 'full-join-mysql');
+        this.i++;
+        kind = 'full';
+        this.eatW('OUTER');
+      } else if (this.isW('CROSS')) {
+        // NATURAL CROSS JOIN không có ở cả hai dialect.
+        if (natural) throw this.fail('00933', 'unexpected', { tok: this.show() });
+        this.i++;
+        kind = 'cross';
       } else if (!this.eatW('INNER') && !this.isW('JOIN')) {
-        throw unsupported(`${jt.value} JOIN`, this.at());
+        throw this.fail('00905', 'missing-keyword', { kw: 'JOIN' });
       }
       if (!this.eatW('JOIN')) throw this.fail('00905', 'missing-keyword', { kw: 'JOIN' });
       const ref = this.tableRef();
-      if (this.eatW('ON')) {
-        this.ctx = 'ON';
-        stmt.joins.push({ kind, ref, on: this.expr(), span: { s: jt.s, e: this.prev.e } });
-      } else if (this.isW('USING')) {
-        throw unsupported('USING', this.at());
+      const span = () => ({ s: jt.s, e: this.prev.e });
+      if (this.isW('ON') || this.isW('USING')) {
+        const word = this.tok;
+        if (natural) throw this.fail('00933', 'natural-no-on', { tok: word.value });
+        if (kind === 'cross' && this.d === 'oracle') throw this.fail('00933', 'cross-no-on', { tok: word.value });
+        // MySQL cho CROSS JOIN kèm ON hay USING và coi đó là INNER JOIN.
+        const k: Join['kind'] = kind === 'cross' ? 'inner' : kind;
+        this.i++;
+        if (word.value === 'ON') {
+          this.ctx = 'ON';
+          stmt.joins.push({ kind: k, ref, on: this.expr(), span: span() });
+        } else {
+          stmt.joins.push({ kind: k, ref, using: this.usingList(), span: span() });
+        }
+      } else if (natural) {
+        stmt.joins.push({ kind, ref, natural: true, span: span() });
+      } else if (kind === 'cross') {
+        stmt.joins.push({ kind, ref, span: span() });
       } else {
-        // MySQL coi JOIN không có ON là ghép mọi row với mọi row. Oracle và LEFT JOIN thì bắt buộc có ON.
-        if (this.d === 'oracle' || kind === 'left') throw this.fail('00905', 'join-needs-on', {}, this.tok);
-        stmt.joins.push({ kind: 'cross', ref, span: { s: jt.s, e: this.prev.e } });
+        // MySQL coi JOIN không có ON là ghép mọi row với mọi row. Oracle và LEFT, RIGHT, FULL JOIN thì bắt buộc có ON.
+        if (this.d === 'oracle' || kind !== 'inner') throw this.fail('00905', 'join-needs-on', {}, this.tok);
+        stmt.joins.push({ kind: 'cross', ref, span: span() });
       }
     }
     close();
@@ -567,9 +600,9 @@ class Parser {
         const c = this.tok;
         if (c.type !== 'word' && c.type !== 'qident') throw this.fail('00936', 'missing-expression', { after: '.' });
         this.i++;
-        return { t: 'col', table: t.value, name: c.type === 'word' ? c.text : c.value, quoted: c.type === 'qident', span: { s: t.s, e: c.e } };
+        return this.markOuter({ t: 'col', table: t.value, name: c.type === 'word' ? c.text : c.value, quoted: c.type === 'qident', span: { s: t.s, e: c.e } });
       }
-      return { t: 'col', name: t.value, quoted: true, span };
+      return this.markOuter({ t: 'col', name: t.value, quoted: true, span });
     }
     if (this.isOp('(')) {
       this.i++;
@@ -599,8 +632,9 @@ class Parser {
       }
       if (w === 'CASE') return this.caseExpr();
       if (w === 'EXISTS') throw unsupported('EXISTS', this.at());
-      if (!STOP.has(w) || ((w === 'LEFT' || w === 'RIGHT' || w === 'MOD') && this.isOp('(', this.peek()))) {
+      if (!STOP.has(w) || (w === 'FULL' && this.d === 'mysql') || ((w === 'LEFT' || w === 'RIGHT' || w === 'MOD') && this.isOp('(', this.peek()))) {
         this.i++;
+        if (this.isOp('(') && this.isOp('+', this.peek()) && this.isOp(')', this.peek(2))) return this.markOuter({ t: 'col', name: t.text, span });
         if (this.isOp('(')) return this.call(t);
         if (BARE.has(w) && !this.isOp('.')) return { t: 'fn', name: w, args: [], bare: true, span, nameSpan: span };
         if (this.isOp('.')) {
@@ -612,7 +646,7 @@ class Parser {
           if (this.d === 'oracle' && c.type === 'word' && (c.value === 'NEXTVAL' || c.value === 'CURRVAL')) {
             return { t: 'seq', seq: t.text, which: c.value, span: { s: t.s, e: c.e }, seqSpan: span };
           }
-          return { t: 'col', table: t.text, name: c.type === 'word' ? c.text : c.value, quoted: c.type === 'qident', span: { s: t.s, e: c.e } };
+          return this.markOuter({ t: 'col', table: t.text, name: c.type === 'word' ? c.text : c.value, quoted: c.type === 'qident', span: { s: t.s, e: c.e } });
         }
         return { t: 'col', name: t.text, span };
       }
@@ -678,6 +712,35 @@ class Parser {
     return { text: t.type === 'word' ? t.text : t.value, quoted: t.type === 'qident', span: { s: t.s, e: t.e } };
   }
 
+  /** Phần trong ngoặc của USING: một hay nhiều tên column. */
+  private usingList(): { name: string; span: Span }[] {
+    if (!this.eatOp('(')) throw this.fail('00906', 'using-paren');
+    const list: { name: string; span: Span }[] = [];
+    for (;;) {
+      const t = this.tok;
+      if (t.type !== 'word' && t.type !== 'qident') throw this.fail('00904', 'using-names');
+      if (t.type === 'word' && STOP.has(t.value)) throw this.fail('00904', 'using-names');
+      this.i++;
+      list.push({ name: t.type === 'word' ? t.text : t.value, span: { s: t.s, e: t.e } });
+      if (!this.eatOp(',')) break;
+    }
+    if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+    return list;
+  }
+
+  /** Oracle: `(+)` ngay sau column là nối ngoài kiểu cũ. MySQL đọc `(+` như ngoặc rồi gặp `)` thì báo lỗi ở dấu `)`. */
+  private markOuter(col: Extract<Expr, { t: 'col' }>): Extract<Expr, { t: 'col' }> {
+    if (this.isOp('(') && this.isOp('+', this.peek()) && this.isOp(')', this.peek(2))) {
+      if (this.d === 'mysql') {
+        this.i += 2;
+        throw this.fail('00933', 'outer-mysql');
+      }
+      this.i += 3;
+      return { ...col, outer: true, span: { s: col.span.s, e: this.prev.e } };
+    }
+    return col;
+  }
+
   /** Tên table, có thể kèm alias. Oracle không cho viết AS trước alias. */
   private tableRef(alias = true): TableRef {
     const tt = this.tok;
@@ -691,6 +754,11 @@ class Parser {
       if (this.d === 'oracle') throw this.fail('00933', 'as-table-alias');
       this.i++;
       ref.alias = this.name('AS').text;
+    } else if (this.d === 'mysql' && this.isW('FULL')) {
+      // MySQL không có FULL JOIN: chữ FULL thành alias của table.
+      ref.alias = this.tok.text;
+      ref.fullAlias = this.isW('JOIN', this.peek()) || this.isW('OUTER', this.peek());
+      this.i++;
     } else if (this.tok.type === 'qident' || (this.tok.type === 'word' && !STOP.has(this.tok.value) && this.tok.value !== 'SET')) {
       ref.alias = this.tok.type === 'word' ? this.tok.text : this.tok.value;
       this.i++;

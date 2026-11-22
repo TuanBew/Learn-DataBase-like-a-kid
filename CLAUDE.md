@@ -44,12 +44,12 @@ Luật áp cho mọi kiểu dịch tương tự. Cũng giữ tiếng Anh: functi
 
 ## Phạm vi
 
-- Hiểu database trước, SQL sau, sửa dữ liệu ở cuối. MySQL 8 để học nền, Oracle 19c cho công việc.
-- Không dạy thống kê, window function, tối ưu query. Không chia theo ngày, không streak.
+- Hiểu database trước, rồi tự dựng table, rồi SQL. INSERT đi cùng phần dựng table. UPDATE, DELETE và transaction ở gần cuối. MySQL 8 để học nền, Oracle 19c cho công việc.
+- Không dạy thống kê. Window function dạy ở mức dùng cho báo cáo. Query chậm chỉ dạy ở mức nhận biết. Không chia theo ngày, không streak.
 - Web tĩnh: Vite, React, TypeScript. Không backend, không đăng nhập. Engine SQL tự viết ở `src/engine`, không đưa sql.js lên web.
 - Animation trong Query Theater chỉ dựng từ trace của engine.
 - Âm thanh chỉ là hiệu ứng Web Audio, không giọng đọc.
-- Lần tải đầu dưới 250 KB JS gzip. Lighthouse mobile: Performance từ 90, Accessibility từ 95.
+- Giới hạn 250 KB JS đã bỏ (chủ dự án, 22/11/2026). Lighthouse mobile: Performance từ 90, Accessibility từ 95.
 - Nội dung bài học nằm ở `src/content`, tách khỏi component.
 
 ## Các mốc dừng
@@ -57,6 +57,7 @@ Luật áp cho mọi kiểu dịch tương tự. Cũng giữ tiếng Anh: functi
 - Mốc 1: kế hoạch, engine SELECT/WHERE/ORDER BY/LIMIT/FETCH FIRST có test, bài đầu Chương 1, một bài tập Chương 3 có Query Theater ở cả hai dialect, screenshot 1440px và 390px. Dừng chờ duyệt.
 - Mốc 2: hết engine, đủ chương và bài tập. Gặp quyết định lớn thì hỏi.
 - Mốc 3: đánh bóng, kiểm theo danh sách "Chỉ được báo xong khi" ở mục 13 của `docs/PROMPT.md`, hướng dẫn deploy Vercel.
+- Mốc 4: mở rộng theo `docs/outline-v2.md` (12 chương, 83 bài), chủ dự án duyệt ngày 22/11/2026. Làm bốn đợt, mỗi đợt xong chạy lại bộ kiểm. Xong cả bốn đợt thì mời chủ dự án host lên Vercel.
 - Chỉ hỏi khi quyết định không đảo ngược được hoặc phải đổi phạm vi. Việc khác tự quyết và ghi vào `docs/decisions.md`. Commit nhỏ.
 
 ## Chia việc (mục 14)
@@ -67,6 +68,7 @@ Luật áp cho mọi kiểu dịch tương tự. Cũng giữ tiếng Anh: functi
 - Gọi subagent tạm bằng Agent tool thì luôn truyền `model: "sonnet"`. Dùng subagent Fable phải ghi lý do vào `docs/decisions.md`.
 - Lời giao việc: mục tiêu, đường dẫn file, luật cần theo, tiêu chí xong. Yêu cầu trả tóm tắt dưới 200 chữ kèm danh sách file đã đổi.
 - Không kéo log dài hay file lớn vào phiên chính.
+- Từ Mốc 4, đây là dự án phụ và phải tiết kiệm token. Phần mở rộng engine cũng giao subagent Sonnet, theo bản giao việc có test. Phiên chính viết bản giao việc, chốt kiểu dữ liệu nền, duyệt bằng test và mẫu nhỏ.
 
 ## Luật kỹ thuật rút ra ở Mốc 3
 

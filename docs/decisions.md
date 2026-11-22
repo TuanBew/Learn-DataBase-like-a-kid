@@ -109,3 +109,12 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Engine sửa ba chỗ lệch MySQL thật.** Ở dialect mysql: chữ `đ` bằng chữ `d` khi so, khi xếp và khi gom nhóm; tiêu đề của một chuỗi đứng riêng là nội dung chuỗi, không kèm nháy; query chỉ có dấu `;` báo 1065 như query rỗng.
 - **Hai bài học có thêm câu giải thích** vì kết quả ở hai dialect giờ khác nhau như ngoài đời: thẻ Oracle của bài ORDER BY (`c3-b3`) nói chữ Đ xếp khác nhau, và thẻ Oracle của bài nối ba table (`c6-b3`) nói row thứ năm khác nhau.
 - **Test so với SQLite không còn phá hòa bằng tên món.** SQLite xếp chữ đ theo mã ký tự, khác MySQL. Câu query đó giờ phá hòa bằng `product_id`, còn thứ tự chữ đ có test riêng ở `dialect.test.ts`.
+
+## Mốc 4: mở rộng theo dàn ý v2
+
+- **Chủ dự án duyệt `docs/outline-v2.md` ngày 22/11/2026**, gồm ba chỗ đổi luật cũ: INSERT xuất hiện sớm ở phần dựng table, có window function ở mức báo cáo, có một bài về query chậm. Giới hạn 250 KB JS được bỏ.
+- **Tiết kiệm token là ưu tiên.** Chủ dự án nhắc đây là dự án phụ. Mọi phần dựng, kể cả mở rộng engine, giao subagent Sonnet. Phiên chính chỉ viết bản giao việc, chốt kiểu dữ liệu nền và duyệt bằng test.
+- **Đánh lại id một lần theo số của dàn ý v2.** Code đang suy ra bài boss và số chương từ id, nên id phải khớp số chương. Bài cũ đổi sang id mới ngay ở Đợt 1; bài chưa viết thì chưa có file. Danh sách id cũ và id mới nằm ở `docs/id-map-v2.md`.
+- **Phần tự bấm của bài mới dùng khối có sẵn** (khối thử tay ở chế độ giữ database, cạnh một khung hiện cấu trúc table). Dàn ý tả nhiều kiểu kéo thả riêng cho từng bài; bản dựng chỉ làm riêng vài cảnh đáng công nhất, để giữ chi phí thấp.
+- **MySQL 8.0.46 thật trong máy dựng site là trọng tài cho dialect mysql.** Hành vi Oracle theo tài liệu 19c; chỗ chưa kiểm được mang comment `CHỜ KIỂM TÀI LIỆU`.
+

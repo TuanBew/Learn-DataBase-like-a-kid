@@ -55,10 +55,12 @@ export const chapters: Chapter[] = [
     about: 'Chọn column, lọc row, sắp xếp, và lấy vài row đầu.',
     lessons: [
       { id: 'c4-b1', title: 'SELECT và FROM', minutes: 12 },
-      { id: 'c4-b2', title: 'Lọc row bằng WHERE', minutes: 18 },
+      { id: 'c4-b2', title: 'WHERE: so sánh, AND, OR, NOT', minutes: 14 },
+      { id: 'c4-b3', title: 'WHERE: IN, BETWEEN, LIKE, IS NULL', minutes: 16 },
       { id: 'c4-b4', title: 'ORDER BY và DISTINCT', minutes: 15 },
       { id: 'c4-b5', title: 'LIMIT và FETCH FIRST', minutes: 15 },
       { id: 'c4-b6', title: 'Thứ tự query chạy thật', minutes: 12 },
+      { id: 'c4-b7', title: 'Viết query cho dễ đọc: xuống dòng, alias, comment', minutes: 12 },
     ],
   },
   {
@@ -79,7 +81,10 @@ export const chapters: Chapter[] = [
     lessons: [
       { id: 'c6-b1', title: 'COUNT, SUM, AVG, MIN, MAX', minutes: 16 },
       { id: 'c6-b2', title: 'GROUP BY', minutes: 16 },
+      { id: 'c6-b3', title: 'GROUP BY nhiều column và theo tháng', minutes: 16 },
       { id: 'c6-b4', title: 'HAVING', minutes: 14 },
+      { id: 'c6-b5', title: 'Đếm có điều kiện và xoay ngang bằng CASE', minutes: 16 },
+      { id: 'c6-b6', title: 'Gộp chữ trong nhóm và row tổng cộng: LISTAGG, GROUP_CONCAT, ROLLUP', minutes: 18 },
       { id: 'c6-b7', title: 'Báo cáo doanh thu', minutes: 20 },
     ],
   },

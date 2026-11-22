@@ -1,8 +1,8 @@
 import type { SqlExercise } from '../types';
 
 export const exercise: SqlExercise = {
-  id: 'c7-e6',
-  chapter: 7,
+  id: 'c12-e1',
+  chapter: 12,
   kind: 'debug',
   title: 'Sửa lỗi ORA-00979',
   prompt:

@@ -18,11 +18,11 @@ export const uiProgress = {
     copied: 'Đã sao chép mã.',
     copyFail: 'Không sao chép được. Chọn mã trong ô rồi bấm Ctrl+C.',
     pasteLabel: 'Dán mã vào đây',
-    pastePlaceholder: 'LDB1-…',
+    pastePlaceholder: 'LDB2-…',
     import: 'Nhập mã',
     emptyCode: 'Ô đang trống. Dán mã vào ô rồi bấm Nhập mã.',
     ok: (n: number) => (n > 0 ? `Xong. Mình đã thêm ${n} mục vào tiến trình của bạn.` : 'Mã này hợp lệ, nhưng máy này đã có hết các mục trong mã. Mình không cần thêm gì.'),
-    errFormat: 'Mã này sai dạng. Mã đúng bắt đầu bằng LDB1-. Dán đủ mã, không thiếu ký tự. Nếu vẫn lỗi, tạo mã mới ở máy cũ rồi dán lại.',
+    errFormat: 'Mã này sai dạng. Mã đúng bắt đầu bằng LDB2-. Dán đủ mã, không thiếu ký tự. Nếu vẫn lỗi, tạo mã mới ở máy cũ rồi dán lại.',
     errVersion: 'Một bản mới hơn của site đã tạo mã này, nên mình chưa đọc được. Tải lại trang để lấy bản mới nhất, rồi nhập lại.',
   },
 

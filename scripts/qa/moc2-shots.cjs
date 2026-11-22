@@ -37,12 +37,12 @@ const GROUP = "SELECT store_id, COUNT(*) AS total_orders\nFROM orders\nWHERE sta
     await page.close();
   };
 
-  await theater(1440, 'c6-e1', JOIN, 'FROM', 2, 'theater-join');
-  await theater(390, 'c6-e1', JOIN, 'FROM', 2, 'theater-join');
-  await theater(1440, 'c5-e3', GROUP, 'GROUP BY', 0, 'theater-group-by');
-  await theater(390, 'c5-e3', GROUP, 'GROUP BY', 1, 'theater-group-by');
+  await theater(1440, 'c7-e1', JOIN, 'FROM', 2, 'theater-join');
+  await theater(390, 'c7-e1', JOIN, 'FROM', 2, 'theater-join');
+  await theater(1440, 'c6-e3', GROUP, 'GROUP BY', 0, 'theater-group-by');
+  await theater(390, 'c6-e3', GROUP, 'GROUP BY', 1, 'theater-group-by');
 
-  for (const [id, name] of [['c3-e4', 'bai-tap-xep-thu-tu'], ['c3-e3', 'bai-tap-doan-ket-qua'], ['c1-e1', 'bai-tap-quiz']]) {
+  for (const [id, name] of [['c4-e4', 'bai-tap-xep-thu-tu'], ['c4-e3', 'bai-tap-doan-ket-qua'], ['c1-e1', 'bai-tap-quiz']]) {
     for (const width of [1440, 390]) {
       const page = await open(width, `/tap/${id}`);
       await page.screenshot({ path: `${out}/${name}-${width}.png`, fullPage: true });
@@ -50,7 +50,7 @@ const GROUP = "SELECT store_id, COUNT(*) AS total_orders\nFROM orders\nWHERE sta
     }
   }
   for (const width of [1440, 390]) {
-    const page = await open(width, '/tap/c7-e1');
+    const page = await open(width, '/tap/c10-e1');
     await page.getByRole('button', { name: /^Chạy/ }).click();
     await page.waitForTimeout(2200);
     await page.screenshot({ path: `${out}/bai-tap-dien-tap-${width}.png`, fullPage: true });
@@ -59,7 +59,7 @@ const GROUP = "SELECT store_id, COUNT(*) AS total_orders\nFROM orders\nWHERE sta
 
   const ids = fs.readdirSync(path.join(__dirname, '../../src/content/lessons')).filter((f) => /^c\d/.test(f)).map((f) => f.replace('.ts', ''));
   const now = Date.now();
-  const full = { v: 1, lessons: Object.fromEntries(ids.map((i) => [i, now])), exercises: Object.fromEntries([1, 2, 3, 4, 5, 6, 7].map((n) => [`c${n}-boss`, { mysql: now }])) };
+  const full = { v: 2, lessons: Object.fromEntries(ids.map((i) => [i, now])), exercises: Object.fromEntries(['c1', 'c2', 'c4', 'c5', 'c6', 'c7', 'c12'].map((c) => [`${c}-boss`, { mysql: now }])) };
   const seed = { fn: (v) => localStorage.setItem('ldb:progress', v), arg: JSON.stringify(full) };
   for (const width of [1440, 390]) {
     let page = await open(width, '/chung-nhan', seed);

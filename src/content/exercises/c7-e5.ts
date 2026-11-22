@@ -1,64 +1,53 @@
 import type { SqlExercise } from '../types';
 
-const from =
-  "SELECT CONCAT(c.full_name, ' - ', c.city) AS label,\n       IFNULL(c.phone, 'chưa có') AS phone\nFROM customers AS c\nORDER BY c.joined_on\nLIMIT 5;";
-
 export const exercise: SqlExercise = {
   id: 'c7-e5',
   chapter: 7,
-  kind: 'translate',
-  title: 'Chuyển query khách hàng sang Oracle',
-  prompt:
-    'Đồng nghiệp gửi một query viết cho MySQL. Viết lại bằng Oracle để ra cùng kết quả. Query này có bốn chỗ cần đổi.',
+  kind: 'write',
+  title: 'Số ly bán ra theo nhóm món',
+  prompt: 'Chủ tiệm muốn so các nhóm món với nhau. Cộng số lượng đã bán của mỗi nhóm, chỉ tính đơn hoàn tất. Cần nối ba table, phần FROM và JOIN đã có sẵn.',
   asks: [
-    'Nối tên và thành phố bằng `||`, giữ dấu ` - ` ở giữa.',
-    'Thay số điện thoại NULL bằng chữ `chưa có`.',
-    'Alias của table viết kiểu Oracle.',
-    'Giữ 5 khách đăng ký sớm nhất.',
+    'Hiện `category` và tổng số lượng, đặt tên column tổng là `qty`.',
+    'Chỉ tính đơn có `status` là `done`.',
+    'Mỗi nhóm món một row, nhóm bán nhiều nhất đứng trước.',
   ],
   database: 'teashop',
-  tables: ['customers'],
-  dialects: ['oracle'],
-  from,
-  starter: { oracle: from },
+  tables: ['orders', 'order_items', 'products'],
+  dialects: ['mysql', 'oracle'],
+  starter: {
+    mysql: 'SELECT p.category, SUM(oi.quantity) AS qty\nFROM orders o\nINNER JOIN order_items oi ON o.order_id = oi.order_id\nINNER JOIN products p ON oi.product_id = p.product_id\n',
+    oracle: 'SELECT p.category, SUM(oi.quantity) AS qty\nFROM orders o\nINNER JOIN order_items oi ON o.order_id = oi.order_id\nINNER JOIN products p ON oi.product_id = p.product_id\n',
+  },
   solution: {
-    oracle:
-      "SELECT c.full_name || ' - ' || c.city AS label,\n       NVL(c.phone, 'chưa có') AS phone\nFROM customers c\nORDER BY c.joined_on\nFETCH FIRST 5 ROWS ONLY;",
+    mysql: "SELECT p.category, SUM(oi.quantity) AS qty\nFROM orders o\nINNER JOIN order_items oi ON o.order_id = oi.order_id\nINNER JOIN products p ON oi.product_id = p.product_id\nWHERE o.status = 'done'\nGROUP BY p.category\nORDER BY qty DESC;",
+    oracle: "SELECT p.category, SUM(oi.quantity) AS qty\nFROM orders o\nINNER JOIN order_items oi ON o.order_id = oi.order_id\nINNER JOIN products p ON oi.product_id = p.product_id\nWHERE o.status = 'done'\nGROUP BY p.category\nORDER BY qty DESC;",
   },
   check: { orderMatters: true, aliasMatters: true },
-  why: 'Oracle nối chuỗi bằng `||`, thay NULL bằng NVL, bỏ AS ở alias của table và lấy row đầu bằng FETCH FIRST.',
+  why: 'Hai JOIN nối đơn, row món và món vào một chuỗi row. WHERE bỏ đơn cancelled, rồi GROUP BY gom theo nhóm món và SUM cộng số lượng.',
   hints: {
-    light: 'Bốn chỗ khác nhau: nối chuỗi, thay NULL, alias của table, và cách giới hạn số row.',
-    specific: 'CONCAT đổi thành `||`. IFNULL đổi thành NVL. Bỏ AS trước c. LIMIT 5 đổi thành FETCH FIRST 5 ROWS ONLY.',
+    light: 'Nối xong ba table thì mới gom nhóm. Thứ tự trong query: FROM và JOIN, WHERE, GROUP BY, ORDER BY.',
+    specific: "Lọc đơn cancelled bằng WHERE o.status = 'done'. Gom theo column `p.category`. Xếp bằng ORDER BY qty DESC.",
     skeleton: {
-      oracle:
-        "SELECT c.full_name ____ ' - ' ____ c.city AS label,\n       ____(c.phone, 'chưa có') AS phone\nFROM customers ____\nORDER BY c.joined_on\nFETCH FIRST ____ ROWS ONLY;",
+      mysql: "SELECT p.category, SUM(oi.quantity) AS qty\nFROM orders o\nINNER JOIN order_items oi ON o.order_id = oi.order_id\nINNER JOIN products p ON oi.product_id = p.product_id\nWHERE o.status = ____\nGROUP BY ____\nORDER BY ____ DESC;",
+      oracle: "SELECT p.category, SUM(oi.quantity) AS qty\nFROM orders o\nINNER JOIN order_items oi ON o.order_id = oi.order_id\nINNER JOIN products p ON oi.product_id = p.product_id\nWHERE o.status = ____\nGROUP BY ____\nORDER BY ____ DESC;",
     },
   },
   wrong: [
     {
-      id: 'no-nvl',
+      id: 'no-where',
       sql: {
-        oracle:
-          "SELECT c.full_name || ' - ' || c.city AS label, c.phone AS phone FROM customers c ORDER BY c.joined_on FETCH FIRST 5 ROWS ONLY",
+        mysql: 'SELECT p.category, SUM(oi.quantity) AS qty FROM orders o INNER JOIN order_items oi ON o.order_id = oi.order_id INNER JOIN products p ON oi.product_id = p.product_id GROUP BY p.category ORDER BY qty DESC',
+        oracle: 'SELECT p.category, SUM(oi.quantity) AS qty FROM orders o INNER JOIN order_items oi ON o.order_id = oi.order_id INNER JOIN products p ON oi.product_id = p.product_id GROUP BY p.category ORDER BY qty DESC',
       },
-      hint: 'Query chạy được, nhưng khách chưa có số điện thoại hiện NULL. Bọc c.phone trong NVL để thay bằng chữ chưa có.',
+      hint: "Số lượng đang cộng cả đơn cancelled. Thêm WHERE o.status = 'done' trước GROUP BY.",
     },
     {
-      id: 'desc',
+      id: 'count-not-sum',
       sql: {
-        oracle:
-          "SELECT c.full_name || ' - ' || c.city AS label, NVL(c.phone, 'chưa có') AS phone FROM customers c ORDER BY c.joined_on DESC FETCH FIRST 5 ROWS ONLY",
+        mysql: "SELECT p.category, COUNT(*) AS qty FROM orders o INNER JOIN order_items oi ON o.order_id = oi.order_id INNER JOIN products p ON oi.product_id = p.product_id WHERE o.status = 'done' GROUP BY p.category ORDER BY qty DESC",
+        oracle: "SELECT p.category, COUNT(*) AS qty FROM orders o INNER JOIN order_items oi ON o.order_id = oi.order_id INNER JOIN products p ON oi.product_id = p.product_id WHERE o.status = 'done' GROUP BY p.category ORDER BY qty DESC",
       },
-      hint: 'DESC đang lấy 5 khách đăng ký muộn nhất. MySQL gốc sắp tăng dần, nên bỏ DESC.',
-    },
-    {
-      id: 'fetch-3',
-      sql: {
-        oracle:
-          "SELECT c.full_name || ' - ' || c.city AS label, NVL(c.phone, 'chưa có') AS phone FROM customers c ORDER BY c.joined_on FETCH FIRST 3 ROWS ONLY",
-      },
-      hint: 'Bạn dịch đúng gần hết rồi. Query gốc lấy 5 row, còn FETCH FIRST của bạn chỉ lấy 3.',
+      hint: '`COUNT(*)` đếm số row món, không đếm số ly. Một row có thể gọi 2 hoặc 3 ly, nên dùng `SUM(oi.quantity)`.',
     },
   ],
 };

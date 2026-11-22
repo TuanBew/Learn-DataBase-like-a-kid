@@ -1,44 +1,59 @@
 import type { GlossaryEntry } from '../types';
 
 export const entries: Record<string, GlossaryEntry> = {
-  'aggregate-function': {
-    term: 'function gom',
-    short: 'Function nhận nhiều row và trả về một giá trị. COUNT, SUM, AVG, MIN, MAX đều là function gom.',
-    example: 'Cộng tiền của mọi ly trong ngày thành một tổng.',
+  round: {
+    term: 'ROUND',
+    short: 'Function làm tròn một số tới số chữ số thập phân bạn chọn.',
+    example: 'Giá 109,375 đồng mỗi calo làm tròn còn 109,4.',
   },
-  count: {
-    term: 'COUNT',
-    short: 'Function gom đếm row. COUNT(*) đếm mọi row, COUNT(column) chỉ đếm row có giá trị.',
-    example: 'Đếm có bao nhiêu món trong thực đơn.',
+  concat: {
+    term: 'CONCAT',
+    short: 'Function của MySQL nối nhiều đoạn chữ thành một đoạn. Oracle nối bằng dấu ||.',
+    example: 'Ghép họ tên và số điện thoại thành một đoạn liên hệ.',
   },
-  sum: {
-    term: 'SUM',
-    short: 'Function gom cộng các số trong một column.',
-    example: 'Cộng tiền của mọi ly trong ngày.',
+  byte: {
+    term: 'byte',
+    short: 'Đơn vị máy dùng để đếm dung lượng. Chữ a chiếm 1 byte, chữ có dấu chiếm 2 hoặc 3 byte.',
+    example: 'Chữ "a" chiếm 1 byte, còn chữ "ầ" chiếm 3 byte.',
   },
-  avg: {
-    term: 'AVG',
-    short: 'Function gom tính trung bình các số trong một column. Row NULL không được tính.',
-    example: 'Giá trung bình của các món trà sữa.',
+  datetime: {
+    term: 'datetime',
+    short: 'Giá trị có cả ngày lẫn giờ, ví dụ 2026-03-08 14:00:00.',
+    example: 'Giờ đặt ly trà sữa gồm ngày hôm đó và lúc bấm nút.',
   },
-  min: {
-    term: 'MIN',
-    short: 'Function gom tìm giá trị nhỏ nhất trong một column.',
-    example: 'Món rẻ nhất trong thực đơn.',
+  trunc: {
+    term: 'TRUNC',
+    short: 'Function của Oracle cắt phần giờ của một ngày, chỉ giữ lại ngày.',
+    example: '14:00 ngày 8 tháng 3 thành 00:00 ngày 8 tháng 3.',
   },
-  max: {
-    term: 'MAX',
-    short: 'Function gom tìm giá trị lớn nhất trong một column.',
-    example: 'Món đắt nhất trong thực đơn.',
+  'date-format': {
+    term: 'DATE_FORMAT',
+    short: 'Function đổi ngày giờ thành chữ theo khuôn bạn chọn. MySQL gọi DATE_FORMAT, Oracle gọi TO_CHAR.',
+    example: 'Hiện ngày kiểu 08/03/2026 thay cho 2026-03-08.',
   },
-  'group-by': {
-    term: 'GROUP BY',
-    short: 'Từ khóa SQL chia row thành nhóm theo giá trị của column. Mỗi nhóm cho ra một row kết quả.',
-    example: 'Xếp các món vào bốn hộp: Trà sữa, Cà phê, Trà trái cây, Topping.',
+  'str-to-date': {
+    term: 'STR_TO_DATE',
+    short: 'Function đổi một đoạn chữ thành ngày theo khuôn bạn nói. MySQL gọi STR_TO_DATE, Oracle gọi TO_DATE.',
+    example: 'Đọc chữ "08/03/2026" thành ngày 8 tháng 3 năm 2026.',
   },
-  having: {
-    term: 'HAVING',
-    short: 'Từ khóa SQL giữ hoặc bỏ cả nhóm, sau khi GROUP BY đã gom xong.',
-    example: 'Chỉ giữ những hộp có từ bốn món trở lên.',
+  coalesce: {
+    term: 'COALESCE',
+    short: 'Function trả về giá trị đầu tiên khác NULL trong danh sách. MySQL và Oracle đều có.',
+    example: 'Số điện thoại chính trống thì lấy số phụ.',
+  },
+  ifnull: {
+    term: 'IFNULL',
+    short: 'Function của MySQL thay NULL bằng một giá trị bạn chọn.',
+    example: 'Món chưa có calo thì ghi 0.',
+  },
+  nvl: {
+    term: 'NVL',
+    short: 'Function của Oracle thay NULL bằng một giá trị bạn chọn. Làm giống IFNULL của MySQL.',
+    example: 'Món chưa có calo thì ghi 0.',
+  },
+  'case-when': {
+    term: 'CASE WHEN',
+    short: 'Cách SQL chọn một giá trị theo điều kiện, giống câu "nếu... thì...".',
+    example: 'Nếu giá dưới 30.000 thì ghi "Rẻ", nếu không thì xét tiếp.',
   },
 };

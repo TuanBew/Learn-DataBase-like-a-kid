@@ -3,53 +3,51 @@ import type { SqlExercise } from '../types';
 export const exercise: SqlExercise = {
   id: 'c4-e3',
   chapter: 4,
-  kind: 'write',
-  title: 'Tên tiệm viết hoa và độ dài',
-  prompt:
-    'Mình làm biển hiệu cho các tiệm. Mình cần tên tiệm viết hoa và số ký tự của tên. MySQL và Oracle đếm ký tự bằng hai function khác nhau.',
+  kind: 'predict',
+  title: 'Đoán món còn lại sau WHERE',
+  prompt: 'Đọc query. Đoán món nào còn lại sau WHERE. Chọn các row đó, rồi xem Theater để kiểm.',
   asks: [
-    'Hiện `name`, tên viết hoa đặt là `upper_name`, và số ký tự đặt là `chars`.',
-    'Đếm ký tự, không đếm byte. MySQL dùng CHAR_LENGTH, Oracle dùng LENGTH.',
-    'Lấy mọi tiệm trong table stores.',
+    'Chọn các row của table products sẽ còn lại.',
+    'Nhớ rằng BETWEEN gồm cả hai đầu.',
+    'Hai điều kiện nối bằng AND: row phải thỏa cả hai.',
   ],
   database: 'teashop',
-  tables: ['stores'],
+  tables: ['products'],
   dialects: ['mysql', 'oracle'],
   starter: {
-    mysql: 'SELECT name\nFROM stores\n',
-    oracle: 'SELECT name\nFROM stores\n',
+    mysql: "SELECT *\nFROM products\nWHERE category IN ('Cà phê', 'Topping')\n  AND price BETWEEN 10000 AND 30000;",
+    oracle: "SELECT *\nFROM products\nWHERE category IN ('Cà phê', 'Topping')\n  AND price BETWEEN 10000 AND 30000",
   },
   solution: {
-    mysql: 'SELECT name, UPPER(name) AS upper_name, CHAR_LENGTH(name) AS chars\nFROM stores;',
-    oracle: 'SELECT name, UPPER(name) AS upper_name, LENGTH(name) AS chars\nFROM stores',
+    mysql: "SELECT *\nFROM products\nWHERE category IN ('Cà phê', 'Topping')\n  AND price BETWEEN 10000 AND 30000;",
+    oracle: "SELECT *\nFROM products\nWHERE category IN ('Cà phê', 'Topping')\n  AND price BETWEEN 10000 AND 30000",
   },
-  check: { orderMatters: false, aliasMatters: true },
-  why: 'UPPER đổi chữ thành chữ hoa. Function đếm ký tự cho ra độ dài của tên: CHAR_LENGTH ở MySQL, LENGTH ở Oracle.',
+  check: { orderMatters: false },
+  why: 'IN giữ món thuộc Cà phê hoặc Topping. BETWEEN giữ giá từ 10000 tới 30000, gồm cả hai đầu. AND bắt row thỏa cả hai điều kiện.',
   hints: {
-    light: 'Function nhận một giá trị và trả về giá trị mới. Viết tên column trong ngoặc.',
-    specific:
-      'Dùng UPPER(name) cho chữ hoa. MySQL: LENGTH đếm byte nên dùng CHAR_LENGTH(name). Oracle: LENGTH(name) đã đếm ký tự.',
+    light: 'WHERE xét từng row một. Row thỏa điều kiện thì ở lại, row không thỏa thì bị loại.',
+    specific: 'Lọc theo nhóm món trước: chỉ giữ Cà phê và Topping. Rồi xét giá: giữ món từ 10000 tới 30000, kể cả đúng 10000 và đúng 30000.',
     skeleton: {
-      mysql: 'SELECT name, ____(name) AS upper_name, ____(name) AS chars\nFROM stores;',
-      oracle: 'SELECT name, ____(name) AS upper_name, ____(name) AS chars\nFROM stores',
+      mysql: "SELECT *\nFROM products\nWHERE category IN (____, ____)\n  AND price BETWEEN ____ AND ____;",
+      oracle: "SELECT *\nFROM products\nWHERE category IN (____, ____)\n  AND price BETWEEN ____ AND ____",
     },
   },
   wrong: [
     {
-      id: 'lower',
+      id: 'open-range',
       sql: {
-        mysql: 'SELECT name, LOWER(name) AS upper_name, CHAR_LENGTH(name) AS chars FROM stores',
-        oracle: 'SELECT name, LOWER(name) AS upper_name, LENGTH(name) AS chars FROM stores',
+        mysql: "SELECT * FROM products WHERE category IN ('Cà phê', 'Topping') AND price > 10000 AND price < 30000",
+        oracle: "SELECT * FROM products WHERE category IN ('Cà phê', 'Topping') AND price > 10000 AND price < 30000",
       },
-      hint: 'LOWER đổi sang chữ thường. Đổi thành UPPER để ra chữ hoa.',
+      hint: 'BETWEEN gồm cả hai đầu, nên món giá đúng 10000 và đúng 30000 vẫn ở lại.',
     },
     {
-      id: 'no-length',
+      id: 'or',
       sql: {
-        mysql: 'SELECT name, UPPER(name) AS upper_name, UPPER(name) AS chars FROM stores',
-        oracle: 'SELECT name, UPPER(name) AS upper_name, UPPER(name) AS chars FROM stores',
+        mysql: "SELECT * FROM products WHERE category IN ('Cà phê', 'Topping') OR price BETWEEN 10000 AND 30000",
+        oracle: "SELECT * FROM products WHERE category IN ('Cà phê', 'Topping') OR price BETWEEN 10000 AND 30000",
       },
-      hint: 'Column chars đang chứa tên viết hoa, không phải số ký tự. Dùng function đếm độ dài cho column này.',
+      hint: 'Query này dùng OR, nên chỉ cần thỏa một điều kiện. Query gốc dùng AND, row phải thỏa cả hai.',
     },
   ],
 };

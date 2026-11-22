@@ -4,59 +4,71 @@ export const exercise: SqlExercise = {
   id: 'c5-boss',
   chapter: 5,
   kind: 'write',
-  title: 'Boss: ba nhóm doanh thu lớn nhất',
-  prompt: 'Chủ chuỗi muốn biết ba cặp (tiệm, cách trả tiền) có doanh thu cao nhất tháng 3. Chỉ tính đơn đã hoàn tất. Phần FROM và JOIN đã có sẵn.',
+  title: 'Boss: thẻ thực đơn cho Cà phê và Trà trái cây',
+  prompt:
+    'Mình in thẻ thực đơn cho các món Cà phê và Trà trái cây. Mỗi thẻ cần tên kèm nhóm, giá tính bằng nghìn đồng, nhãn giá và calo.',
   asks: [
-    'Hiện `store_id`, `payment` và doanh thu, đặt tên column doanh thu là `revenue`.',
-    'Doanh thu là tổng `quantity * unit_price`, chỉ tính đơn `done`.',
-    'Mỗi cặp tiệm và cách trả tiền một row, doanh thu cao đứng trước. Doanh thu bằng nhau thì `store_id` nhỏ đứng trước.',
-    'Chỉ lấy 3 row đầu.',
+    "Column `label`: tên món, dấu cách, rồi nhóm món trong ngoặc, ví dụ 'Cà phê muối (Cà phê)'.",
+    'Column `price_k`: `price` chia 1000.',
+    "Column `price_level`: dưới 30000 là 'Rẻ', dưới 45000 là 'Vừa', còn lại là 'Đắt'.",
+    'Column `calo`: món chưa có `calories` thì hiện 0. MySQL dùng IFNULL, Oracle dùng NVL.',
   ],
-  database: 'teashop-big',
-  tables: ['orders', 'order_items'],
+  database: 'teashop',
+  tables: ['products'],
   dialects: ['mysql', 'oracle'],
   starter: {
-    mysql: 'SELECT o.store_id, o.payment, SUM(oi.quantity * oi.unit_price) AS revenue\nFROM order_items oi\nINNER JOIN orders o ON oi.order_id = o.order_id\n',
-    oracle: 'SELECT o.store_id, o.payment, SUM(oi.quantity * oi.unit_price) AS revenue\nFROM order_items oi\nINNER JOIN orders o ON oi.order_id = o.order_id\n',
+    mysql: "SELECT \nFROM products\nWHERE category IN ('Cà phê', 'Trà trái cây');",
+    oracle: "SELECT \nFROM products\nWHERE category IN ('Cà phê', 'Trà trái cây')",
   },
   solution: {
-    mysql: "SELECT o.store_id, o.payment, SUM(oi.quantity * oi.unit_price) AS revenue\nFROM order_items oi\nINNER JOIN orders o ON oi.order_id = o.order_id\nWHERE o.status = 'done'\nGROUP BY o.store_id, o.payment\nORDER BY revenue DESC, o.store_id\nLIMIT 3;",
-    oracle: "SELECT o.store_id, o.payment, SUM(oi.quantity * oi.unit_price) AS revenue\nFROM order_items oi\nINNER JOIN orders o ON oi.order_id = o.order_id\nWHERE o.status = 'done'\nGROUP BY o.store_id, o.payment\nORDER BY revenue DESC, o.store_id\nFETCH FIRST 3 ROWS ONLY;",
+    mysql:
+      "SELECT CONCAT(name, ' (', category, ')') AS label,\n  price / 1000 AS price_k,\n  CASE WHEN price < 30000 THEN 'Rẻ'\n       WHEN price < 45000 THEN 'Vừa'\n       ELSE 'Đắt' END AS price_level,\n  IFNULL(calories, 0) AS calo\nFROM products\nWHERE category IN ('Cà phê', 'Trà trái cây');",
+    oracle:
+      "SELECT name || ' (' || category || ')' AS label,\n  price / 1000 AS price_k,\n  CASE WHEN price < 30000 THEN 'Rẻ'\n       WHEN price < 45000 THEN 'Vừa'\n       ELSE 'Đắt' END AS price_level,\n  NVL(calories, 0) AS calo\nFROM products\nWHERE category IN ('Cà phê', 'Trà trái cây')",
   },
-  check: { orderMatters: true, aliasMatters: true },
-  why: 'WHERE bỏ đơn cancelled, GROUP BY chia theo hai column, SUM cộng doanh thu từng nhóm. ORDER BY và LIMIT (hoặc FETCH FIRST) giữ ba nhóm đứng đầu.',
+  check: { orderMatters: false, aliasMatters: true },
+  why: 'Nối chuỗi ghép tên với nhóm. Phép chia ra giá theo nghìn. CASE WHEN chia ba mức giá. IFNULL hoặc NVL thay NULL của calories bằng 0.',
   hints: {
-    light: 'Bài này dùng đủ các bước: lọc row, gom nhóm, sắp xếp rồi lấy vài row đầu. Mỗi nhóm là một cặp tiệm và cách trả tiền.',
-    specific: "WHERE o.status = 'done' bỏ đơn cancelled. GROUP BY cần cả hai column `o.store_id` và `o.payment`. Doanh thu cao đứng trước nên ORDER BY revenue DESC. MySQL lấy 3 row bằng LIMIT, Oracle dùng FETCH FIRST.",
+    light: 'Bài này ghép bốn kỹ thuật: nối chuỗi, phép tính, CASE WHEN và thay NULL. Viết từng column một, chạy thử sau mỗi column.',
+    specific:
+      "Nối chuỗi: MySQL dùng CONCAT(name, ' (', category, ')'), Oracle dùng name || ' (' || category || ')'. Thay NULL: IFNULL(calories, 0) ở MySQL, NVL(calories, 0) ở Oracle.",
     skeleton: {
-      mysql: "SELECT o.store_id, o.payment, SUM(oi.quantity * oi.unit_price) AS revenue\nFROM order_items oi\nINNER JOIN orders o ON oi.order_id = o.order_id\nWHERE o.status = ____\nGROUP BY ____, ____\nORDER BY ____ DESC, o.store_id\nLIMIT ____;",
-      oracle: "SELECT o.store_id, o.payment, SUM(oi.quantity * oi.unit_price) AS revenue\nFROM order_items oi\nINNER JOIN orders o ON oi.order_id = o.order_id\nWHERE o.status = ____\nGROUP BY ____, ____\nORDER BY ____ DESC, o.store_id\nFETCH FIRST ____ ROWS ONLY;",
+      mysql:
+        "SELECT CONCAT(____, ' (', ____, ')') AS label,\n  price / ____ AS price_k,\n  CASE WHEN price < ____ THEN 'Rẻ'\n       WHEN price < ____ THEN 'Vừa'\n       ELSE 'Đắt' END AS price_level,\n  IFNULL(____, 0) AS calo\nFROM products\nWHERE category IN ('Cà phê', 'Trà trái cây');",
+      oracle:
+        "SELECT ____ || ' (' || ____ || ')' AS label,\n  price / ____ AS price_k,\n  CASE WHEN price < ____ THEN 'Rẻ'\n       WHEN price < ____ THEN 'Vừa'\n       ELSE 'Đắt' END AS price_level,\n  NVL(____, 0) AS calo\nFROM products\nWHERE category IN ('Cà phê', 'Trà trái cây')",
     },
   },
   wrong: [
     {
-      id: 'no-status',
+      id: 'raw-null',
       sql: {
-        mysql: 'SELECT o.store_id, o.payment, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id GROUP BY o.store_id, o.payment ORDER BY revenue DESC, o.store_id LIMIT 3',
-        oracle: 'SELECT o.store_id, o.payment, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id GROUP BY o.store_id, o.payment ORDER BY revenue DESC, o.store_id FETCH FIRST 3 ROWS ONLY',
+        mysql:
+          "SELECT CONCAT(name, ' (', category, ')') AS label, price / 1000 AS price_k, CASE WHEN price < 30000 THEN 'Rẻ' WHEN price < 45000 THEN 'Vừa' ELSE 'Đắt' END AS price_level, calories AS calo FROM products WHERE category IN ('Cà phê', 'Trà trái cây')",
+        oracle:
+          "SELECT name || ' (' || category || ')' AS label, price / 1000 AS price_k, CASE WHEN price < 30000 THEN 'Rẻ' WHEN price < 45000 THEN 'Vừa' ELSE 'Đắt' END AS price_level, calories AS calo FROM products WHERE category IN ('Cà phê', 'Trà trái cây')",
       },
-      hint: "Ba nhóm đã đúng, nhưng doanh thu đang cộng cả đơn cancelled. Thêm WHERE o.status = 'done' trước GROUP BY.",
+      hint: 'Ba column đầu đúng rồi. Column calo vẫn còn NULL ở món chưa có calo. Bọc calories trong IFNULL (MySQL) hoặc NVL (Oracle).',
     },
     {
-      id: 'asc',
+      id: 'no-else',
       sql: {
-        mysql: "SELECT o.store_id, o.payment, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id WHERE o.status = 'done' GROUP BY o.store_id, o.payment ORDER BY revenue, o.store_id LIMIT 3",
-        oracle: "SELECT o.store_id, o.payment, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id WHERE o.status = 'done' GROUP BY o.store_id, o.payment ORDER BY revenue, o.store_id FETCH FIRST 3 ROWS ONLY",
+        mysql:
+          "SELECT CONCAT(name, ' (', category, ')') AS label, price / 1000 AS price_k, CASE WHEN price < 30000 THEN 'Rẻ' WHEN price < 45000 THEN 'Vừa' END AS price_level, IFNULL(calories, 0) AS calo FROM products WHERE category IN ('Cà phê', 'Trà trái cây')",
+        oracle:
+          "SELECT name || ' (' || category || ')' AS label, price / 1000 AS price_k, CASE WHEN price < 30000 THEN 'Rẻ' WHEN price < 45000 THEN 'Vừa' END AS price_level, NVL(calories, 0) AS calo FROM products WHERE category IN ('Cà phê', 'Trà trái cây')",
       },
-      hint: 'ORDER BY mặc định xếp từ nhỏ lên lớn, nên bạn đang lấy ba nhóm thấp nhất. Thêm DESC sau `revenue`.',
+      hint: "Món từ 45000 đồng trở lên đang ra NULL ở price_level. Thêm ELSE 'Đắt' trước END.",
     },
     {
-      id: 'group-store-only',
+      id: 'no-space',
       sql: {
-        mysql: "SELECT o.store_id, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id WHERE o.status = 'done' GROUP BY o.store_id ORDER BY revenue DESC LIMIT 3",
-        oracle: "SELECT o.store_id, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id WHERE o.status = 'done' GROUP BY o.store_id ORDER BY revenue DESC FETCH FIRST 3 ROWS ONLY",
+        mysql:
+          "SELECT CONCAT(name, category) AS label, price / 1000 AS price_k, CASE WHEN price < 30000 THEN 'Rẻ' WHEN price < 45000 THEN 'Vừa' ELSE 'Đắt' END AS price_level, IFNULL(calories, 0) AS calo FROM products WHERE category IN ('Cà phê', 'Trà trái cây')",
+        oracle:
+          "SELECT name || category AS label, price / 1000 AS price_k, CASE WHEN price < 30000 THEN 'Rẻ' WHEN price < 45000 THEN 'Vừa' ELSE 'Đắt' END AS price_level, NVL(calories, 0) AS calo FROM products WHERE category IN ('Cà phê', 'Trà trái cây')",
       },
-      hint: 'Query này gom theo tiệm, chưa tách theo cách trả tiền. Thêm `o.payment` vào SELECT và GROUP BY.',
+      hint: "Tên và nhóm đang dính liền nhau. Nối thêm chuỗi ' (' ở giữa và chuỗi ')' ở cuối.",
     },
   ],
 };

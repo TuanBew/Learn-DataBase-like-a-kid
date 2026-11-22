@@ -4,138 +4,130 @@ export const lesson: Lesson = {
   id: 'c5-b1',
   chapter: 5,
   order: 1,
-  title: 'COUNT, SUM, AVG, MIN, MAX',
-  lead: 'Bạn gom nhiều row thành một con số.',
-  minutes: 16,
+  title: 'Phép tính trong SELECT',
+  lead: 'Bạn nhờ database tính giá mới ngay trong kết quả, không cần máy tính.',
+  minutes: 12,
   goals: [
-    'Đếm, cộng, tính trung bình, tìm nhỏ nhất và lớn nhất',
-    'Biết COUNT(*) khác COUNT(column) khi column có NULL',
-    'Đếm giá trị khác nhau bằng COUNT(DISTINCT)',
-    'Biết function gom bỏ qua row NULL',
+    'Tính toán bằng + - * / trong SELECT',
+    'Đặt tên cho column vừa tính bằng AS',
+    'Làm tròn số lẻ bằng ROUND',
+    'Biết một số NULL làm cả phép tính thành NULL',
   ],
   blocks: [
     {
       type: 'story',
-      title: 'Thực đơn có bao nhiêu món?',
+      title: 'Giảm 10% thì còn bao nhiêu?',
       paragraphs: [
-        'Chủ tiệm hỏi Bi: "Thực đơn có bao nhiêu món? Món nào đắt nhất?"',
-        'Bi không cần đọc từng món. Mình cần một con số cho mỗi câu hỏi.',
-        'Đếm món, tìm giá cao nhất, tính giá trung bình: mỗi câu cho ra đúng một con số, lấy từ nhiều row.',
-        'SQL có năm function cho kiểu câu hỏi này.',
+        'Tiệm đang giảm 10% cho nhóm Trà sữa. Một khách hỏi Bi: "Ly trà sữa trân châu giờ còn bao nhiêu?"',
+        'Bi không bấm máy tính. Giá gốc là 35.000 đồng. Mình lấy 35.000 nhân `0.9` và ra 31.500 đồng.',
+        'Nhóm Trà sữa có bốn món. Bi phải nhân bốn lần, mỗi món một lần.',
+        'Database làm cả bốn phép nhân cùng lúc, ngay trong query.',
       ],
     },
     {
       type: 'text',
-      title: 'Năm function gom',
+      title: 'Phép tính đứng ở chỗ column',
       paragraphs: [
-        '**[[aggregate-function]]** nhận nhiều row và trả về một giá trị. Năm function hay gặp là:',
-        '**[[count]]** đếm row.',
-        '**[[sum]]** cộng các số.',
-        '**[[avg]]** tính trung bình.',
-        '**[[min]]** tìm giá trị nhỏ nhất, **[[max]]** tìm giá trị lớn nhất.',
-        'Function gom trả đúng một row cho cả table. Nếu bạn viết WHERE, function chỉ gom các row còn lại.',
-        '`COUNT(*)` đếm mọi row. `COUNT(column)` chỉ đếm row mà column có giá trị. Row NULL bị bỏ qua.',
-        '`COUNT(DISTINCT column)` đếm số giá trị khác nhau.',
-        'Table products có 14 món. Query dưới đây đếm món theo ba cách.',
+        '**[[expression]]** là một phép tính đứng trong query. Bạn viết nó ở chỗ column thường đứng.',
+        'Có bốn phép tính: `+` (cộng), `-` (trừ), `*` (nhân), `/` (chia).',
+        'Database tính phép tính cho từng row, mỗi row một lần. Kết quả là một column mới.',
+        'Column mới chỉ có trong kết quả. Table products không đổi.',
+        'Muốn đặt tên cho column mới, viết `AS` rồi gõ tên. Tên này là **[[alias]]**.',
+        'Query dưới đây tính giá sau khi giảm 10%.',
       ],
     },
     {
       type: 'playground',
-      title: 'Thử tay ngay: ba cách đếm',
-      intro: 'Bấm Chạy. So ba con số total_items, with_calories và categories.',
+      title: 'Thử tay ngay: giá sau khi giảm 10%',
+      intro: 'Bấm Chạy. Column sale_price do query tính ra, không có sẵn trong table.',
       database: 'teashop',
       tables: ['products'],
       dialects: ['mysql', 'oracle'],
       sql: {
-        mysql:
-          'SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(DISTINCT category) AS categories\nFROM products;',
-        oracle:
-          'SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(DISTINCT category) AS categories\nFROM products',
+        mysql: "SELECT name, price, price * 0.9 AS sale_price\nFROM products\nWHERE category = 'Trà sữa';",
+        oracle: "SELECT name, price, price * 0.9 AS sale_price\nFROM products\nWHERE category = 'Trà sữa'",
       },
       tries: [
         {
-          label: "Thêm WHERE category = 'Topping'",
+          label: 'Đổi * 0.9 thành - 5000',
           sql: {
-            mysql:
-              "SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(DISTINCT category) AS categories\nFROM products\nWHERE category = 'Topping';",
-            oracle:
-              "SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(DISTINCT category) AS categories\nFROM products\nWHERE category = 'Topping'",
+            mysql: "SELECT name, price, price - 5000 AS sale_price\nFROM products\nWHERE category = 'Trà sữa';",
+            oracle: "SELECT name, price, price - 5000 AS sale_price\nFROM products\nWHERE category = 'Trà sữa'",
           },
         },
         {
-          label: 'Bỏ DISTINCT ở COUNT(DISTINCT category)',
+          label: 'Đổi 0.9 thành 0.8',
           sql: {
-            mysql:
-              'SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(category) AS categories\nFROM products;',
-            oracle:
-              'SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(category) AS categories\nFROM products',
+            mysql: "SELECT name, price, price * 0.8 AS sale_price\nFROM products\nWHERE category = 'Trà sữa';",
+            oracle: "SELECT name, price, price * 0.8 AS sale_price\nFROM products\nWHERE category = 'Trà sữa'",
           },
         },
         {
-          label: 'Thêm COUNT(DISTINCT price) AS prices',
+          label: 'Đổi tên sale_price thành new_price',
           sql: {
-            mysql:
-              'SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(DISTINCT category) AS categories,\n       COUNT(DISTINCT price) AS prices\nFROM products;',
-            oracle:
-              'SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(DISTINCT category) AS categories,\n       COUNT(DISTINCT price) AS prices\nFROM products',
+            mysql: "SELECT name, price, price * 0.9 AS new_price\nFROM products\nWHERE category = 'Trà sữa';",
+            oracle: "SELECT name, price, price * 0.9 AS new_price\nFROM products\nWHERE category = 'Trà sữa'",
           },
         },
       ],
-      say: 'Có 14 món nhưng chỉ 11 món có calo, vì 3 món có calories là NULL. Bốn nhóm món khác nhau.',
+      say: 'Bạn đổi con số thì giá mới đổi theo. Column price gốc vẫn nằm yên bên cạnh.',
     },
     {
       type: 'text',
-      title: 'Cộng, trung bình, nhỏ nhất, lớn nhất',
+      title: 'Làm tròn số lẻ',
       paragraphs: [
-        'SUM, AVG, MIN và MAX đều bỏ qua row NULL.',
-        'AVG chia tổng cho số row có giá trị, không chia cho số row của table.',
-        'Nếu không row nào khớp WHERE, COUNT trả 0. SUM, AVG, MIN và MAX trả NULL.',
-        'Query dưới đây tính giá của các món Cà phê.',
+        'Phép chia hay cho số lẻ rất dài. Giá chia cho calo là một ví dụ.',
+        '**[[round]]** làm tròn số. Viết `ROUND(số, n)`, với n là số chữ số giữ lại sau dấu thập phân.',
+        'Nếu n bằng 0, ROUND làm tròn thành số nguyên.',
+        'Nếu một số trong phép tính là NULL, kết quả cũng là NULL. Món chưa có calo thì không chia được.',
+        'Query dưới đây tính số đồng cho mỗi calo của các món Trà sữa.',
       ],
     },
     {
       type: 'playground',
-      title: 'Thử tay ngay: giá của nhóm Cà phê',
-      intro: 'Bấm Chạy. Một row kết quả tóm tắt cả nhóm.',
+      title: 'Thử tay ngay: đồng cho mỗi calo',
+      intro: 'Bấm Chạy. `ROUND(..., 1)` giữ một chữ số sau dấu thập phân.',
       database: 'teashop',
       tables: ['products'],
       dialects: ['mysql', 'oracle'],
       sql: {
-        mysql:
-          "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(price) AS avg_price,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Cà phê';",
-        oracle:
-          "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(price) AS avg_price,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Cà phê'",
+        mysql: "SELECT name, calories, ROUND(price / calories, 1) AS dong_per_calo\nFROM products\nWHERE category = 'Trà sữa';",
+        oracle: "SELECT name, calories, ROUND(price / calories, 1) AS dong_per_calo\nFROM products\nWHERE category = 'Trà sữa'",
       },
       tries: [
         {
-          label: 'Đổi AVG(price) thành AVG(calories)',
+          label: 'Đổi ROUND(..., 1) thành ROUND(..., 0)',
           sql: {
-            mysql:
-              "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(calories) AS avg_calories,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Cà phê';",
-            oracle:
-              "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(calories) AS avg_calories,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Cà phê'",
+            mysql: "SELECT name, calories, ROUND(price / calories, 0) AS dong_per_calo\nFROM products\nWHERE category = 'Trà sữa';",
+            oracle: "SELECT name, calories, ROUND(price / calories, 0) AS dong_per_calo\nFROM products\nWHERE category = 'Trà sữa'",
           },
         },
         {
-          label: "Đổi 'Cà phê' thành 'Topping'",
+          label: 'Bỏ ROUND',
           sql: {
-            mysql:
-              "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(price) AS avg_price,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Topping';",
-            oracle:
-              "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(price) AS avg_price,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Topping'",
+            mysql: "SELECT name, calories, price / calories AS dong_per_calo\nFROM products\nWHERE category = 'Trà sữa';",
+            oracle: "SELECT name, calories, price / calories AS dong_per_calo\nFROM products\nWHERE category = 'Trà sữa'",
           },
         },
         {
-          label: "Đổi 'Cà phê' thành 'Không có'",
+          label: "Đổi 'Trà sữa' thành 'Cà phê'",
           sql: {
-            mysql:
-              "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(price) AS avg_price,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Không có';",
-            oracle:
-              "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(price) AS avg_price,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Không có'",
+            mysql: "SELECT name, calories, ROUND(price / calories, 1) AS dong_per_calo\nFROM products\nWHERE category = 'Cà phê';",
+            oracle: "SELECT name, calories, ROUND(price / calories, 1) AS dong_per_calo\nFROM products\nWHERE category = 'Cà phê'",
           },
         },
       ],
-      say: 'Cà phê cacao đá xay chưa có calo. AVG(calories) chỉ chia cho 2 món có số, nên ra 180.',
+      say: 'Thử mục cuối. Món Cà phê cacao đá xay chưa có calo, nên kết quả của món đó là NULL.',
+    },
+    {
+      type: 'oracle',
+      body: [
+        'Bốn phép tính và ROUND chạy giống nhau ở cả hai dialect. Hai điểm khác nằm ở phép chia lấy dư và phép chia cho 0.',
+        'MySQL có dấu `%` để lấy phần dư. Oracle không có dấu này, dùng function `MOD(a, b)`.',
+        'Chia cho 0 thì MySQL ra NULL. Oracle báo lỗi ORA-01476.',
+      ],
+      mysql: 'price % 1000\nprice / 0   -- ra NULL',
+      oracle: 'MOD(price, 1000)\nprice / 0   -- lỗi ORA-01476',
     },
     {
       type: 'quiz',
@@ -143,57 +135,55 @@ export const lesson: Lesson = {
       items: [
         {
           kind: 'choice',
-          question: 'Table có 14 món, và 3 món có calories là NULL. `COUNT(calories)` ra bao nhiêu?',
+          question: 'Bạn muốn xem giá của mỗi món sau khi trừ 5.000 đồng, và đặt tên column là new_price. Query nào đúng?',
           options: [
-            { text: '14', feedback: 'COUNT(*) mới ra 14. COUNT(calories) bỏ các row NULL.' },
-            { text: '11', correct: true, feedback: 'Đúng. 14 trừ 3 row NULL còn 11.' },
-            { text: '3', feedback: '3 là số row NULL. COUNT(calories) đếm các row có giá trị.' },
+            { text: '`SELECT name, price - 5000 AS new_price FROM products`', correct: true, feedback: 'Đúng. Phép trừ đứng ở chỗ column, AS đặt tên cho kết quả.' },
+            { text: '`SELECT name, price = price - 5000 FROM products`', feedback: 'Dấu = chỉ so sánh hai vế. Kết quả ra đúng hoặc sai, không ra giá mới.' },
+            { text: '`SET price = price - 5000`', feedback: 'SET thuộc lệnh UPDATE, dùng để sửa data. Bài này chỉ xem giá, không sửa.' },
           ],
         },
         {
           kind: 'choice',
-          question: 'Bạn muốn biết tiệm bán mấy nhóm món khác nhau. Viết gì?',
+          question: 'Bạn chạy `price / calories` cho món chưa có calo. Kết quả là gì?',
           options: [
-            { text: '`COUNT(category)`', feedback: 'Cách này đếm mọi row có category, nên ra 14 thay vì 4.' },
-            { text: '`COUNT(DISTINCT category)`', correct: true, feedback: 'Đúng. DISTINCT chỉ đếm mỗi giá trị một lần.' },
-            { text: '`SUM(category)`', feedback: 'SUM cộng số. Category là chữ, không cộng được.' },
+            { text: '0', feedback: 'Số 0 là một giá trị có thật. Chưa có calo nghĩa là chưa biết, nên kết quả cũng chưa biết.' },
+            { text: 'NULL', correct: true, feedback: 'Đúng. Một số NULL làm cả phép tính thành NULL.' },
+            { text: 'Lỗi chia cho 0', feedback: 'NULL khác 0. Calo chưa có nên kết quả là NULL, và query không báo lỗi.' },
           ],
         },
         {
           kind: 'choice',
-          question: 'Ba món Cà phê có calories là 150, 210 và NULL. `AVG(calories)` ra bao nhiêu?',
+          question: 'Bạn lấy phần dư của price chia cho 1000 trên Oracle. Viết thế nào?',
           options: [
-            { text: '120', feedback: '120 là 360 chia cho 3. AVG chia cho số row có giá trị, tức là 2.' },
-            { text: '180', correct: true, feedback: 'Đúng. AVG bỏ row NULL: 360 chia cho 2.' },
-            { text: 'NULL', feedback: 'AVG bỏ qua NULL và tính từ các số còn lại.' },
+            { text: '`price % 1000`', feedback: 'MySQL nhận dấu %, Oracle thì không.' },
+            { text: '`price MOD 1000`', feedback: 'Oracle dùng MOD như một function, có ngoặc và dấu phẩy.' },
+            { text: '`MOD(price, 1000)`', correct: true, feedback: 'Đúng. Oracle lấy phần dư bằng MOD(a, b).' },
           ],
         },
       ],
     },
     {
       type: 'realworld',
-      title: 'Số liệu đầu trang báo cáo',
+      title: 'Giá sau khuyến mãi trong app mua sắm',
       paragraphs: [
-        'Báo cáo cuối ngày của một chuỗi cửa hàng thường mở đầu bằng vài con số: tổng đơn, tổng tiền, đơn lớn nhất.',
-        'Mỗi con số là một function gom chạy trên cả table.',
+        'Bạn mở một app mua sắm vào ngày giảm giá. Giá gốc và giá sau giảm hiện cạnh nhau.',
+        'App có thể không lưu sẵn giá sau giảm. Query tính nó bằng một phép nhân, ngay lúc bạn mở trang.',
       ],
     },
     {
       type: 'keypoints',
       items: [
-        'Function gom nhận nhiều row và trả một giá trị. Năm function: COUNT, SUM, AVG, MIN, MAX.',
-        '`COUNT(*)` đếm mọi row. `COUNT(column)` bỏ row NULL.',
-        '`COUNT(DISTINCT column)` đếm số giá trị khác nhau.',
-        'SUM, AVG, MIN, MAX bỏ qua NULL. AVG chia cho số row có giá trị.',
+        'Phép tính đứng trong SELECT, ở chỗ column. Database tính cho từng row.',
+        'Đặt tên column mới bằng AS. Table gốc không đổi.',
+        'ROUND làm tròn số lẻ. `ROUND(số, 1)` giữ một chữ số sau dấu thập phân.',
+        'Một số NULL trong phép tính làm kết quả thành NULL.',
       ],
     },
     {
       type: 'sources',
       items: [
         { name: 'Harvard CS50 SQL, Lecture 0', url: 'https://cs50.harvard.edu/sql/notes/0/', note: 'CC BY-NC-SA 4.0' },
-        { name: 'SQLBolt, bài 10: Queries with aggregates (Pt. 1)', url: 'https://sqlbolt.com/lesson/select_queries_with_aggregates' },
-        { name: 'MySQL 8.0 Reference Manual, Aggregate Function Descriptions', url: 'https://dev.mysql.com/doc/refman/8.0/en/aggregate-functions.html' },
-        { name: 'Oracle Database 19c SQL Language Reference, Aggregate Functions', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Aggregate-Functions.html' },
+        { name: 'SQLBolt, bài 9: Queries with expressions', url: 'https://sqlbolt.com/lesson/select_queries_with_expressions' },
       ],
     },
   ],

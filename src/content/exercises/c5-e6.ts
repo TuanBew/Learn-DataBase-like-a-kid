@@ -3,60 +3,62 @@ import type { SqlExercise } from '../types';
 export const exercise: SqlExercise = {
   id: 'c5-e6',
   chapter: 5,
-  kind: 'write',
-  title: 'Món bán được trên 1 triệu đồng',
-  prompt: 'Cuối tháng 3, chủ tiệm muốn biết món nào mang về từ 1.000.000 đồng doanh thu. Chỉ tính đơn đã hoàn tất, bỏ đơn `cancelled`. Phần FROM và JOIN đã có sẵn.',
+  kind: 'debug',
+  title: 'Sửa CASE WHEN thiếu một từ',
+  prompt:
+    'Query đang báo lỗi. Mình muốn gắn nhãn giá cho các món Topping và Trà sữa. Sửa query cho chạy đúng.',
   asks: [
-    'Hiện `product_id` và doanh thu, đặt tên column doanh thu là `revenue`.',
-    'Doanh thu là tổng `quantity * unit_price`, chỉ tính đơn `done`.',
-    'Chỉ giữ món có doanh thu từ 1000000 trở lên.',
-    'Món doanh thu cao đứng trước.',
+    "Dưới 20000 là 'Rẻ', từ 20000 tới dưới 40000 là 'Vừa', còn lại là 'Đắt'.",
+    'Đặt tên column nhãn là `price_level`.',
+    "Chỉ lấy món thuộc nhóm 'Topping' và 'Trà sữa'.",
   ],
-  database: 'teashop-big',
-  tables: ['orders', 'order_items'],
+  database: 'teashop',
+  tables: ['products'],
   dialects: ['mysql', 'oracle'],
   starter: {
-    mysql: 'SELECT oi.product_id, SUM(oi.quantity * oi.unit_price) AS revenue\nFROM order_items oi\nINNER JOIN orders o ON oi.order_id = o.order_id\n',
-    oracle: 'SELECT oi.product_id, SUM(oi.quantity * oi.unit_price) AS revenue\nFROM order_items oi\nINNER JOIN orders o ON oi.order_id = o.order_id\n',
+    mysql:
+      "SELECT name, price,\n  CASE WHEN price < 20000 THEN 'Rẻ'\n       WHEN price < 40000 THEN 'Vừa'\n       ELSE 'Đắt' AS price_level\nFROM products\nWHERE category IN ('Topping', 'Trà sữa');",
+    oracle:
+      "SELECT name, price,\n  CASE WHEN price < 20000 THEN 'Rẻ'\n       WHEN price < 40000 THEN 'Vừa'\n       ELSE 'Đắt' AS price_level\nFROM products\nWHERE category IN ('Topping', 'Trà sữa')",
   },
   solution: {
-    mysql: "SELECT oi.product_id, SUM(oi.quantity * oi.unit_price) AS revenue\nFROM order_items oi\nINNER JOIN orders o ON oi.order_id = o.order_id\nWHERE o.status = 'done'\nGROUP BY oi.product_id\nHAVING SUM(oi.quantity * oi.unit_price) >= 1000000\nORDER BY revenue DESC;",
-    oracle: "SELECT oi.product_id, SUM(oi.quantity * oi.unit_price) AS revenue\nFROM order_items oi\nINNER JOIN orders o ON oi.order_id = o.order_id\nWHERE o.status = 'done'\nGROUP BY oi.product_id\nHAVING SUM(oi.quantity * oi.unit_price) >= 1000000\nORDER BY revenue DESC;",
+    mysql:
+      "SELECT name, price,\n  CASE WHEN price < 20000 THEN 'Rẻ'\n       WHEN price < 40000 THEN 'Vừa'\n       ELSE 'Đắt' END AS price_level\nFROM products\nWHERE category IN ('Topping', 'Trà sữa');",
+    oracle:
+      "SELECT name, price,\n  CASE WHEN price < 20000 THEN 'Rẻ'\n       WHEN price < 40000 THEN 'Vừa'\n       ELSE 'Đắt' END AS price_level\nFROM products\nWHERE category IN ('Topping', 'Trà sữa')",
   },
-  check: { orderMatters: true, aliasMatters: true },
-  why: 'WHERE bỏ đơn cancelled trước khi gom. HAVING giữ các món có tổng từ 1 triệu, vì chỉ sau khi gom mới biết tổng của mỗi món.',
+  check: { orderMatters: false, aliasMatters: true },
+  why: 'Mỗi CASE phải kết thúc bằng END. Sau END mới tới alias price_level.',
   hints: {
-    light: 'Có hai bước lọc khác nhau. Một bước lọc row trước khi gom, một bước lọc nhóm sau khi gom.',
-    specific: "Bỏ đơn cancelled bằng WHERE o.status = 'done'. Lọc theo tổng doanh thu cần HAVING, vì function gom không đứng được trong WHERE.",
+    light: 'CASE WHEN là một khối có điểm bắt đầu và điểm kết thúc. Kiểm tra khối đó đã đóng chưa.',
+    specific: 'Sau ELSE thiếu từ END. Thêm END ngay trước AS price_level.',
     skeleton: {
-      mysql: "SELECT oi.product_id, SUM(oi.quantity * oi.unit_price) AS revenue\nFROM order_items oi\nINNER JOIN orders o ON oi.order_id = o.order_id\nWHERE o.status = ____\nGROUP BY ____\nHAVING SUM(oi.quantity * oi.unit_price) >= ____\nORDER BY ____ DESC;",
-      oracle: "SELECT oi.product_id, SUM(oi.quantity * oi.unit_price) AS revenue\nFROM order_items oi\nINNER JOIN orders o ON oi.order_id = o.order_id\nWHERE o.status = ____\nGROUP BY ____\nHAVING SUM(oi.quantity * oi.unit_price) >= ____\nORDER BY ____ DESC;",
+      mysql:
+        "SELECT name, price,\n  CASE WHEN price < 20000 THEN 'Rẻ'\n       WHEN price < 40000 THEN 'Vừa'\n       ELSE 'Đắt' ____ AS price_level\nFROM products\nWHERE category IN ('Topping', 'Trà sữa');",
+      oracle:
+        "SELECT name, price,\n  CASE WHEN price < 20000 THEN 'Rẻ'\n       WHEN price < 40000 THEN 'Vừa'\n       ELSE 'Đắt' ____ AS price_level\nFROM products\nWHERE category IN ('Topping', 'Trà sữa')",
     },
   },
   wrong: [
     {
-      id: 'no-having',
+      id: 'no-else',
       sql: {
-        mysql: "SELECT oi.product_id, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id WHERE o.status = 'done' GROUP BY oi.product_id ORDER BY revenue DESC",
-        oracle: "SELECT oi.product_id, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id WHERE o.status = 'done' GROUP BY oi.product_id ORDER BY revenue DESC",
+        mysql:
+          "SELECT name, price, CASE WHEN price < 20000 THEN 'Rẻ' WHEN price < 40000 THEN 'Vừa' END AS price_level FROM products WHERE category IN ('Topping', 'Trà sữa')",
+        oracle:
+          "SELECT name, price, CASE WHEN price < 20000 THEN 'Rẻ' WHEN price < 40000 THEN 'Vừa' END AS price_level FROM products WHERE category IN ('Topping', 'Trà sữa')",
       },
-      hint: 'Doanh thu từng món đã đúng. Query còn thiếu HAVING để chỉ giữ món từ 1.000.000 đồng.',
+      hint: "Query chạy được rồi. Món 42000 đồng đang ra NULL, vì CASE không có ELSE. Thêm ELSE 'Đắt' trước END.",
     },
     {
-      id: 'no-status',
+      id: 'wrong-order',
       sql: {
-        mysql: 'SELECT oi.product_id, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id GROUP BY oi.product_id HAVING SUM(oi.quantity * oi.unit_price) >= 1000000 ORDER BY revenue DESC',
-        oracle: 'SELECT oi.product_id, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id GROUP BY oi.product_id HAVING SUM(oi.quantity * oi.unit_price) >= 1000000 ORDER BY revenue DESC',
+        mysql:
+          "SELECT name, price, CASE WHEN price < 40000 THEN 'Vừa' WHEN price < 20000 THEN 'Rẻ' ELSE 'Đắt' END AS price_level FROM products WHERE category IN ('Topping', 'Trà sữa')",
+        oracle:
+          "SELECT name, price, CASE WHEN price < 40000 THEN 'Vừa' WHEN price < 20000 THEN 'Rẻ' ELSE 'Đắt' END AS price_level FROM products WHERE category IN ('Topping', 'Trà sữa')",
       },
-      hint: "Doanh thu đang tính cả đơn cancelled nên cao hơn thực tế. Thêm WHERE o.status = 'done' trước GROUP BY.",
-    },
-    {
-      id: 'where-on-row',
-      sql: {
-        mysql: "SELECT oi.product_id, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id WHERE o.status = 'done' AND oi.quantity * oi.unit_price >= 100000 GROUP BY oi.product_id ORDER BY revenue DESC",
-        oracle: "SELECT oi.product_id, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id WHERE o.status = 'done' AND oi.quantity * oi.unit_price >= 100000 GROUP BY oi.product_id ORDER BY revenue DESC",
-      },
-      hint: 'WHERE lọc từng row trước khi gom, nên nó cắt bớt các row nhỏ chứ chưa lọc theo tổng. Lọc theo tổng doanh thu của món cần HAVING.',
+      hint: 'CASE dừng ở nhánh WHEN đầu tiên đúng. Món rẻ cũng nhỏ hơn 40000, nên đang bị gắn Vừa. Đặt nhánh nhỏ nhất lên đầu.',
     },
   ],
 };

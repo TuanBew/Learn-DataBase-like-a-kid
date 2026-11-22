@@ -3,66 +3,61 @@ import type { SqlExercise } from '../types';
 export const exercise: SqlExercise = {
   id: 'c5-e5',
   chapter: 5,
-  kind: 'order',
-  title: 'Xếp query tiệm bán nhiều đơn',
-  prompt: 'Tìm các tiệm có từ 4 đơn hoàn tất trở lên, tiệm bán nhiều đơn đứng trước. Bấm các mẩu theo thứ tự viết đúng của một query.',
+  kind: 'translate',
+  title: 'Ngày giờ: từ DATE_FORMAT sang Oracle',
+  prompt:
+    'Query này chạy ở MySQL và lấy các đơn của ngày 2 tháng 3. Viết lại cho chạy ở Oracle, ra cùng kết quả.',
   asks: [
-    'Hiện `store_id` và số đơn `done_orders`.',
-    'Chỉ đếm đơn `done`, chỉ giữ tiệm có từ 4 đơn trở lên.',
-    'Tiệm nhiều đơn hơn đứng trước. Hai tiệm bằng nhau thì `store_id` nhỏ đứng trước.',
+    'Đổi DATE_FORMAT thành TO_CHAR với khuôn `DD/MM/YYYY`.',
+    'Đổi DATE(ordered_at) thành TRUNC(ordered_at).',
+    'So sánh với `DATE \'2026-03-02\'`, không so với chuỗi trơn.',
   ],
   database: 'teashop',
   tables: ['orders'],
-  dialects: ['mysql', 'oracle'],
-  starter: { mysql: '', oracle: '' },
-  pieces: {
-    mysql: [
-      'SELECT store_id, COUNT(*) AS done_orders',
-      'FROM orders',
-      "WHERE status = 'done'",
-      'GROUP BY store_id',
-      'HAVING COUNT(*) >= 4',
-      'ORDER BY done_orders DESC, store_id',
-    ],
-    oracle: [
-      'SELECT store_id, COUNT(*) AS done_orders',
-      'FROM orders',
-      "WHERE status = 'done'",
-      'GROUP BY store_id',
-      'HAVING COUNT(*) >= 4',
-      'ORDER BY done_orders DESC, store_id',
-    ],
+  dialects: ['oracle'],
+  from: "SELECT order_id, DATE_FORMAT(ordered_at, '%d/%m/%Y') AS order_day, status\nFROM orders\nWHERE DATE(ordered_at) = '2026-03-02';",
+  starter: {
+    oracle:
+      "SELECT order_id, DATE_FORMAT(ordered_at, '%d/%m/%Y') AS order_day, status\nFROM orders\nWHERE DATE(ordered_at) = '2026-03-02';",
   },
   solution: {
-    mysql: "SELECT store_id, COUNT(*) AS done_orders\nFROM orders\nWHERE status = 'done'\nGROUP BY store_id\nHAVING COUNT(*) >= 4\nORDER BY done_orders DESC, store_id",
-    oracle: "SELECT store_id, COUNT(*) AS done_orders\nFROM orders\nWHERE status = 'done'\nGROUP BY store_id\nHAVING COUNT(*) >= 4\nORDER BY done_orders DESC, store_id",
+    oracle:
+      "SELECT order_id, TO_CHAR(ordered_at, 'DD/MM/YYYY') AS order_day, status\nFROM orders\nWHERE TRUNC(ordered_at) = DATE '2026-03-02'",
   },
-  check: { orderMatters: true, aliasMatters: true },
-  why: 'WHERE lọc row trước khi gom. GROUP BY chia nhóm, HAVING lọc nhóm, rồi ORDER BY xếp kết quả. Lúc chạy, chỉ SELECT đổi chỗ: database chạy SELECT sau HAVING.',
+  check: { orderMatters: false },
+  why: 'TO_CHAR thay DATE_FORMAT để đổi ngày thành chữ. TRUNC cắt phần giờ, và DATE viết trước chuỗi ngày để Oracle hiểu đó là ngày.',
   hints: {
-    light: 'Query chạy theo thứ tự: lấy table, lọc row, chia nhóm, lọc nhóm, rồi xếp. Mỗi clause đứng đúng chỗ đó.',
-    specific: 'SELECT đứng đầu, FROM đứng ngay sau. WHERE đứng trước GROUP BY, còn HAVING đứng sau GROUP BY. ORDER BY đứng cuối.',
+    light: 'Mỗi function ngày của MySQL có một function tương ứng ở Oracle. Khuôn ngày cũng viết khác.',
+    specific:
+      "DATE_FORMAT thành TO_CHAR, khuôn '%d/%m/%Y' thành 'DD/MM/YYYY'. DATE(ordered_at) thành TRUNC(ordered_at). Chuỗi ngày cần chữ DATE đứng trước.",
     skeleton: {
-      mysql: '____\n____\n____\n____\n____\n____',
-      oracle: '____\n____\n____\n____\n____\n____',
+      oracle: "SELECT order_id, ____(ordered_at, 'DD/MM/YYYY') AS order_day, status\nFROM orders\nWHERE ____(ordered_at) = ____ '2026-03-02'",
     },
   },
   wrong: [
     {
-      id: 'no-where',
+      id: 'no-trunc',
       sql: {
-        mysql: 'SELECT store_id, COUNT(*) AS done_orders FROM orders GROUP BY store_id HAVING COUNT(*) >= 4 ORDER BY done_orders DESC, store_id',
-        oracle: 'SELECT store_id, COUNT(*) AS done_orders FROM orders GROUP BY store_id HAVING COUNT(*) >= 4 ORDER BY done_orders DESC, store_id',
+        oracle:
+          "SELECT order_id, TO_CHAR(ordered_at, 'DD/MM/YYYY') AS order_day, status FROM orders WHERE ordered_at = DATE '2026-03-02'",
       },
-      hint: "Query này thiếu WHERE status = 'done', nên đơn cancelled vẫn được đếm. Thêm WHERE trước GROUP BY.",
+      hint: 'Giờ đặt có cả giờ và phút, nên không đơn nào bằng đúng nửa đêm. Bọc ordered_at trong TRUNC để cắt phần giờ.',
     },
     {
-      id: 'having-too-high',
+      id: 'wrong-day',
       sql: {
-        mysql: "SELECT store_id, COUNT(*) AS done_orders FROM orders WHERE status = 'done' GROUP BY store_id HAVING COUNT(*) > 4 ORDER BY done_orders DESC, store_id",
-        oracle: "SELECT store_id, COUNT(*) AS done_orders FROM orders WHERE status = 'done' GROUP BY store_id HAVING COUNT(*) > 4 ORDER BY done_orders DESC, store_id",
+        oracle:
+          "SELECT order_id, TO_CHAR(ordered_at, 'DD/MM/YYYY') AS order_day, status FROM orders WHERE TRUNC(ordered_at) = DATE '2026-03-03'",
       },
-      hint: 'Đề bài cần từ 4 đơn trở lên, tức là `>= 4`. Dấu `> 4` làm mất các tiệm có đúng 4 đơn.',
+      hint: 'Query chạy được, nhưng đang lấy ngày 3 tháng 3. Đổi ngày trong DATE thành 2026-03-02.',
+    },
+    {
+      id: 'dash-format',
+      sql: {
+        oracle:
+          "SELECT order_id, TO_CHAR(ordered_at, 'DD-MM-YYYY') AS order_day, status FROM orders WHERE TRUNC(ordered_at) = DATE '2026-03-02'",
+      },
+      hint: 'Ngày đang hiện với dấu gạch. MySQL hiện dấu gạch chéo, nên đổi khuôn thành DD/MM/YYYY.',
     },
   ],
 };

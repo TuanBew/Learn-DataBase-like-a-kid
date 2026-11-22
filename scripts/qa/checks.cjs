@@ -36,13 +36,13 @@ async function type(page, sql) {
   }
   // 4 console + overflow
   for (const w of [1440, 390]) {
-    for (const path of ['/', '/bai/c1-b1', '/tap/c3-e6']) {
+    for (const path of ['/', '/bai/c1-b1', '/tap/c4-e6']) {
       const p = await br.newPage({ viewport: { width: w, height: 844 } }); const errs = [];
       p.on('console', m => m.type() === 'error' && errs.push(m.text().slice(0, 100))); p.on('pageerror', e => errs.push(String(e).slice(0, 100)));
       await p.goto(B + path, { waitUntil: 'networkidle' }); await p.waitForTimeout(500);
       let sw = await p.evaluate(() => document.documentElement.scrollWidth);
       let sw2 = null;
-      if (w === 390 && path === '/tap/c3-e6') {
+      if (w === 390 && path === '/tap/c4-e6') {
         await p.getByRole('button', { name: 'Oracle' }).click(); await type(p, OR); await p.waitForTimeout(1500);
         sw2 = await p.evaluate(() => document.documentElement.scrollWidth);
         await p.getByRole('button', { name: /Bỏ qua/ }).click(); await p.waitForTimeout(800);
@@ -54,7 +54,7 @@ async function type(page, sql) {
   // 5 reduced motion
   {
     const ctx = await br.newContext({ reducedMotion: 'reduce', viewport: { width: 1440, height: 900 } });
-    const p = await ctx.newPage(); await p.goto(B + '/tap/c3-e6', { waitUntil: 'networkidle' });
+    const p = await ctx.newPage(); await p.goto(B + '/tap/c4-e6', { waitUntil: 'networkidle' });
     await type(p, MY); await p.waitForTimeout(3000);
     const prog = () => p.locator('.qt [role=progressbar]').first().getAttribute('aria-valuenow');
     const r = { step0: await prog(), note: await p.locator('.qt-reduced').count() };
@@ -82,7 +82,7 @@ async function type(page, sql) {
     await p.reload({ waitUntil: 'networkidle' }); await p.goto(B + '/', { waitUntil: 'networkidle' });
     r.doneOnHome = await p.locator('text=Dữ liệu ở quanh ta').first().evaluate(e => (e.closest('li,article,a,div[class]')?.parentElement?.textContent || '').includes('Đã xong'));
     r.doneAny = await p.getByText('Đã xong').count();
-    await p.goto(B + '/tap/c3-e6', { waitUntil: 'networkidle' }); await type(p, MY); await p.waitForTimeout(500);
+    await p.goto(B + '/tap/c4-e6', { waitUntil: 'networkidle' }); await type(p, MY); await p.waitForTimeout(500);
     await p.getByRole('button', { name: /Bỏ qua/ }).click(); await p.waitForTimeout(1500);
     r.correct = await p.getByText('Đúng rồi').count();
     r.progress = await p.evaluate(() => localStorage.getItem('ldb:progress'));
@@ -90,7 +90,7 @@ async function type(page, sql) {
   }
   // 8 wrong + error
   {
-    const ctx = await br.newContext(); const p = await ctx.newPage(); await p.goto(B + '/tap/c3-e6', { waitUntil: 'networkidle' });
+    const ctx = await br.newContext(); const p = await ctx.newPage(); await p.goto(B + '/tap/c4-e6', { waitUntil: 'networkidle' });
     await type(p, WRONG); await p.waitForTimeout(500); await p.getByRole('button', { name: /Bỏ qua/ }).click(); await p.waitForTimeout(1500);
     const r = { rcmp: await p.locator('.rcmp').count(), muoi: await p.locator('.rcmp').getByText(/Cà phê muối/).count() };
     const hl = p.locator('.hlad'); const btns = hl.getByRole('button');

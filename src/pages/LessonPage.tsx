@@ -181,7 +181,7 @@ function LessonView({ lesson }: { lesson: Lesson }) {
               <>
                 <div className="lesson-end__top">
                   <Says mood="cheer" size={showStamp ? 96 : 72}>
-                    {chaptersDone === chapters.length ? U.courseSay : showStamp && chapter ? U.chapterSay(chapter.id, chapter.title) : U.finishSay}
+                    {chaptersDone === chapters.length ? U.courseSay(chapters.length) : showStamp && chapter ? U.chapterSay(chapter.id, chapter.title) : U.finishSay}
                   </Says>
                   {showStamp && chapter && (
                     <div className={`chapter-stamp ${justDone ? 'is-fresh' : ''}`}>

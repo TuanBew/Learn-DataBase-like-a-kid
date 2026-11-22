@@ -6,8 +6,8 @@ Website tĩnh dạy database và SQL cho người lớn chưa biết gì về IT
 
 ## Có gì trong site
 
-- 7 chương, 33 bài học.
-- 49 bài tập: mỗi chương 6 bài và một bài boss.
+- 33 bài học xếp theo dàn ý 12 chương (`docs/outline-v2.md`). Hiện có bài ở 10 chương, Chương 3 và Chương 9 chưa có bài. Id bài cũ và mới nằm ở `docs/id-map-v2.md`.
+- 49 bài tập. Bài boss nằm ở Chương 1, 2, 4, 5, 6, 7 và 12.
 - 17 cảnh motion minh họa từng khái niệm.
 - Query Theater diễn lại query từng bước, dựng từ trace của engine.
 - SQL engine tự viết bằng TypeScript, chạy ngay trong browser ở hai dialect (MySQL 8 và Oracle 19c), báo lỗi bằng mã lỗi thật.
@@ -107,7 +107,7 @@ Mọi script nhận địa chỉ gốc qua biến `BASE`, ví dụ `BASE=http://
 
 ## Trạng thái
 
-Cả ba mốc đã xong: đủ 7 chương, engine, Query Theater, toàn bộ bài tập, giao diện tối và lượt kiểm theo danh sách ở mục 13 của `docs/PROMPT.md`.
+Cả ba mốc đã xong: đủ bảy chương của dàn ý đầu (nay đã đánh id lại theo dàn ý 12 chương), engine, Query Theater, toàn bộ bài tập, giao diện tối và lượt kiểm theo danh sách ở mục 13 của `docs/PROMPT.md`.
 
 Con số của lượt kiểm cuối, chạy ngày 21/11/2026:
 

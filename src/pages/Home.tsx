@@ -48,7 +48,7 @@ export function Home() {
               {U.toToc}
             </a>
           </div>
-          {started && <p className="home-hero__resume">{upNext ? U.resumeNote(upNext.title) : U.allDoneNote}</p>}
+          {started && <p className="home-hero__resume">{upNext ? U.resumeNote(upNext.title) : U.allDoneNote(lessonCount)}</p>}
           <div className="home-hero__facts">
             <span className="chip">
               <b>{chapters.length}</b> {U.facts.chapters}
@@ -121,7 +121,7 @@ export function Home() {
       <section className="wrap home-toc" id="muc-luc">
         <div className="home-toc__head">
           <h2>{U.tocTitle}</h2>
-          <p>{U.tocLead}</p>
+          <p>{U.tocLead(chapters.length)}</p>
           <Link href="/tien-trinh" className="home-toc__progress">
             {U.seeProgress}
             <Icon name="arrow" size={16} />

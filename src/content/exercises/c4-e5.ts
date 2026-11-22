@@ -3,61 +3,47 @@ import type { SqlExercise } from '../types';
 export const exercise: SqlExercise = {
   id: 'c4-e5',
   chapter: 4,
-  kind: 'translate',
-  title: 'Ngày giờ: từ DATE_FORMAT sang Oracle',
-  prompt:
-    'Query này chạy ở MySQL và lấy các đơn của ngày 2 tháng 3. Viết lại cho chạy ở Oracle, ra cùng kết quả.',
-  asks: [
-    'Đổi DATE_FORMAT thành TO_CHAR với khuôn `DD/MM/YYYY`.',
-    'Đổi DATE(ordered_at) thành TRUNC(ordered_at).',
-    'So sánh với `DATE \'2026-03-02\'`, không so với chuỗi trơn.',
-  ],
+  kind: 'debug',
+  title: 'Sửa clause đứng sai chỗ',
+  prompt: 'Query đang báo lỗi. Mình muốn xem các món Cà phê, món đắt đứng trước. Sửa query cho chạy đúng.',
+  asks: ['Chỉ hiện `name` và `price`.', "Chỉ lấy món có `category` là 'Cà phê'.", 'Món đắt hơn đứng trước.'],
   database: 'teashop',
-  tables: ['orders'],
-  dialects: ['oracle'],
-  from: "SELECT order_id, DATE_FORMAT(ordered_at, '%d/%m/%Y') AS order_day, status\nFROM orders\nWHERE DATE(ordered_at) = '2026-03-02';",
+  tables: ['products'],
+  dialects: ['mysql', 'oracle'],
   starter: {
-    oracle:
-      "SELECT order_id, DATE_FORMAT(ordered_at, '%d/%m/%Y') AS order_day, status\nFROM orders\nWHERE DATE(ordered_at) = '2026-03-02';",
+    mysql: "SELECT name, price\nFROM products\nORDER BY price DESC\nWHERE category = 'Cà phê';",
+    oracle: "SELECT name, price\nFROM products\nORDER BY price DESC\nWHERE category = 'Cà phê'",
   },
   solution: {
-    oracle:
-      "SELECT order_id, TO_CHAR(ordered_at, 'DD/MM/YYYY') AS order_day, status\nFROM orders\nWHERE TRUNC(ordered_at) = DATE '2026-03-02'",
+    mysql: "SELECT name, price\nFROM products\nWHERE category = 'Cà phê'\nORDER BY price DESC;",
+    oracle: "SELECT name, price\nFROM products\nWHERE category = 'Cà phê'\nORDER BY price DESC",
   },
-  check: { orderMatters: false },
-  why: 'TO_CHAR thay DATE_FORMAT để đổi ngày thành chữ. TRUNC cắt phần giờ, và DATE viết trước chuỗi ngày để Oracle hiểu đó là ngày.',
+  check: { orderMatters: true },
+  why: 'WHERE phải đứng trước ORDER BY. Database lọc row trước, rồi mới sắp xếp những row còn lại.',
   hints: {
-    light: 'Mỗi function ngày của MySQL có một function tương ứng ở Oracle. Khuôn ngày cũng viết khác.',
-    specific:
-      "DATE_FORMAT thành TO_CHAR, khuôn '%d/%m/%Y' thành 'DD/MM/YYYY'. DATE(ordered_at) thành TRUNC(ordered_at). Chuỗi ngày cần chữ DATE đứng trước.",
+    light: 'Mỗi clause có chỗ đứng cố định. Thứ tự viết là SELECT, FROM, WHERE, ORDER BY.',
+    specific: 'Clause WHERE đang đứng sau ORDER BY. Chuyển WHERE lên ngay dưới FROM.',
     skeleton: {
-      oracle: "SELECT order_id, ____(ordered_at, 'DD/MM/YYYY') AS order_day, status\nFROM orders\nWHERE ____(ordered_at) = ____ '2026-03-02'",
+      mysql: "SELECT name, price\nFROM products\n____ category = 'Cà phê'\n____ price DESC;",
+      oracle: "SELECT name, price\nFROM products\n____ category = 'Cà phê'\n____ price DESC",
     },
   },
   wrong: [
     {
-      id: 'no-trunc',
+      id: 'no-where',
       sql: {
-        oracle:
-          "SELECT order_id, TO_CHAR(ordered_at, 'DD/MM/YYYY') AS order_day, status FROM orders WHERE ordered_at = DATE '2026-03-02'",
+        mysql: 'SELECT name, price FROM products ORDER BY price DESC',
+        oracle: 'SELECT name, price FROM products ORDER BY price DESC',
       },
-      hint: 'Giờ đặt có cả giờ và phút, nên không đơn nào bằng đúng nửa đêm. Bọc ordered_at trong TRUNC để cắt phần giờ.',
+      hint: 'Query chạy được rồi. Kết quả còn lẫn món ngoài nhóm Cà phê, vì chưa có WHERE.',
     },
     {
-      id: 'wrong-day',
+      id: 'asc',
       sql: {
-        oracle:
-          "SELECT order_id, TO_CHAR(ordered_at, 'DD/MM/YYYY') AS order_day, status FROM orders WHERE TRUNC(ordered_at) = DATE '2026-03-03'",
+        mysql: "SELECT name, price FROM products WHERE category = 'Cà phê' ORDER BY price",
+        oracle: "SELECT name, price FROM products WHERE category = 'Cà phê' ORDER BY price",
       },
-      hint: 'Query chạy được, nhưng đang lấy ngày 3 tháng 3. Đổi ngày trong DATE thành 2026-03-02.',
-    },
-    {
-      id: 'dash-format',
-      sql: {
-        oracle:
-          "SELECT order_id, TO_CHAR(ordered_at, 'DD-MM-YYYY') AS order_day, status FROM orders WHERE TRUNC(ordered_at) = DATE '2026-03-02'",
-      },
-      hint: 'Ngày đang hiện với dấu gạch. MySQL hiện dấu gạch chéo, nên đổi khuôn thành DD/MM/YYYY.',
+      hint: 'Lọc đúng rồi. Thứ tự đang là rẻ trước, còn đề bài cần đắt trước. Thêm DESC sau price.',
     },
   ],
 };

@@ -1,8 +1,8 @@
 import type { Lesson } from '../types';
 
 export const lesson: Lesson = {
-  id: 'c7-b1',
-  chapter: 7,
+  id: 'c10-b1',
+  chapter: 10,
   order: 1,
   title: 'INSERT, UPDATE, DELETE',
   lead: 'Bạn thêm, sửa và xóa row, và học thói quen để không sửa nhầm.',

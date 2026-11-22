@@ -163,7 +163,7 @@ export interface Chapter {
 export type ExerciseKind = 'write' | 'fill' | 'order' | 'predict' | 'debug' | 'translate' | 'rehearsal' | 'quiz';
 
 interface ExerciseBase {
-  /** Ví dụ 'c3-e4'. Bài boss của chương có đuôi '-boss'. */
+  /** Ví dụ 'c4-e4'. Bài boss của chương có đuôi '-boss'. */
   id: string;
   chapter: number;
   title: string;

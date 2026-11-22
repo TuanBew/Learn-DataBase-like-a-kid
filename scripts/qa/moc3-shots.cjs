@@ -28,7 +28,7 @@ const dark = { fn: () => localStorage.setItem('ldb:theme', 'dark') };
   // Mọi bài của Chương 1 tính là xong.
   const ids = fs.readdirSync(path.join(__dirname, '../../src/content/lessons')).filter((f) => /^c1-/.test(f)).map((f) => f.replace('.ts', '')).sort();
   const now = Date.now();
-  const seed = { fn: (v) => localStorage.setItem('ldb:progress', v), arg: JSON.stringify({ v: 1, lessons: Object.fromEntries(ids.map((i) => [i, now])), exercises: {} }) };
+  const seed = { fn: (v) => localStorage.setItem('ldb:progress', v), arg: JSON.stringify({ v: 2, lessons: Object.fromEntries(ids.map((i) => [i, now])), exercises: {} }) };
   const last = ids[ids.length - 1];
 
   for (const width of [1440, 390]) {
@@ -52,7 +52,7 @@ const dark = { fn: () => localStorage.setItem('ldb:theme', 'dark') };
     await shot(page, 'con-dau-chuong', width);
     await page.close();
 
-    page = await open(width, '/tap/c3-e6', dark);
+    page = await open(width, '/tap/c4-e6', dark);
     await page.locator('.cm-content').click();
     await page.keyboard.press('ControlOrMeta+a');
     await page.keyboard.insertText(SOLUTION);

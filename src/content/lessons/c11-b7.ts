@@ -1,9 +1,9 @@
 import type { Lesson } from '../types';
 
 export const lesson: Lesson = {
-  id: 'c7-b4',
-  chapter: 7,
-  order: 4,
+  id: 'c11-b7',
+  chapter: 11,
+  order: 7,
   title: 'MySQL và Oracle khác nhau ở đâu',
   lead: 'Bạn ôn mọi khác biệt đã gặp và học cách đọc mã lỗi của Oracle.',
   minutes: 16,

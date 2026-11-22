@@ -37,15 +37,15 @@ describe('ghi và đọc', () => {
   it('ghi rồi đọc lại', async () => {
     const st = fakeStorage();
     const p = await load(st);
-    expect(p.getProgress()).toEqual({ v: 1, lessons: {}, exercises: {} });
+    expect(p.getProgress()).toEqual({ v: 2, lessons: {}, exercises: {} });
     p.markLesson('c1-l1');
-    p.markExercise('c3-e6', 'mysql');
+    p.markExercise('c4-e6', 'mysql');
     expect(p.isLessonDone('c1-l1')).toBe(true);
     expect(p.isLessonDone('c1-l2')).toBe(false);
-    expect(p.isExerciseDone('c3-e6', 'mysql')).toBe(true);
-    expect(p.isExerciseDone('c3-e6', 'oracle')).toBe(false);
-    expect(p.isExerciseDone('c3-e6')).toBe(true);
-    expect(JSON.parse(st.data.get('ldb:progress')!).v).toBe(1);
+    expect(p.isExerciseDone('c4-e6', 'mysql')).toBe(true);
+    expect(p.isExerciseDone('c4-e6', 'oracle')).toBe(false);
+    expect(p.isExerciseDone('c4-e6')).toBe(true);
+    expect(JSON.parse(st.data.get('ldb:progress')!).v).toBe(2);
     // Máy khác nạp lại từ cùng localStorage
     const again = await load(st);
     expect(again.isLessonDone('c1-l1')).toBe(true);
@@ -87,14 +87,14 @@ describe('dữ liệu hỏng và localStorage lỗi', () => {
     const st = fakeStorage();
     st.data.set('ldb:progress', '{not json');
     const p = await load(st);
-    expect(p.getProgress()).toEqual({ v: 1, lessons: {}, exercises: {} });
+    expect(p.getProgress()).toEqual({ v: 2, lessons: {}, exercises: {} });
     p.markLesson('a');
     expect(p.isLessonDone('a')).toBe(true);
   });
 
   it('hình dạng sai thì bỏ phần sai', async () => {
     const st = fakeStorage();
-    st.data.set('ldb:progress', JSON.stringify({ v: 1, lessons: { a: 'x', b: 5 }, exercises: { c: 3, d: { mysql: 7, oracle: 'no' } } }));
+    st.data.set('ldb:progress', JSON.stringify({ v: 2, lessons: { a: 'x', b: 5 }, exercises: { c: 3, d: { mysql: 7, oracle: 'no' } } }));
     const p = await load(st);
     expect(p.getProgress().lessons).toEqual({ b: 5 });
     expect(p.getProgress().exercises).toEqual({ d: { mysql: 7 } });
@@ -102,7 +102,7 @@ describe('dữ liệu hỏng và localStorage lỗi', () => {
 
   it('getItem ném lỗi thì không ném ra ngoài', async () => {
     const p = await load(fakeStorage({ throwOn: 'get' }));
-    expect(p.getProgress()).toEqual({ v: 1, lessons: {}, exercises: {} });
+    expect(p.getProgress()).toEqual({ v: 2, lessons: {}, exercises: {} });
     expect(() => p.markLesson('a')).not.toThrow();
   });
 
@@ -125,10 +125,10 @@ describe('mã chuyển tiến trình', () => {
   it('export rồi import sang máy trống', async () => {
     const a = await load(fakeStorage());
     a.markLesson('c1-l1');
-    a.markExercise('c3-e6', 'mysql');
-    a.markExercise('c3-e6', 'oracle');
+    a.markExercise('c4-e6', 'mysql');
+    a.markExercise('c4-e6', 'oracle');
     const code = a.exportCode();
-    expect(code).toMatch(/^LDB1-[A-Za-z0-9_-]+$/);
+    expect(code).toMatch(/^LDB2-[A-Za-z0-9_-]+$/);
     const b = await load(fakeStorage());
     expect(b.importCode(code)).toEqual({ ok: true, added: 3 });
     expect(b.getProgress().lessons).toEqual(a.getProgress().lessons);
@@ -137,7 +137,7 @@ describe('mã chuyển tiến trình', () => {
 
   it('mã có tên tiếng Việt vẫn đi và về nguyên vẹn', async () => {
     const st = fakeStorage();
-    st.data.set('ldb:progress', JSON.stringify({ v: 1, lessons: {}, exercises: {}, name: 'Ngọc Ánh' }));
+    st.data.set('ldb:progress', JSON.stringify({ v: 2, lessons: {}, exercises: {}, name: 'Ngọc Ánh' }));
     const a = await load(st);
     const code = a.exportCode();
     expect(/^[\x21-\x7e]+$/.test(code)).toBe(true);
@@ -170,7 +170,7 @@ describe('mã chuyển tiến trình', () => {
     const p = await load(fakeStorage());
     p.markLesson('a');
     const before = p.getProgress();
-    for (const bad of ['', 'hello', 'LDB1-', 'LDB1-!!!', 'LDB1-' + btoa('[1,2]'), 'LDB1-' + btoa('{"v":1,"l":5}')]) {
+    for (const bad of ['', 'hello', 'LDB2-', 'LDB2-!!!', 'LDB2-' + btoa('[1,2]'), 'LDB2-' + btoa('{"v":2,"l":5}')]) {
       expect(p.importCode(bad)).toEqual({ ok: false, reason: 'format' });
     }
     expect(p.getProgress()).toBe(before);
@@ -178,21 +178,38 @@ describe('mã chuyển tiến trình', () => {
 
   it('mã của phiên bản khác báo version', async () => {
     const p = await load(fakeStorage());
-    expect(p.importCode('LDB2-abc')).toEqual({ ok: false, reason: 'version' });
-    const future = btoa(JSON.stringify({ v: 2 })).replace(/=+$/, '');
-    expect(p.importCode('LDB1-' + future)).toEqual({ ok: false, reason: 'version' });
+    expect(p.importCode('LDB1-abc')).toEqual({ ok: false, reason: 'version' });
+    expect(p.importCode('LDB3-abc')).toEqual({ ok: false, reason: 'version' });
+    const future = btoa(JSON.stringify({ v: 3 })).replace(/=+$/, '');
+    expect(p.importCode('LDB2-' + future)).toEqual({ ok: false, reason: 'version' });
   });
 });
 
 describe('migrate', () => {
-  it('dữ liệu cũ chưa có v được đưa lên bản hiện tại', async () => {
+  it('dữ liệu v2 giữ nguyên', async () => {
     const p = await load(fakeStorage());
-    const out = p.migrate({ lessons: { a: 10 }, exercises: { e: { mysql: 20 } } });
-    expect(out).toEqual({ v: 1, lessons: { a: 10 }, exercises: { e: { mysql: 20 } } });
+    const out = p.migrate({ v: 2, lessons: { a: 10 }, exercises: { e: { mysql: 20 } } });
+    expect(out).toEqual({ v: 2, lessons: { a: 10 }, exercises: { e: { mysql: 20 } } });
+  });
+
+  it('dữ liệu v1 và v0 dùng id cũ nên bị bỏ qua, chỉ giữ tên', async () => {
+    const p = await load(fakeStorage());
+    const old = { lessons: { 'c3-b1': 10 }, exercises: { 'c3-e1': { mysql: 20 } } };
+    expect(p.migrate({ v: 1, ...old, name: 'Ánh' })).toEqual({ v: 2, lessons: {}, exercises: {}, name: 'Ánh' });
+    expect(p.migrate(old)).toEqual({ v: 2, lessons: {}, exercises: {} });
+  });
+
+  it('tiến trình v1 trong localStorage được bỏ qua êm', async () => {
+    const st = fakeStorage();
+    st.data.set('ldb:progress', JSON.stringify({ v: 1, lessons: { 'c3-b1': 10 }, exercises: {} }));
+    const p = await load(st);
+    expect(p.getProgress()).toEqual({ v: 2, lessons: {}, exercises: {} });
+    p.markLesson('c4-b1');
+    expect(p.isLessonDone('c4-b1')).toBe(true);
   });
 
   it('rác thì thành trạng thái trống', async () => {
     const p = await load(fakeStorage());
-    for (const junk of [null, 5, 'x', [], undefined]) expect(p.migrate(junk)).toEqual({ v: 1, lessons: {}, exercises: {} });
+    for (const junk of [null, 5, 'x', [], undefined]) expect(p.migrate(junk)).toEqual({ v: 2, lessons: {}, exercises: {} });
   });
 });

@@ -4,92 +4,147 @@ export const lesson: Lesson = {
   id: 'c7-b5',
   chapter: 7,
   order: 5,
-  title: 'Nhiệm vụ cuối: báo cáo bằng Oracle SQL',
-  lead: 'Bạn làm một báo cáo nhân sự hoàn chỉnh bằng Oracle SQL, trên database hr.',
+  title: 'Nối ba table',
+  lead: 'Bạn nối orders, order_items và products, rồi gom nhóm trên kết quả đã nối.',
   minutes: 18,
   goals: [
-    'Nối departments với employees bằng LEFT JOIN',
-    'Gom nhóm để đếm người và tính lương trung bình',
-    'Tránh bẫy COUNT(*) khi dùng LEFT JOIN',
-    'Biết chạy lại các query này trên Oracle thật',
+    'Nối ba table bằng hai JOIN',
+    'Đọc hai điều kiện ON, mỗi cái nối một cặp table',
+    'Nối xong mới gom nhóm',
+    'Tính số ly bán được của từng món',
   ],
   blocks: [
     {
       type: 'story',
-      title: 'Sếp cần một báo cáo',
+      title: 'Đơn 1004 gồm những món nào?',
       paragraphs: [
-        'Sáng thứ Hai, sếp nhắn bạn: "Cho mình số nhân viên và lương trung bình của từng phòng ban."',
-        'Dữ liệu nằm ở hai table. Table employees giữ nhân viên. Table departments giữ tên phòng.',
-        'Phòng nào chưa có ai cũng phải hiện trong báo cáo, với số người là 0.',
-        'Bạn có đủ đồ nghề: JOIN, LEFT JOIN, GROUP BY và các function gom. Bi ngồi cạnh bạn, và lần này bạn viết bằng Oracle SQL.',
+        'Một khách hỏi lại đơn 1004: "Hôm đó mình uống gì nhỉ?"',
+        'Table orders chỉ ghi ngày giờ và tiệm bán. Tên món không nằm ở đó.',
+        'Các món của đơn nằm ở order_items, mỗi món một row, kèm mã món. Tên món nằm ở products.',
+        'Bi đi hai chặng: từ đơn sang các món của đơn, rồi từ mã món sang tên món.',
       ],
     },
     {
       type: 'text',
-      title: 'Nhìn qua database hr',
+      title: 'Hai JOIN nối ba table',
       paragraphs: [
-        'Database hr là một công ty nhỏ. Database này có bốn table: `employees`, `departments`, `jobs` và `locations`.',
-        'Mỗi nhân viên có `department_id`, trỏ tới phòng của họ. Query dưới đây dùng hai table đầu.',
-        'Khởi động bằng query mẫu. Đọc nó từ trên xuống dưới.',
+        'Muốn nối ba table, viết hai JOIN liền nhau.',
+        'JOIN đầu nối orders với order_items qua `order_id`. Kết quả là một table tạm.',
+        'JOIN thứ hai nối table tạm đó với products qua `product_id`.',
+        'Mỗi JOIN có một `ON` riêng. Đếm table: có ba table thì có hai ON.',
+        'Query Theater cho thấy từng chặng nối, từ cặp đầu tới cặp sau.',
       ],
     },
     {
       type: 'playground',
-      title: 'Báo cáo nhân sự theo phòng ban',
-      intro: 'Bấm Chạy. Query đếm người và tính lương trung bình của từng phòng, kể cả phòng chưa có ai.',
-      database: 'hr',
-      tables: ['employees', 'departments'],
-      dialects: ['oracle'],
+      title: 'Thử tay ngay: các món của đơn 1004',
+      intro: 'Bấm Chạy. Query nối ba table rồi giữ đơn 1004.',
+      database: 'teashop',
+      tables: ['orders', 'order_items', 'products'],
+      dialects: ['mysql', 'oracle'],
       sql: {
+        mysql:
+          'SELECT o.order_id, p.name, i.quantity, i.unit_price\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.order_id = 1004;',
         oracle:
-          'SELECT d.department_name,\n       COUNT(e.employee_id) AS headcount,\n       ROUND(AVG(e.salary)) AS avg_salary\nFROM departments d\nLEFT JOIN employees e\n  ON e.department_id = d.department_id\nGROUP BY d.department_name\nORDER BY d.department_name',
+          'SELECT o.order_id, p.name, i.quantity, i.unit_price\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.order_id = 1004',
       },
       tries: [
         {
-          label: 'Đổi LEFT JOIN thành JOIN',
+          label: 'Đổi 1004 thành 1011',
           sql: {
+            mysql:
+              'SELECT o.order_id, p.name, i.quantity, i.unit_price\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.order_id = 1011;',
             oracle:
-              'SELECT d.department_name,\n       COUNT(e.employee_id) AS headcount,\n       ROUND(AVG(e.salary)) AS avg_salary\nFROM departments d\nJOIN employees e\n  ON e.department_id = d.department_id\nGROUP BY d.department_name\nORDER BY d.department_name',
+              'SELECT o.order_id, p.name, i.quantity, i.unit_price\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.order_id = 1011',
           },
         },
         {
-          label: 'Đổi COUNT(e.employee_id) thành COUNT(*)',
+          label: 'Đổi p.name thành p.category',
           sql: {
+            mysql:
+              'SELECT o.order_id, p.category, i.quantity, i.unit_price\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.order_id = 1004;',
             oracle:
-              'SELECT d.department_name,\n       COUNT(*) AS headcount,\n       ROUND(AVG(e.salary)) AS avg_salary\nFROM departments d\nLEFT JOIN employees e\n  ON e.department_id = d.department_id\nGROUP BY d.department_name\nORDER BY d.department_name',
+              'SELECT o.order_id, p.category, i.quantity, i.unit_price\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.order_id = 1004',
           },
         },
         {
-          label: 'Đổi ORDER BY d.department_name thành ORDER BY headcount DESC',
+          label: 'Thêm ORDER BY i.unit_price DESC',
           sql: {
+            mysql:
+              'SELECT o.order_id, p.name, i.quantity, i.unit_price\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.order_id = 1004\nORDER BY i.unit_price DESC;',
             oracle:
-              'SELECT d.department_name,\n       COUNT(e.employee_id) AS headcount,\n       ROUND(AVG(e.salary)) AS avg_salary\nFROM departments d\nLEFT JOIN employees e\n  ON e.department_id = d.department_id\nGROUP BY d.department_name\nORDER BY headcount DESC',
+              'SELECT o.order_id, p.name, i.quantity, i.unit_price\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.order_id = 1004\nORDER BY i.unit_price DESC',
           },
         },
       ],
-      say: 'Phòng Treasury hiện với 0 người và lương trung bình NULL. Đổi sang JOIN thì phòng này biến mất.',
+      say: 'Đơn 1004 có bốn món. Bi dùng order_items làm cầu nối giữa đơn và món.',
     },
     {
       type: 'text',
-      title: 'Đọc kết quả',
+      title: 'Nối xong mới gom nhóm',
       paragraphs: [
-        'LEFT JOIN đi từ departments sang employees. Mọi phòng đều có mặt, kể cả phòng chưa có nhân viên.',
-        'Dùng `COUNT(e.employee_id)` để đếm người. Function này bỏ qua NULL, nên phòng trống ra 0.',
-        'Đổi sang `COUNT(*)` thì phòng trống ra 1. LEFT JOIN tạo một row có NULL cho phòng đó, và COUNT(*) đếm row này.',
-        'Lương trung bình của phòng trống là NULL, vì không có số nào để lấy trung bình.',
-        'Còn một người chưa thuộc phòng nào: Kimberely Grant, có department_id là NULL. LEFT JOIN giữ mọi phòng. Người này không có phòng, nên không xuất hiện trong báo cáo.',
-        'Muốn thấy người này, đi từ employees sang departments. Viết thử query đó trong editor.',
+        'Bài "Thứ tự query chạy thật" đã nói: FROM chạy trước GROUP BY.',
+        'JOIN nằm trong FROM. Vì vậy database nối table trước, rồi mới gom nhóm trên kết quả đã nối.',
+        'Muốn đếm ly của từng món, bạn cần tên món và số lượng ở cùng một row. Nối ba table cho bạn điều đó.',
+        'Rồi `GROUP BY p.name` gom các row cùng tên món, và `SUM(i.quantity)` cộng số ly trong mỗi nhóm.',
+        'Query dưới đây chỉ tính đơn có status là done, và lấy năm món bán nhiều nhất.',
       ],
     },
     {
-      type: 'text',
-      title: 'Chạy lại trên Oracle thật',
-      paragraphs: [
-        'Schema HR có sẵn trên Oracle FreeSQL, tại https://freesql.com. Các query này chạy lại được trên Oracle thật.',
-        'Bộ dữ liệu trong khóa học là bản rút gọn, chỉ có 25 nhân viên. Bản đầy đủ có nhiều nhân viên hơn, nên con số trong báo cáo sẽ khác.',
-        'Cú pháp thì giữ nguyên. Nếu query chạy ở đây, nó chạy ở đó.',
-        'Khóa học này dạy theo Oracle 19c. FreeSQL cho chọn bản 19c hoặc 26ai.',
+      type: 'playground',
+      title: 'Năm món bán nhiều nhất',
+      intro: 'Bấm Chạy. Xem Theater nối ba table trước, rồi mới gom nhóm.',
+      database: 'teashop',
+      tables: ['orders', 'order_items', 'products'],
+      dialects: ['mysql', 'oracle'],
+      sql: {
+        mysql:
+          "SELECT p.name, SUM(i.quantity) AS cups\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.status = 'done'\nGROUP BY p.name\nORDER BY cups DESC, p.name\nLIMIT 5;",
+        oracle:
+          "SELECT p.name, SUM(i.quantity) AS cups\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.status = 'done'\nGROUP BY p.name\nORDER BY cups DESC, p.name\nFETCH FIRST 5 ROWS ONLY",
+      },
+      tries: [
+        {
+          label: 'Đổi 5 thành 3',
+          sql: {
+            mysql:
+              "SELECT p.name, SUM(i.quantity) AS cups\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.status = 'done'\nGROUP BY p.name\nORDER BY cups DESC, p.name\nLIMIT 3;",
+            oracle:
+              "SELECT p.name, SUM(i.quantity) AS cups\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.status = 'done'\nGROUP BY p.name\nORDER BY cups DESC, p.name\nFETCH FIRST 3 ROWS ONLY",
+          },
+        },
+        {
+          label: "Đổi o.status = 'done' thành o.status = 'cancelled'",
+          sql: {
+            mysql:
+              "SELECT p.name, SUM(i.quantity) AS cups\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.status = 'cancelled'\nGROUP BY p.name\nORDER BY cups DESC, p.name\nLIMIT 5;",
+            oracle:
+              "SELECT p.name, SUM(i.quantity) AS cups\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.status = 'cancelled'\nGROUP BY p.name\nORDER BY cups DESC, p.name\nFETCH FIRST 5 ROWS ONLY",
+          },
+        },
+        {
+          label: 'Đổi SUM(i.quantity) thành COUNT(*)',
+          sql: {
+            mysql:
+              "SELECT p.name, COUNT(*) AS cups\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.status = 'done'\nGROUP BY p.name\nORDER BY cups DESC, p.name\nLIMIT 5;",
+            oracle:
+              "SELECT p.name, COUNT(*) AS cups\nFROM orders o\nJOIN order_items i\n  ON i.order_id = o.order_id\nJOIN products p\n  ON p.product_id = i.product_id\nWHERE o.status = 'done'\nGROUP BY p.name\nORDER BY cups DESC, p.name\nFETCH FIRST 5 ROWS ONLY",
+          },
+        },
       ],
+      say: 'Mục cuối đếm số lần món xuất hiện trong đơn, không đếm số ly. Hai số khác nhau khi một đơn gọi nhiều ly cùng món.',
+    },
+    {
+      type: 'oracle',
+      body: [
+        'Hai dialect nối ba table giống nhau. Chỉ có hai chỗ khác ở query trên.',
+        'MySQL giữ năm row đầu bằng `LIMIT 5`. Oracle viết `FETCH FIRST 5 ROWS ONLY`.',
+        'Alias của table không có AS ở Oracle: `orders o`, không phải `orders AS o`.',
+        'Kết quả cũng khác ở row thứ năm. Bốn món cùng bán 5 ly, và MySQL xếp chữ đ như chữ d.',
+        'Sau khi nối, mọi column trong SELECT phải nằm trong GROUP BY hoặc trong function gom. Thêm `p.category` vào SELECT mà quên GROUP BY, Oracle báo ORA-00979.',
+      ],
+      mysql: 'ORDER BY cups DESC, p.name\nLIMIT 5;',
+      oracle: 'ORDER BY cups DESC, p.name\nFETCH FIRST 5 ROWS ONLY',
     },
     {
       type: 'quiz',
@@ -97,65 +152,47 @@ export const lesson: Lesson = {
       items: [
         {
           kind: 'choice',
-          question: 'Vì sao báo cáo bắt đầu từ departments và dùng LEFT JOIN sang employees?',
+          question: 'Bạn nối bốn table. Cần mấy chữ ON?',
           options: [
-            { text: 'Để phòng chưa có nhân viên vẫn hiện trong báo cáo', correct: true, feedback: 'Đúng. LEFT JOIN giữ mọi row của table bên trái, tức mọi phòng.' },
-            { text: 'Để Oracle chạy nhanh hơn', feedback: 'Lý do nằm ở kết quả. INNER JOIN sẽ làm mất phòng trống.' },
-            { text: 'Vì Oracle không có INNER JOIN', feedback: 'Oracle có INNER JOIN. Bài này chọn LEFT JOIN để giữ phòng trống.' },
+            { text: 'Ba ON, mỗi JOIN một cái', correct: true, feedback: 'Đúng. Bốn table cần ba JOIN, mỗi JOIN một ON.' },
+            { text: 'Bốn ON, mỗi table một cái', feedback: 'Table đầu tiên không cần ON. Mỗi JOIN thêm một table, nên có ba JOIN và ba ON.' },
+            { text: 'Một ON cho cả query', feedback: 'Mỗi JOIN nói riêng cặp table của nó, nên mỗi JOIN có một ON.' },
           ],
         },
         {
           kind: 'choice',
-          question: 'Phòng Treasury chưa có ai. Bạn dùng `COUNT(*)` sau LEFT JOIN. Treasury ra bao nhiêu người?',
+          question: 'Query nối ba table rồi có GROUP BY. Database làm bước nào trước?',
           options: [
-            { text: '1, vì COUNT(*) đếm cả row NULL do LEFT JOIN tạo ra', correct: true, feedback: 'Đúng. Muốn ra 0, đếm một column của employees, như COUNT(e.employee_id).' },
-            { text: '0', feedback: 'COUNT(e.employee_id) mới ra 0. COUNT(*) đếm mọi row, kể cả row toàn NULL.' },
-            { text: 'NULL', feedback: 'COUNT không bao giờ trả NULL. COUNT trả một con số.' },
-          ],
-        },
-        {
-          kind: 'choice',
-          question: 'Bạn chạy lại query trên FreeSQL và thấy con số khác. Vì sao?',
-          options: [
-            { text: 'Bộ dữ liệu trong khóa học là bản rút gọn 25 nhân viên', correct: true, feedback: 'Đúng. Cú pháp giống nhau, chỉ khác lượng dữ liệu.' },
-            { text: 'Query của bạn viết sai', feedback: 'Query vẫn đúng. Hai nơi chỉ khác dữ liệu.' },
-            { text: 'FreeSQL tính COUNT khác', feedback: 'COUNT làm đúng như nhau ở mọi nơi. Khác biệt nằm ở dữ liệu.' },
+            { text: 'Nối table trước, gom nhóm sau', correct: true, feedback: 'Đúng. JOIN nằm trong FROM, và FROM chạy trước GROUP BY.' },
+            { text: 'Gom nhóm trước, nối table sau', feedback: 'Thứ tự ngược lại. FROM chạy trước, kể cả phần JOIN trong nó.' },
+            { text: 'Hai bước chạy cùng lúc', feedback: 'Hai bước chạy lần lượt. Nối xong mới tới gom nhóm.' },
           ],
         },
       ],
     },
     {
       type: 'realworld',
-      title: 'Báo cáo cuối tháng của bộ phận nhân sự',
+      title: 'Hóa đơn trong app mua sắm',
       paragraphs: [
-        'Bộ phận nhân sự thường cần số người và mức lương theo từng phòng ban.',
-        'Người viết báo cáo nối table nhân viên với table phòng ban, rồi gom nhóm. Đó chính là query bạn vừa chạy.',
+        'Một hóa đơn có ngày mua, các món và giá từng món. Thường ba loại thông tin này nằm ở ba table khác nhau.',
+        'App nối chúng bằng hai JOIN, giống query ở đầu bài. Còn tổng tiền cuối hóa đơn là kết quả của function gom.',
       ],
     },
     {
       type: 'keypoints',
       items: [
-        'Báo cáo theo nhóm thường cần JOIN trước, GROUP BY sau.',
-        'LEFT JOIN từ table danh sách giữ được cả phòng chưa có ai.',
-        'COUNT(column) bỏ qua NULL. COUNT(*) đếm mọi row.',
-        'Schema HR có trên Oracle FreeSQL, nên query ở đây chạy lại được trên Oracle thật.',
-      ],
-    },
-    {
-      type: 'text',
-      title: 'Học tiếp',
-      paragraphs: [
-        'Bạn đã đi hết khóa học này. Bạn biết đọc dữ liệu, ghép table, và sửa dữ liệu an toàn.',
-        'Trang Học tiếp, ở đường dẫn /hoc-tiep, liệt kê nơi luyện thêm. Mỗi nơi kèm một câu nói khi nào nên tới.',
-        'Mở trang đó và chọn nơi hợp với bạn.',
+        'Nối ba table cần hai JOIN, mỗi JOIN có một ON.',
+        'order_items là table cầu nối giữa orders và products.',
+        'Database nối table xong mới gom nhóm.',
+        'Mọi column trong SELECT phải nằm trong GROUP BY hoặc trong function gom.',
       ],
     },
     {
       type: 'sources',
       items: [
         { name: 'Harvard CS50 SQL, Lecture 1', url: 'https://cs50.harvard.edu/sql/notes/1/', note: 'CC BY-NC-SA 4.0' },
+        { name: 'SQLBolt, bài 6: Multi-table queries with JOINs', url: 'https://sqlbolt.com/lesson/select_queries_with_joins' },
         { name: 'SQLBolt, bài 7: OUTER JOINs', url: 'https://sqlbolt.com/lesson/select_queries_with_outer_joins' },
-        { name: 'oracle-samples/db-sample-schemas', url: 'https://github.com/oracle-samples/db-sample-schemas', note: 'MIT' },
       ],
     },
   ],

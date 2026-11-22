@@ -3,47 +3,55 @@ import type { SqlExercise } from '../types';
 export const exercise: SqlExercise = {
   id: 'c5-e4',
   chapter: 5,
-  kind: 'debug',
-  title: 'Sửa query đếm món theo nhóm',
-  prompt: 'Query này muốn đếm số món của từng nhóm món, nhưng báo lỗi. Bấm Chạy để đọc lỗi, rồi sửa.',
-  asks: ['Mỗi nhóm món một row.', 'Hiện `category` và số món, đặt tên column số món là `items`.'],
+  kind: 'translate',
+  title: 'Nối chuỗi: từ CONCAT sang Oracle',
+  prompt:
+    'Query này chạy ở MySQL và nối chức vụ với tên nhân viên. Viết lại cho chạy ở Oracle, ra cùng kết quả.',
+  asks: [
+    'Nối chuỗi bằng `||`, không dùng CONCAT.',
+    'Giữ column `badge`, dấu hai chấm và dấu cách giữa chức vụ và tên.',
+    'Giữ điều kiện chỉ lấy tiệm số 3.',
+  ],
   database: 'teashop',
-  tables: ['products'],
-  dialects: ['mysql', 'oracle'],
+  tables: ['staff'],
+  dialects: ['oracle'],
+  from: "SELECT staff_id, CONCAT(role, ': ', full_name) AS badge\nFROM staff\nWHERE store_id = 3;",
   starter: {
-    mysql: 'SELECT category, name, COUNT(*) AS items\nFROM products\nGROUP BY category;',
-    oracle: 'SELECT category, name, COUNT(*) AS items\nFROM products\nGROUP BY category;',
+    oracle: "SELECT staff_id, CONCAT(role, ': ', full_name) AS badge\nFROM staff\nWHERE store_id = 3;",
   },
   solution: {
-    mysql: 'SELECT category, COUNT(*) AS items\nFROM products\nGROUP BY category;',
-    oracle: 'SELECT category, COUNT(*) AS items\nFROM products\nGROUP BY category;',
+    oracle: "SELECT staff_id, role || ': ' || full_name AS badge\nFROM staff\nWHERE store_id = 3",
   },
-  check: { orderMatters: false, aliasMatters: true },
-  why: 'Mỗi nhóm chỉ ra một row, nên SELECT chỉ được có column nằm trong GROUP BY hoặc function gom. Bỏ `name` thì lỗi biến mất.',
+  check: { orderMatters: false },
+  why: 'Oracle nối chuỗi bằng `||`. CONCAT ở Oracle chỉ nhận hai tham số, nên query ba phần cần `||`.',
   hints: {
-    light: 'Khi có GROUP BY, mỗi nhóm chỉ ra một row. Một nhóm có nhiều tên món thì chọn tên nào?',
-    specific: 'Column `name` không nằm trong GROUP BY và không nằm trong function gom. Bỏ `name` khỏi SELECT.',
+    light: 'MySQL nối bằng CONCAT. Oracle nối bằng dấu `||` đặt giữa các phần.',
+    specific: "Bỏ CONCAT và dấu ngoặc. Viết role, dấu `||`, chuỗi ': ', dấu `||`, rồi full_name. Bỏ luôn dấu chấm phẩy cuối.",
     skeleton: {
-      mysql: 'SELECT category, ____(*) AS items\nFROM products\nGROUP BY ____;',
-      oracle: 'SELECT category, ____(*) AS items\nFROM products\nGROUP BY ____;',
+      oracle: "SELECT staff_id, ____ || ': ' || ____ AS badge\nFROM staff\nWHERE store_id = 3",
     },
   },
   wrong: [
     {
-      id: 'group-by-name',
+      id: 'swap',
       sql: {
-        mysql: 'SELECT category, name, COUNT(*) AS items FROM products GROUP BY category, name',
-        oracle: 'SELECT category, name, COUNT(*) AS items FROM products GROUP BY category, name',
+        oracle: "SELECT staff_id, full_name || ': ' || role AS badge FROM staff WHERE store_id = 3",
       },
-      hint: 'Thêm `name` vào GROUP BY làm lỗi biến mất, nhưng mỗi món thành một nhóm riêng. Đề bài cần mỗi nhóm món một row, nên bỏ `name` khỏi SELECT.',
+      hint: 'Query chạy được rồi. Thứ tự nối đang là tên trước, chức vụ sau. Đổi chỗ để chức vụ đứng trước.',
     },
     {
-      id: 'no-group',
+      id: 'no-separator',
       sql: {
-        mysql: 'SELECT COUNT(*) AS items FROM products',
-        oracle: 'SELECT COUNT(*) AS items FROM products',
+        oracle: 'SELECT staff_id, role || full_name AS badge FROM staff WHERE store_id = 3',
       },
-      hint: 'Query này chạy được nhưng chỉ ra tổng số món. Giữ `category` trong SELECT và GROUP BY category để chia theo nhóm.',
+      hint: "Chức vụ và tên đang dính liền nhau. Thêm chuỗi ': ' vào giữa, nối bằng `||`.",
+    },
+    {
+      id: 'no-where',
+      sql: {
+        oracle: "SELECT staff_id, role || ': ' || full_name AS badge FROM staff",
+      },
+      hint: 'Cách nối đúng rồi. Kết quả đang có nhân viên của mọi tiệm. Giữ lại WHERE store_id = 3.',
     },
   ],
 };

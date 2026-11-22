@@ -3,9 +3,9 @@ import type { Lesson } from '../types';
 const q = (mysql: string, oracle: string) => ({ mysql: mysql + ';', oracle });
 
 export const lesson: Lesson = {
-  id: 'c3-b4',
-  chapter: 3,
-  order: 4,
+  id: 'c4-b5',
+  chapter: 4,
+  order: 5,
   title: 'LIMIT và FETCH FIRST',
   lead: 'Bạn chỉ lấy vài row đầu của kết quả, và biết MySQL với Oracle viết khác nhau ra sao.',
   minutes: 15,

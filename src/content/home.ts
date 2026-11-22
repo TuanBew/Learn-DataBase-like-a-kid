@@ -94,8 +94,8 @@ export const homeInside = {
 /** Cảnh 3: hiểu database rồi mới hỏi nó bằng SQL. */
 export const homeAsk = {
   title: 'Hiểu database rồi mới hỏi nó bằng SQL',
-  lead: 'SQL là ngôn ngữ để hỏi database. Một câu hỏi viết bằng SQL gọi là query. Bạn học phần này từ Chương 3, sau khi đã hiểu database và table.',
-  note: 'Database không chạy query theo thứ tự bạn viết. Query Theater ở Chương 3 sẽ diễn lại từng bước cho bạn xem.',
+  lead: 'SQL là ngôn ngữ để hỏi database. Một câu hỏi viết bằng SQL gọi là query. Bạn học phần này từ Chương 4, sau khi đã hiểu database và table.',
+  note: 'Database không chạy query theo thứ tự bạn viết. Query Theater ở Chương 4 sẽ diễn lại từng bước cho bạn xem.',
   youWrite: 'Bạn viết',
   dbRuns: 'Database chạy',
 } as const;

@@ -55,14 +55,14 @@ const chipNum = (p, n) => p.locator(`.flow__chips .chip:nth-child(${n}) b`).text
   // 6
   {
     const p = await br.newPage(); await p.goto(B + '/', { waitUntil: 'networkidle' });
-    const links = p.locator('a[href="/tap/c3-e6"]');
+    const links = p.locator('a[href="/tap/c4-e6"]');
     const r = { count: await links.count(), tapLinks: await p.locator('a[href*="/tap/"]').count() };
     if (r.count) { r.text = (await links.first().innerText()).replace(/\s+/g, ' '); r.chapter = await links.first().evaluate(e => e.closest('.toc-ch')?.querySelector('.toc-ch__num')?.textContent); }
     r.heroTap = await p.locator('.home-hero a[href*="/tap/"]').count();
     rec('6', r); await p.close();
   }
   // 7
-  for (const path of ['/', '/bai/c1-b1', '/tap/c3-e6']) {
+  for (const path of ['/', '/bai/c1-b1', '/tap/c4-e6']) {
     const p = await br.newPage(); await p.goto(B + path, { waitUntil: 'networkidle' }); await p.waitForTimeout(500);
     const t = await p.evaluate(() => document.body.innerText);
     rec('7' + path, { title: await p.title(), likeAKid: /like a kid/i.test(t), chau: (t.replace(/trân châu/gi, '').match(/Châu/g) || []).length }); await p.close();

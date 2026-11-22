@@ -94,7 +94,7 @@ async function focusTour(page, path, n, label) {
     const href = await pA.locator('.exlink.is-done').evaluateAll((els) => els.map((e) => e.getAttribute('href')));
     if (!href.includes('/tap/c1-e6')) return 'exlink.is-done không gồm c1-e6: ' + href;
     const v = await pA.evaluate(() => JSON.parse(localStorage['ldb:progress']).v);
-    if (v !== 1) return 'v=' + v;
+    if (v !== 2) return 'v=' + v;
   }, pA);
 
   // A3
@@ -118,7 +118,7 @@ async function focusTour(page, path, n, label) {
     nA = await nums(pA);
     await pA.getByRole('button', { name: 'Tạo mã' }).click();
     code = await pA.locator('#prg-code').inputValue();
-    if (!code.startsWith('LDB1-')) return 'mã không bắt đầu bằng LDB1-: ' + code.slice(0, 12);
+    if (!code.startsWith('LDB2-')) return 'mã không bắt đầu bằng LDB2-: ' + code.slice(0, 12);
     const B = await newCtx();
     await go(B.page, '/tien-trinh');
     await B.page.locator('#prg-paste').fill(code);
@@ -198,8 +198,8 @@ async function focusTour(page, path, n, label) {
     if (h !== '#main') return 'hash=' + h;
   }, pD);
   await check('D9 focus-visible /', () => focusTour(pD, '/', 15, '/'), pD);
-  await check('D10a focus-visible /bai/c2-b4', () => focusTour(pD, '/bai/c2-b4', 30, '/bai/c2-b4'), pD);
-  await check('D10b focus-visible /tap/c3-e4', () => focusTour(pD, '/tap/c3-e4', 20, '/tap/c3-e4'), pD);
+  await check('D10a focus-visible /bai/c2-b5', () => focusTour(pD, '/bai/c2-b5', 30, '/bai/c2-b5'), pD);
+  await check('D10b focus-visible /tap/c4-e4', () => focusTour(pD, '/tap/c4-e4', 20, '/tap/c4-e4'), pD);
 
   await check('D11 quiz-ban-phim', async () => {
     await go(pD, '/tap/c1-e1');
@@ -209,7 +209,7 @@ async function focusTour(page, path, n, label) {
   }, pD);
 
   await check('D12 theater-ban-phim', async () => {
-    await go(pD, '/tap/c3-e6');
+    await go(pD, '/tap/c4-e6');
     await pD.waitForTimeout(500);
     // CodeMirror có thể giữ Tab: nếu kẹt trong editor thì Escape rồi Tab (quy ước của CodeMirror)
     let n = 0;
@@ -238,7 +238,7 @@ async function focusTour(page, path, n, label) {
   }, pD);
 
   await check('D13 hop-qua-ban-phim', async () => {
-    await go(pD, '/bai/c2-b4');
+    await go(pD, '/bai/c2-b5');
     await pD.locator('.nbx').waitFor({ timeout: 10000 });
     await tabUntil(pD, '.nbx .sk-pick', 200);
     await pD.keyboard.press('Space');

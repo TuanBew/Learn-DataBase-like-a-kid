@@ -13,7 +13,7 @@ const page = await browser.newPage({ viewport: { width, height: width < 600 ? 84
 const errors = [];
 page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
 page.on('pageerror', (e) => errors.push(String(e)));
-await page.goto('http://127.0.0.1:5173/tap/c3-e6', { waitUntil: 'networkidle' });
+await page.goto('http://127.0.0.1:5173/tap/c4-e6', { waitUntil: 'networkidle' });
 if (dialect === 'oracle') await page.getByRole('button', { name: 'Oracle' }).click();
 const shot = (name) => page.screenshot({ path: `${out}/${name}-${dialect}-${width}.png`, fullPage: false });
 await shot('ex-0-open');

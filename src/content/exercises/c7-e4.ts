@@ -3,60 +3,47 @@ import type { SqlExercise } from '../types';
 export const exercise: SqlExercise = {
   id: 'c7-e4',
   chapter: 7,
-  kind: 'write',
-  title: 'Xem trước các món sắp bị đổi giá',
-  prompt:
-    "Đồng nghiệp gửi bạn lệnh `UPDATE products SET price = price - 5000 WHERE category = 'Trà trái cây' AND price >= 45000;`. Đừng chạy nó. Viết một SELECT với đúng WHERE đó để xem các món sẽ bị đổi giá.",
+  kind: 'translate',
+  title: 'Chuyển query nối khách sang Oracle',
+  prompt: 'Query MySQL này lấy 5 đơn đầu kèm tên khách. Viết lại cho Oracle: bỏ `AS` trước alias của table và đổi LIMIT thành FETCH FIRST.',
   asks: [
-    'Chỉ đọc dữ liệu, không sửa gì.',
-    'Hiện mọi column của `products`.',
-    'Dùng đúng điều kiện WHERE của lệnh UPDATE.',
+    'Giữ nguyên các column, phần nối và ORDER BY.',
+    'Alias của table viết liền, không có `AS`.',
+    'Lấy 5 row đầu bằng FETCH FIRST.',
   ],
   database: 'teashop',
-  tables: ['products'],
-  dialects: ['mysql', 'oracle'],
+  tables: ['orders', 'customers'],
+  dialects: ['oracle'],
+  from: 'SELECT o.order_id, c.full_name\nFROM orders AS o\nINNER JOIN customers AS c ON o.customer_id = c.customer_id\nORDER BY o.order_id\nLIMIT 5;',
   starter: {
-    mysql: 'SELECT *\nFROM products\n',
-    oracle: 'SELECT *\nFROM products\n',
+    oracle: 'SELECT o.order_id, c.full_name\nFROM orders AS o\nINNER JOIN customers AS c ON o.customer_id = c.customer_id\nORDER BY o.order_id\nLIMIT 5;',
   },
   solution: {
-    mysql: "SELECT *\nFROM products\nWHERE category = 'Trà trái cây' AND price >= 45000;",
-    oracle: "SELECT *\nFROM products\nWHERE category = 'Trà trái cây' AND price >= 45000;",
+    oracle: 'SELECT o.order_id, c.full_name\nFROM orders o\nINNER JOIN customers c ON o.customer_id = c.customer_id\nORDER BY o.order_id\nFETCH FIRST 5 ROWS ONLY',
   },
-  check: { orderMatters: false },
-  why: 'SELECT dùng đúng WHERE của UPDATE nên cho thấy chính xác các row sẽ đổi. Số row đúng như bạn nghĩ thì mới đổi SELECT thành UPDATE.',
+  check: { orderMatters: true },
+  why: 'Oracle không nhận `AS` trước alias của table, nên `orders AS o` thành `orders o`. Oracle cũng không có LIMIT, nên dùng FETCH FIRST 5 ROWS ONLY.',
   hints: {
-    light: 'Chép nguyên WHERE từ lệnh UPDATE sang SELECT. Không đổi gì trong điều kiện.',
-    specific: 'Cần hai điều kiện nối bằng AND: `category` bằng Trà trái cây, và `price` từ 45000 trở lên.',
+    light: 'Hai chỗ khác nhau giữa MySQL và Oracle trong query này: alias của table và cách lấy vài row đầu.',
+    specific: 'Xóa chữ `AS` ở `orders AS o` và `customers AS c`. Thay `LIMIT 5` bằng `FETCH FIRST 5 ROWS ONLY`.',
     skeleton: {
-      mysql: "SELECT *\nFROM products\nWHERE category = '____' AND price >= ____;",
-      oracle: "SELECT *\nFROM products\nWHERE category = '____' AND price >= ____;",
+      oracle: 'SELECT o.order_id, c.full_name\nFROM orders ____\nINNER JOIN customers ____ ON o.customer_id = c.customer_id\nORDER BY o.order_id\nFETCH FIRST ____ ROWS ONLY',
     },
   },
   wrong: [
     {
-      id: 'no-category',
+      id: 'no-limit',
       sql: {
-        mysql: 'SELECT * FROM products WHERE price >= 45000',
-        oracle: 'SELECT * FROM products WHERE price >= 45000',
+        oracle: 'SELECT o.order_id, c.full_name FROM orders o INNER JOIN customers c ON o.customer_id = c.customer_id ORDER BY o.order_id',
       },
-      hint: 'Kết quả có cả Cà phê cacao đá xay, món không thuộc nhóm Trà trái cây. Thêm điều kiện category bằng AND.',
+      hint: 'Phần alias đã đúng kiểu Oracle. Query còn thiếu bước lấy 5 row đầu: thêm FETCH FIRST 5 ROWS ONLY ở cuối.',
     },
     {
-      id: 'strict-gt',
+      id: 'left-join',
       sql: {
-        mysql: "SELECT * FROM products WHERE category = 'Trà trái cây' AND price > 45000",
-        oracle: "SELECT * FROM products WHERE category = 'Trà trái cây' AND price > 45000",
+        oracle: 'SELECT o.order_id, c.full_name FROM orders o LEFT JOIN customers c ON o.customer_id = c.customer_id ORDER BY o.order_id FETCH FIRST 5 ROWS ONLY',
       },
-      hint: 'Trà đào cam sả giá đúng 45000 đang bị bỏ sót. UPDATE dùng `>=`, nên SELECT cũng phải dùng `>=`.',
-    },
-    {
-      id: 'or-instead',
-      sql: {
-        mysql: "SELECT * FROM products WHERE category = 'Trà trái cây' OR price >= 45000",
-        oracle: "SELECT * FROM products WHERE category = 'Trà trái cây' OR price >= 45000",
-      },
-      hint: 'OR lấy row thỏa một trong hai điều kiện, nên kết quả nhiều hơn. UPDATE dùng AND, nên đổi OR thành AND.',
+      hint: 'Query gốc dùng INNER JOIN, còn bản này đổi thành LEFT JOIN nên đơn không có khách lọt vào. Giữ INNER JOIN như query MySQL.',
     },
   ],
 };

@@ -1,9 +1,9 @@
 import type { Lesson } from '../types';
 
 export const lesson: Lesson = {
-  id: 'c3-b5',
-  chapter: 3,
-  order: 5,
+  id: 'c4-b6',
+  chapter: 4,
+  order: 6,
   title: 'Thứ tự query chạy thật',
   lead: 'Bạn thấy database đọc các clause theo thứ tự khác với thứ tự bạn viết.',
   minutes: 12,

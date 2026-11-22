@@ -117,7 +117,7 @@ export default function CertificatePage() {
           width={1600}
           height={1130}
           role="img"
-          aria-label={T.alt(st.unlocked ? trimmed : '')}
+          aria-label={T.alt(st.unlocked ? trimmed : '', chapters.length)}
         />
       </div>
 

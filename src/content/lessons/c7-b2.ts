@@ -4,67 +4,160 @@ export const lesson: Lesson = {
   id: 'c7-b2',
   chapter: 7,
   order: 2,
-  title: 'Transaction, COMMIT, ROLLBACK',
-  lead: 'Bạn gom nhiều thay đổi thành một gói, rồi lưu hẳn hoặc bỏ cả gói.',
+  title: 'INNER JOIN',
+  lead: 'Bạn ghép row của hai table thành một kết quả bằng column chung.',
   minutes: 16,
   goals: [
-    'Hiểu transaction là một gói thay đổi làm trọn gói',
-    'Dùng COMMIT để lưu và ROLLBACK để bỏ',
-    'Biết MySQL tự COMMIT sau mỗi lệnh còn tool Oracle thường chờ COMMIT',
-    'Biết lệnh như CREATE TABLE tự COMMIT ở Oracle',
+    'Ghép hai table bằng INNER JOIN và ON',
+    'Đặt alias ngắn cho table',
+    'Ghi rõ table đứng trước khi hai table có column trùng tên',
+    'Biết Oracle không nhận AS trước alias của table',
   ],
   blocks: [
     {
       type: 'story',
-      title: 'Ghi đơn xong thì mất điện',
+      title: 'Ai đặt đơn 1001?',
       paragraphs: [
-        'Khách mua hai ly. Bi làm hai bước: ghi đơn vào sổ đơn, rồi trừ nguyên liệu trong sổ kho.',
-        'Bi vừa ghi đơn xong thì mất điện. Sổ kho chưa kịp trừ.',
-        'Hai sổ giờ lệch nhau. Đơn có, nhưng kho vẫn còn đủ nguyên liệu.',
-        'Bi cần gộp hai bước thành một gói. Xong cả hai, hoặc không xong bước nào.',
+        'Bi mở table orders. Đơn 1001 ghi mã khách là 1.',
+        'Mã 1 là ai? Table orders không nói.',
+        'Tên khách nằm ở table customers. Bi tìm mã 1 bên đó và thấy tên Nguyễn Thị Hường.',
+        'Bi ghép tên ấy vào đơn 1001. Mỗi đơn đều cần một lần ghép như vậy.',
+        'SQL ghép hai table bằng một câu.',
       ],
     },
     {
       type: 'text',
-      title: 'Transaction là một giỏ thay đổi',
+      title: 'JOIN ghép row của hai table',
       paragraphs: [
-        '**[[transaction]]** là một gói thay đổi làm trọn gói: lưu hết hoặc bỏ hết.',
-        'Hình dung một giỏ mua sắm. Mỗi lệnh sửa dữ liệu bỏ thêm một thay đổi vào giỏ.',
-        'Khi giỏ chưa thanh toán, người khác chưa thấy các thay đổi trong đó. Bạn thì thấy.',
-        '**[[commit]]** là thanh toán. Mọi thay đổi trong giỏ được lưu hẳn, và người khác thấy chúng.',
-        '**[[rollback]]** là trả đồ về kệ. Mọi thay đổi trong giỏ bị bỏ, và database trở lại như lúc chưa bắt đầu.',
-        'Cảnh dưới đây có một giỏ như vậy. Bạn bỏ thay đổi vào giỏ, rồi chọn COMMIT hoặc ROLLBACK.',
+        '**[[join]]** ghép row của hai table thành một kết quả.',
+        'Table orders giữ `customer_id`. Table customers cũng có `customer_id`, kèm tên khách.',
+        'Hai row có `customer_id` bằng nhau thì dính lại thành một row.',
+        '**[[inner-join]]** chỉ giữ các row ghép được. Row không tìm thấy bạn đồng hành thì rơi ra ngoài.',
+        'Điều kiện ghép viết sau **[[on]]**: `ON o.customer_id = c.customer_id`.',
+        'Query Theater sẽ cho bạn thấy hai table ghép vào nhau. Row khớp thì dính lại.',
       ],
     },
     {
-      type: 'scene',
-      scene: 'tx-cart',
-      title: 'Giỏ thay đổi',
-      intro: 'Chạy vài lệnh để bỏ thay đổi vào giỏ. Bấm COMMIT để lưu hoặc ROLLBACK để bỏ. Đổi công tắc giữa MySQL và Oracle để xem khác biệt.',
+      type: 'playground',
+      title: 'Thử tay ngay: đơn của tiệm 1 và tên khách',
+      intro: 'Bấm Chạy. Query ghép orders với customers rồi chỉ giữ đơn của tiệm số 1.',
+      database: 'teashop',
+      tables: ['orders', 'customers'],
+      dialects: ['mysql', 'oracle'],
+      sql: {
+        mysql:
+          'SELECT o.order_id, c.full_name, o.status\nFROM orders AS o\nINNER JOIN customers AS c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 1;',
+        oracle:
+          'SELECT o.order_id, c.full_name, o.status\nFROM orders o\nINNER JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 1',
+      },
+      tries: [
+        {
+          label: 'Đổi store_id = 1 thành store_id = 3',
+          sql: {
+            mysql:
+              'SELECT o.order_id, c.full_name, o.status\nFROM orders AS o\nINNER JOIN customers AS c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 3;',
+            oracle:
+              'SELECT o.order_id, c.full_name, o.status\nFROM orders o\nINNER JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 3',
+          },
+        },
+        {
+          label: 'Đổi o.status thành c.city',
+          sql: {
+            mysql:
+              'SELECT o.order_id, c.full_name, c.city\nFROM orders AS o\nINNER JOIN customers AS c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 1;',
+            oracle:
+              'SELECT o.order_id, c.full_name, c.city\nFROM orders o\nINNER JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 1',
+          },
+        },
+        {
+          label: 'Bỏ chữ INNER, chỉ viết JOIN',
+          sql: {
+            mysql:
+              'SELECT o.order_id, c.full_name, o.status\nFROM orders AS o\nJOIN customers AS c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 1;',
+            oracle:
+              'SELECT o.order_id, c.full_name, o.status\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 1',
+          },
+        },
+        {
+          label: 'Nối kiểu cũ: dấu phẩy ở FROM, điều kiện ghép chuyển vào WHERE',
+          sql: {
+            mysql:
+              'SELECT o.order_id, c.full_name, o.status\nFROM orders AS o, customers AS c\nWHERE o.customer_id = c.customer_id\n  AND o.store_id = 1;',
+            oracle:
+              'SELECT o.order_id, c.full_name, o.status\nFROM orders o, customers c\nWHERE o.customer_id = c.customer_id\n  AND o.store_id = 1',
+          },
+        },
+      ],
+      say: 'Tiệm 1 có 6 đơn, nhưng kết quả chỉ có 5. Đơn 1012 không có mã khách, nên không ghép được.',
     },
     {
       type: 'text',
-      title: 'COMMIT là điểm không quay lại',
+      title: 'Alias và column trùng tên',
       paragraphs: [
-        'ROLLBACK chỉ cứu được thay đổi chưa COMMIT. COMMIT xong thì ROLLBACK không đòi lại được gì.',
-        'Thói quen tốt: sửa xong, chạy SELECT để kiểm kết quả. Kết quả đúng thì COMMIT. Kết quả sai thì ROLLBACK.',
-        'Bài trước nói chuyện quên WHERE. Nếu bạn chưa COMMIT, ROLLBACK cứu được toàn bộ.',
-        'Oracle khuyên bạn tự kết thúc mọi transaction bằng COMMIT hoặc ROLLBACK. Luật này áp dụng cả cho transaction cuối, trước khi ngắt kết nối.',
+        '**[[alias]]** của table là tên ngắn đặt ngay sau tên table. `orders AS o` nghĩa là gọi orders là o.',
+        'Sau đó bạn viết `o.order_id` thay cho `orders.order_id`.',
+        'Chữ đứng trước dấu chấm nói column thuộc table nào.',
+        'Cả orders lẫn customers đều có `customer_id`. Nếu gõ `customer_id` trơn, Database không biết bạn muốn bên nào.',
+        'MySQL báo lỗi 1052. Oracle báo ORA-00918.',
+        'Xóa chữ `o.` trước `customer_id` ở query dưới. Bấm Chạy và xem lỗi. Rồi gõ lại cho đúng.',
       ],
+    },
+    {
+      type: 'playground',
+      title: 'Đơn trả bằng thẻ',
+      intro: 'Bấm Chạy. Query ghi rõ o.customer_id, vì hai table đều có column này.',
+      database: 'teashop',
+      tables: ['orders', 'customers'],
+      dialects: ['mysql', 'oracle'],
+      sql: {
+        mysql:
+          "SELECT o.order_id, o.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'thẻ';",
+        oracle:
+          "SELECT o.order_id, o.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'thẻ'",
+      },
+      tries: [
+        {
+          label: 'Đổi o.customer_id thành c.customer_id',
+          sql: {
+            mysql:
+              "SELECT o.order_id, c.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'thẻ';",
+            oracle:
+              "SELECT o.order_id, c.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'thẻ'",
+          },
+        },
+        {
+          label: "Đổi 'thẻ' thành 'tiền mặt'",
+          sql: {
+            mysql:
+              "SELECT o.order_id, o.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'tiền mặt';",
+            oracle:
+              "SELECT o.order_id, o.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'tiền mặt'",
+          },
+        },
+        {
+          label: 'Thêm ORDER BY c.full_name',
+          sql: {
+            mysql:
+              "SELECT o.order_id, o.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'thẻ'\nORDER BY c.full_name;",
+            oracle:
+              "SELECT o.order_id, o.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'thẻ'\nORDER BY c.full_name",
+          },
+        },
+      ],
+      say: 'Hai column customer_id cho cùng một giá trị, vì ON đã bắt chúng bằng nhau. Chọn bên nào cũng được.',
     },
     {
       type: 'oracle',
       body: [
-        'MySQL bật **[[autocommit]]** theo mặc định. Mỗi lệnh tự COMMIT ngay sau khi chạy xong, nên ROLLBACK sau đó không còn gì để gỡ.',
-        'Muốn gom nhiều lệnh thành một transaction ở MySQL, gõ `START TRANSACTION` trước. Xong thì gõ COMMIT hoặc ROLLBACK.',
-        'Ở Oracle, tool bạn dùng thường chờ bạn gõ COMMIT. Mỗi tool có cài đặt riêng, nên đọc cài đặt của tool trước khi sửa dữ liệu thật.',
-        'Oracle còn một luật nữa. Lệnh **[[ddl]]** như CREATE TABLE tự COMMIT, cả ngay trước và ngay sau khi chạy.',
-        'Vì vậy UPDATE đang chờ, rồi CREATE TABLE, rồi ROLLBACK: UPDATE đã được lưu từ lúc CREATE TABLE chạy.',
+        'MySQL nhận `orders AS o` lẫn `orders o`. Oracle chỉ nhận `orders o`.',
+        'Viết AS trước alias của table thì Oracle báo ORA-00933. Xóa chữ AS là xong.',
+        'Alias của column thì khác. Cả hai dialect đều cho viết AS.',
+        'Code Oracle cũ ở công ty hay nối bằng dấu phẩy ở FROM, còn điều kiện ghép nằm trong WHERE.',
+        'Kết quả của kiểu cũ giống INNER JOIN. Bạn sẽ gặp kiểu này khi đọc code người khác viết. Khi tự viết, dùng JOIN ... ON cho dễ đọc.',
       ],
-      mysql:
-        'START TRANSACTION;\nUPDATE products SET price = 48000 WHERE product_id = 2;\nROLLBACK;\n-- giá về như cũ',
+      mysql: 'FROM orders AS o\nINNER JOIN customers AS c\n  ON o.customer_id = c.customer_id',
       oracle:
-        'UPDATE products SET price = 48000 WHERE product_id = 2;\nROLLBACK;\n-- giá về như cũ',
+        'FROM orders o\nINNER JOIN customers c\n  ON o.customer_id = c.customer_id\n\n-- Kiểu cũ, kết quả giống hệt:\nFROM orders o, customers c\nWHERE o.customer_id = c.customer_id',
     },
     {
       type: 'quiz',
@@ -72,60 +165,57 @@ export const lesson: Lesson = {
       items: [
         {
           kind: 'choice',
-          question: 'MySQL đang bật autocommit. Bạn chạy một lệnh UPDATE, rồi gõ ROLLBACK. Giá trị trong table ra sao?',
+          question: 'Đơn 1003 có customer_id là NULL. Bạn INNER JOIN orders với customers. Đơn 1003 ra sao?',
           options: [
-            { text: 'Vẫn là giá trị mới, vì UPDATE đã tự COMMIT', correct: true, feedback: 'Đúng. Autocommit lưu thay đổi ngay sau lệnh, nên ROLLBACK không còn gì để gỡ.' },
-            { text: 'Trở lại giá trị cũ', feedback: 'Chỉ đúng khi bạn mở transaction bằng START TRANSACTION trước lệnh UPDATE.' },
-            { text: 'Database báo lỗi', feedback: 'ROLLBACK chạy được, chỉ là nó không gỡ được gì.' },
+            { text: 'Đơn 1003 biến mất khỏi kết quả', correct: true, feedback: 'Đúng. NULL không bằng mã khách nào, nên đơn không ghép được.' },
+            { text: 'Đơn 1003 vẫn hiện, tên khách để trống', feedback: 'LEFT JOIN làm vậy, bài sau sẽ học. INNER JOIN bỏ row không ghép được.' },
+            { text: 'Database báo lỗi', feedback: 'Không có lỗi. Row không ghép được chỉ rơi ra ngoài.' },
           ],
         },
         {
           kind: 'choice',
-          question: 'Ở Oracle, bạn chạy UPDATE, rồi CREATE TABLE, rồi ROLLBACK. UPDATE ra sao?',
+          question: 'Bạn chọn `customer_id` mà không ghi table đứng trước, trong query ghép orders và customers. Chuyện gì xảy ra?',
           options: [
-            { text: 'UPDATE đã được lưu, vì CREATE TABLE tự COMMIT', correct: true, feedback: 'Đúng. Lệnh DDL tự COMMIT mọi thay đổi đang chờ.' },
-            { text: 'UPDATE bị bỏ', feedback: 'UPDATE đã được lưu trước khi ROLLBACK chạy.' },
-            { text: 'UPDATE còn chờ, ROLLBACK sẽ bỏ nó', feedback: 'CREATE TABLE đã kết thúc transaction. Không còn gì chờ.' },
+            { text: 'Database báo lỗi vì không biết lấy column của table nào', correct: true, feedback: 'Đúng. MySQL báo 1052, Oracle báo ORA-00918.' },
+            { text: 'Database tự lấy column của table đầu tiên', feedback: 'Database không đoán. Database dừng lại và báo lỗi.' },
+            { text: 'Database trả mọi row của cả hai table', feedback: 'Lỗi xảy ra trước khi query chạy, nên không có row nào.' },
           ],
         },
         {
           kind: 'match',
-          question: 'Nối mỗi thuật ngữ với ý của nó.',
+          question: 'Nối mỗi mẩu với ý của nó.',
           pairs: [
-            { left: 'COMMIT', right: 'Lưu hẳn mọi thay đổi trong giỏ' },
-            { left: 'ROLLBACK', right: 'Bỏ mọi thay đổi trong giỏ' },
-            { left: 'autocommit', right: 'Mỗi lệnh tự COMMIT ngay' },
-            { left: 'START TRANSACTION', right: 'MySQL: mở một giỏ mới' },
+            { left: 'ON o.customer_id = c.customer_id', right: 'Điều kiện để hai row dính nhau' },
+            { left: 'FROM orders o, customers c', right: 'Cách nối kiểu cũ trong code Oracle' },
+            { left: 'orders AS o', right: 'Oracle báo ORA-00933' },
+            { left: 'ORA-00918', right: 'Column trùng tên ở hai table' },
           ],
-          done: 'Đúng hết. Bốn thuật ngữ này đủ để đọc mọi đoạn code về transaction.',
+          done: 'Đúng hết. Bốn mẩu này gặp nhiều nhất khi nối hai table.',
         },
       ],
     },
     {
       type: 'realworld',
-      title: 'Chuyển tiền trên app ngân hàng',
+      title: 'Lịch sử đơn trong app mua sắm',
       paragraphs: [
-        'Khi bạn chuyển tiền, app trừ tiền của bạn và cộng tiền cho người nhận.',
-        'Hai thay đổi nằm trong cùng một transaction. Nếu bước thứ hai lỗi, ROLLBACK trả tiền về cho bạn, và tiền không biến mất giữa đường.',
+        'Bạn mở lịch sử đơn và thấy tên món, giá và tên người nhận trên cùng một màn hình.',
+        'Những thông tin ấy thường nằm ở nhiều table khác nhau. App ghép chúng bằng JOIN rồi mới hiện lên.',
       ],
     },
     {
       type: 'keypoints',
       items: [
-        'Transaction là một giỏ thay đổi. COMMIT lưu hẳn cả giỏ, ROLLBACK bỏ cả giỏ.',
-        'ROLLBACK chỉ cứu được thay đổi chưa COMMIT.',
-        'MySQL tự COMMIT sau mỗi lệnh. Tool Oracle thường chờ bạn gõ COMMIT.',
-        'Ở Oracle, lệnh DDL như CREATE TABLE tự COMMIT.',
+        'JOIN ghép row của hai table qua column chung. Điều kiện ghép viết sau ON.',
+        'INNER JOIN giữ các row ghép được và bỏ các row còn lại.',
+        'Alias làm tên table ngắn lại. Oracle không nhận AS trước alias của table.',
+        'Hai table có column trùng tên thì ghi rõ table đứng trước, như `o.customer_id`.',
       ],
     },
     {
       type: 'sources',
       items: [
-        { name: 'Harvard CS50 SQL, Lecture 5 (phần Transactions)', url: 'https://cs50.harvard.edu/sql/notes/5/', note: 'CC BY-NC-SA 4.0' },
-        { name: 'MySQL 8.0 Reference Manual, START TRANSACTION, COMMIT, and ROLLBACK', url: 'https://dev.mysql.com/doc/refman/8.0/en/commit.html' },
-        { name: 'MySQL 8.0 Reference Manual, autocommit, Commit, and Rollback', url: 'https://dev.mysql.com/doc/refman/8.0/en/innodb-autocommit-commit-rollback.html' },
-        { name: 'Oracle Database 19c SQL Language Reference, COMMIT', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/COMMIT.html' },
-        { name: 'Oracle Database 19c SQL Language Reference, ROLLBACK', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/ROLLBACK.html' },
+        { name: 'Harvard CS50 SQL, Lecture 1', url: 'https://cs50.harvard.edu/sql/notes/1/', note: 'CC BY-NC-SA 4.0' },
+        { name: 'SQLBolt, bài 6: Multi-table queries with JOINs', url: 'https://sqlbolt.com/lesson/select_queries_with_joins' },
       ],
     },
   ],

@@ -3,55 +3,51 @@ import type { SqlExercise } from '../types';
 export const exercise: SqlExercise = {
   id: 'c7-e3',
   chapter: 7,
-  kind: 'rehearsal',
-  title: 'Thêm món Trà xoài vào thực đơn',
-  prompt:
-    'Tiệm ra mắt món mới. Dùng INSERT để thêm một row vào `products` với đủ 6 column.',
+  kind: 'write',
+  title: 'Món chưa từng bán',
+  prompt: 'Chủ tiệm nghi có món chưa ai gọi. Tìm các món trong `products` không xuất hiện trong `order_items`.',
   asks: [
-    'Mã món 15, tên Trà xoài, nhóm Trà trái cây.',
-    'Giá 42000 đồng, 160 calo.',
-    'Ngày ra mắt 2026-03-10.',
+    'Hiện `product_id` và `name`.',
+    'Chỉ lấy món chưa có row nào trong `order_items`.',
+    'Xếp theo `product_id` tăng dần.',
   ],
   database: 'teashop',
-  tables: ['products'],
-  target: 'products',
+  tables: ['products', 'order_items'],
   dialects: ['mysql', 'oracle'],
   starter: {
-    mysql: 'INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES ',
-    oracle: 'INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES ',
+    mysql: 'SELECT p.product_id, p.name\nFROM products p\n',
+    oracle: 'SELECT p.product_id, p.name\nFROM products p\n',
   },
   solution: {
-    mysql:
-      "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (15, 'Trà xoài', 'Trà trái cây', 42000, 160, '2026-03-10');",
-    oracle:
-      "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (15, 'Trà xoài', 'Trà trái cây', 42000, 160, DATE '2026-03-10');",
+    mysql: 'SELECT p.product_id, p.name\nFROM products p\nLEFT JOIN order_items oi ON p.product_id = oi.product_id\nWHERE oi.item_id IS NULL\nORDER BY p.product_id;',
+    oracle: 'SELECT p.product_id, p.name\nFROM products p\nLEFT JOIN order_items oi ON p.product_id = oi.product_id\nWHERE oi.item_id IS NULL\nORDER BY p.product_id',
   },
-  check: { orderMatters: false },
-  why: 'Danh sách column và danh sách giá trị khớp từng cặp, theo thứ tự. Chữ và ngày nằm trong dấu nháy đơn, số thì không.',
+  check: { orderMatters: true },
+  why: 'LEFT JOIN giữ mọi món, món chưa bán có phần `order_items` là NULL. WHERE ... IS NULL giữ đúng các món đó.',
   hints: {
-    light: 'INSERT cần hai danh sách cùng độ dài: tên column, rồi giá trị. Giá trị thứ nhất khớp column thứ nhất, và cứ thế tiếp.',
-    specific: 'Điền 6 giá trị theo thứ tự product_id, name, category, price, calories, launched_on. Chữ đặt trong nháy đơn. Oracle viết ngày dạng DATE kèm chuỗi ngày.',
+    light: 'Cần kiểu nối vẫn giữ lại row không có cặp. Row không có cặp sẽ mang NULL ở phía table bên phải.',
+    specific: 'Nối `products` với `order_items` bằng LEFT JOIN. Sau đó lọc `oi.item_id IS NULL` để giữ các món không khớp.',
     skeleton: {
-      mysql: "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (____, '____', '____', ____, ____, '____');",
-      oracle: "INSERT INTO products (product_id, name, category, price, calories, launched_on)\nVALUES (____, '____', '____', ____, ____, DATE '____');",
+      mysql: 'SELECT p.product_id, p.name\nFROM products p\n____ JOIN order_items oi ON p.product_id = oi.product_id\nWHERE oi.item_id ____\nORDER BY p.product_id;',
+      oracle: 'SELECT p.product_id, p.name\nFROM products p\n____ JOIN order_items oi ON p.product_id = oi.product_id\nWHERE oi.item_id ____\nORDER BY p.product_id',
     },
   },
   wrong: [
     {
-      id: 'wrong-price',
+      id: 'inner-join',
       sql: {
-        mysql: "INSERT INTO products (product_id, name, category, price, calories, launched_on) VALUES (15, 'Trà xoài', 'Trà trái cây', 4200, 160, '2026-03-10')",
-        oracle: "INSERT INTO products (product_id, name, category, price, calories, launched_on) VALUES (15, 'Trà xoài', 'Trà trái cây', 4200, 160, DATE '2026-03-10')",
+        mysql: 'SELECT p.product_id, p.name FROM products p INNER JOIN order_items oi ON p.product_id = oi.product_id WHERE oi.item_id IS NULL ORDER BY p.product_id',
+        oracle: 'SELECT p.product_id, p.name FROM products p INNER JOIN order_items oi ON p.product_id = oi.product_id WHERE oi.item_id IS NULL ORDER BY p.product_id',
       },
-      hint: 'Row đã vào table, nhưng giá là 4200. Đề bài cần 42000. Đếm lại số chữ số 0 nhé.',
+      hint: 'INNER JOIN bỏ luôn các món không khớp, nên không còn món nào để kiểm. Đổi sang LEFT JOIN để giữ chúng lại.',
     },
     {
-      id: 'swapped',
+      id: 'no-where',
       sql: {
-        mysql: "INSERT INTO products (product_id, name, category, price, calories, launched_on) VALUES (15, 'Trà xoài', 'Trà trái cây', 160, 42000, '2026-03-10')",
-        oracle: "INSERT INTO products (product_id, name, category, price, calories, launched_on) VALUES (15, 'Trà xoài', 'Trà trái cây', 160, 42000, DATE '2026-03-10')",
+        mysql: 'SELECT p.product_id, p.name FROM products p LEFT JOIN order_items oi ON p.product_id = oi.product_id ORDER BY p.product_id',
+        oracle: 'SELECT p.product_id, p.name FROM products p LEFT JOIN order_items oi ON p.product_id = oi.product_id ORDER BY p.product_id',
       },
-      hint: 'Giá và calo đang đổi chỗ cho nhau. Giá trị phải đi đúng thứ tự column: price trước, calories sau.',
+      hint: 'LEFT JOIN đã đúng. Bạn còn thiếu WHERE oi.item_id IS NULL để chỉ giữ món chưa bán.',
     },
   ],
 };

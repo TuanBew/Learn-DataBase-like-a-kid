@@ -21,14 +21,14 @@ const SCENES = [
   { id: 'c2-b1', idx: 0, name: 'pk-bonk', steps: ['17', 'Thêm row'], marker: 'reset' },
   { id: 'c2-b2', idx: 0, name: 'fk-rope', steps: ['1 Lý', 'Xóa khách này'], marker: 'reset' },
   { id: 'c2-b3', idx: 0, name: 'split-table', steps: ['Hường đổi số điện thoại'], marker: 'reset' },
-  { id: 'c2-b4', idx: 0, name: 'null-box', steps: ['So sánh bằng'], marker: 'reset' },
-  { id: 'c2-b5', idx: 0, name: 'constraint-gate', steps: ['4 Bánh flan', 'Đưa qua cổng'], marker: 'reset' },
-  { id: 'c2-b6', idx: 0, name: 'erd', steps: ['stores'], marker: '.erd__box.is-sel' },
-  { id: 'c3-b5', idx: 0, name: 'clause-order', steps: ['FROM:', 'WHERE:', 'GROUP BY:', 'HAVING:', 'SELECT:', 'ORDER BY:', 'LIMIT:', 'Kiểm tra'] },
-  { id: 'c7-b1', idx: 0, name: 'dml-rehearsal', steps: ['UPDATE quên WHERE', 'Chạy'] },
-  { id: 'c7-b2', idx: 0, name: 'tx-cart', steps: ['Đổi giá món 2', 'COMMIT'], marker: 'reset' },
-  { id: 'c7-b3', idx: 0, name: 'index-race', steps: ['1.000.000', 'Chạy'], marker: 'reset' },
-  { id: 'c7-b4', idx: 0, name: 'dialect-table', steps: ['Chạy cả hai'] },
+  { id: 'c2-b5', idx: 0, name: 'null-box', steps: ['So sánh bằng'], marker: 'reset' },
+  { id: 'c2-b6', idx: 0, name: 'constraint-gate', steps: ['4 Bánh flan', 'Đưa qua cổng'], marker: 'reset' },
+  { id: 'c2-b7', idx: 0, name: 'erd', steps: ['stores'], marker: '.erd__box.is-sel' },
+  { id: 'c4-b6', idx: 0, name: 'clause-order', steps: ['FROM:', 'WHERE:', 'GROUP BY:', 'HAVING:', 'SELECT:', 'ORDER BY:', 'LIMIT:', 'Kiểm tra'] },
+  { id: 'c10-b1', idx: 0, name: 'dml-rehearsal', steps: ['UPDATE quên WHERE', 'Chạy'] },
+  { id: 'c10-b3', idx: 0, name: 'tx-cart', steps: ['Đổi giá món 2', 'COMMIT'], marker: 'reset' },
+  { id: 'c11-b5', idx: 0, name: 'index-race', steps: ['1.000.000', 'Chạy'], marker: 'reset' },
+  { id: 'c11-b7', idx: 0, name: 'dialect-table', steps: ['Chạy cả hai'] },
 ];
 
 const label = (b) => ((b.getAttribute('aria-label') || b.innerText) || '').replace(/\s+/g, ' ').trim();
@@ -164,9 +164,9 @@ async function runScene(page, tag, scope, steps, marker, bubbleRequired = true) 
 
     // Query Theater
     {
-      const tag = `[${w}] theater c3-e6`;
+      const tag = `[${w}] theater c4-e6`;
       try {
-        await page.goto(`${BASE}/tap/c3-e6`, { waitUntil: 'networkidle' });
+        await page.goto(`${BASE}/tap/c4-e6`, { waitUntil: 'networkidle' });
         await clickBtn(page.locator('main'), 'Chạy');
         await page.waitForSelector('.qt-progress', { timeout: 5000 });
         check(`${tag} có .qt-reduced`, (await page.locator('.qt-reduced').count()) > 0, 'không có dòng .qt-reduced');

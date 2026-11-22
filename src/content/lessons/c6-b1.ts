@@ -4,160 +4,138 @@ export const lesson: Lesson = {
   id: 'c6-b1',
   chapter: 6,
   order: 1,
-  title: 'INNER JOIN',
-  lead: 'Bạn ghép row của hai table thành một kết quả bằng column chung.',
+  title: 'COUNT, SUM, AVG, MIN, MAX',
+  lead: 'Bạn gom nhiều row thành một con số.',
   minutes: 16,
   goals: [
-    'Ghép hai table bằng INNER JOIN và ON',
-    'Đặt alias ngắn cho table',
-    'Ghi rõ table đứng trước khi hai table có column trùng tên',
-    'Biết Oracle không nhận AS trước alias của table',
+    'Đếm, cộng, tính trung bình, tìm nhỏ nhất và lớn nhất',
+    'Biết COUNT(*) khác COUNT(column) khi column có NULL',
+    'Đếm giá trị khác nhau bằng COUNT(DISTINCT)',
+    'Biết function gom bỏ qua row NULL',
   ],
   blocks: [
     {
       type: 'story',
-      title: 'Ai đặt đơn 1001?',
+      title: 'Thực đơn có bao nhiêu món?',
       paragraphs: [
-        'Bi mở table orders. Đơn 1001 ghi mã khách là 1.',
-        'Mã 1 là ai? Table orders không nói.',
-        'Tên khách nằm ở table customers. Bi tìm mã 1 bên đó và thấy tên Nguyễn Thị Hường.',
-        'Bi ghép tên ấy vào đơn 1001. Mỗi đơn đều cần một lần ghép như vậy.',
-        'SQL ghép hai table bằng một câu.',
+        'Chủ tiệm hỏi Bi: "Thực đơn có bao nhiêu món? Món nào đắt nhất?"',
+        'Bi không cần đọc từng món. Mình cần một con số cho mỗi câu hỏi.',
+        'Đếm món, tìm giá cao nhất, tính giá trung bình: mỗi câu cho ra đúng một con số, lấy từ nhiều row.',
+        'SQL có năm function cho kiểu câu hỏi này.',
       ],
     },
     {
       type: 'text',
-      title: 'JOIN ghép row của hai table',
+      title: 'Năm function gom',
       paragraphs: [
-        '**[[join]]** ghép row của hai table thành một kết quả.',
-        'Table orders giữ `customer_id`. Table customers cũng có `customer_id`, kèm tên khách.',
-        'Hai row có `customer_id` bằng nhau thì dính lại thành một row.',
-        '**[[inner-join]]** chỉ giữ các row ghép được. Row không tìm thấy bạn đồng hành thì rơi ra ngoài.',
-        'Điều kiện ghép viết sau **[[on]]**: `ON o.customer_id = c.customer_id`.',
-        'Query Theater sẽ cho bạn thấy hai table ghép vào nhau. Row khớp thì dính lại.',
+        '**[[aggregate-function]]** nhận nhiều row và trả về một giá trị. Năm function hay gặp là:',
+        '**[[count]]** đếm row.',
+        '**[[sum]]** cộng các số.',
+        '**[[avg]]** tính trung bình.',
+        '**[[min]]** tìm giá trị nhỏ nhất, **[[max]]** tìm giá trị lớn nhất.',
+        'Function gom trả đúng một row cho cả table. Nếu bạn viết WHERE, function chỉ gom các row còn lại.',
+        '`COUNT(*)` đếm mọi row. `COUNT(column)` chỉ đếm row mà column có giá trị. Row NULL bị bỏ qua.',
+        '`COUNT(DISTINCT column)` đếm số giá trị khác nhau.',
+        'Table products có 14 món. Query dưới đây đếm món theo ba cách.',
       ],
     },
     {
       type: 'playground',
-      title: 'Thử tay ngay: đơn của tiệm 1 và tên khách',
-      intro: 'Bấm Chạy. Query ghép orders với customers rồi chỉ giữ đơn của tiệm số 1.',
+      title: 'Thử tay ngay: ba cách đếm',
+      intro: 'Bấm Chạy. So ba con số total_items, with_calories và categories.',
       database: 'teashop',
-      tables: ['orders', 'customers'],
+      tables: ['products'],
       dialects: ['mysql', 'oracle'],
       sql: {
         mysql:
-          'SELECT o.order_id, c.full_name, o.status\nFROM orders AS o\nINNER JOIN customers AS c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 1;',
+          'SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(DISTINCT category) AS categories\nFROM products;',
         oracle:
-          'SELECT o.order_id, c.full_name, o.status\nFROM orders o\nINNER JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 1',
+          'SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(DISTINCT category) AS categories\nFROM products',
       },
       tries: [
         {
-          label: 'Đổi store_id = 1 thành store_id = 3',
+          label: "Thêm WHERE category = 'Topping'",
           sql: {
             mysql:
-              'SELECT o.order_id, c.full_name, o.status\nFROM orders AS o\nINNER JOIN customers AS c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 3;',
+              "SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(DISTINCT category) AS categories\nFROM products\nWHERE category = 'Topping';",
             oracle:
-              'SELECT o.order_id, c.full_name, o.status\nFROM orders o\nINNER JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 3',
+              "SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(DISTINCT category) AS categories\nFROM products\nWHERE category = 'Topping'",
           },
         },
         {
-          label: 'Đổi o.status thành c.city',
+          label: 'Bỏ DISTINCT ở COUNT(DISTINCT category)',
           sql: {
             mysql:
-              'SELECT o.order_id, c.full_name, c.city\nFROM orders AS o\nINNER JOIN customers AS c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 1;',
+              'SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(category) AS categories\nFROM products;',
             oracle:
-              'SELECT o.order_id, c.full_name, c.city\nFROM orders o\nINNER JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 1',
+              'SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(category) AS categories\nFROM products',
           },
         },
         {
-          label: 'Bỏ chữ INNER, chỉ viết JOIN',
+          label: 'Thêm COUNT(DISTINCT price) AS prices',
           sql: {
             mysql:
-              'SELECT o.order_id, c.full_name, o.status\nFROM orders AS o\nJOIN customers AS c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 1;',
+              'SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(DISTINCT category) AS categories,\n       COUNT(DISTINCT price) AS prices\nFROM products;',
             oracle:
-              'SELECT o.order_id, c.full_name, o.status\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 1',
-          },
-        },
-        {
-          label: 'Nối kiểu cũ: dấu phẩy ở FROM, điều kiện ghép chuyển vào WHERE',
-          sql: {
-            mysql:
-              'SELECT o.order_id, c.full_name, o.status\nFROM orders AS o, customers AS c\nWHERE o.customer_id = c.customer_id\n  AND o.store_id = 1;',
-            oracle:
-              'SELECT o.order_id, c.full_name, o.status\nFROM orders o, customers c\nWHERE o.customer_id = c.customer_id\n  AND o.store_id = 1',
+              'SELECT COUNT(*) AS total_items,\n       COUNT(calories) AS with_calories,\n       COUNT(DISTINCT category) AS categories,\n       COUNT(DISTINCT price) AS prices\nFROM products',
           },
         },
       ],
-      say: 'Tiệm 1 có 6 đơn, nhưng kết quả chỉ có 5. Đơn 1012 không có mã khách, nên không ghép được.',
+      say: 'Có 14 món nhưng chỉ 11 món có calo, vì 3 món có calories là NULL. Bốn nhóm món khác nhau.',
     },
     {
       type: 'text',
-      title: 'Alias và column trùng tên',
+      title: 'Cộng, trung bình, nhỏ nhất, lớn nhất',
       paragraphs: [
-        '**[[alias]]** của table là tên ngắn đặt ngay sau tên table. `orders AS o` nghĩa là gọi orders là o.',
-        'Sau đó bạn viết `o.order_id` thay cho `orders.order_id`.',
-        'Chữ đứng trước dấu chấm nói column thuộc table nào.',
-        'Cả orders lẫn customers đều có `customer_id`. Nếu gõ `customer_id` trơn, Database không biết bạn muốn bên nào.',
-        'MySQL báo lỗi 1052. Oracle báo ORA-00918.',
-        'Xóa chữ `o.` trước `customer_id` ở query dưới. Bấm Chạy và xem lỗi. Rồi gõ lại cho đúng.',
+        'SUM, AVG, MIN và MAX đều bỏ qua row NULL.',
+        'AVG chia tổng cho số row có giá trị, không chia cho số row của table.',
+        'Nếu không row nào khớp WHERE, COUNT trả 0. SUM, AVG, MIN và MAX trả NULL.',
+        'Query dưới đây tính giá của các món Cà phê.',
       ],
     },
     {
       type: 'playground',
-      title: 'Đơn trả bằng thẻ',
-      intro: 'Bấm Chạy. Query ghi rõ o.customer_id, vì hai table đều có column này.',
+      title: 'Thử tay ngay: giá của nhóm Cà phê',
+      intro: 'Bấm Chạy. Một row kết quả tóm tắt cả nhóm.',
       database: 'teashop',
-      tables: ['orders', 'customers'],
+      tables: ['products'],
       dialects: ['mysql', 'oracle'],
       sql: {
         mysql:
-          "SELECT o.order_id, o.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'thẻ';",
+          "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(price) AS avg_price,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Cà phê';",
         oracle:
-          "SELECT o.order_id, o.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'thẻ'",
+          "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(price) AS avg_price,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Cà phê'",
       },
       tries: [
         {
-          label: 'Đổi o.customer_id thành c.customer_id',
+          label: 'Đổi AVG(price) thành AVG(calories)',
           sql: {
             mysql:
-              "SELECT o.order_id, c.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'thẻ';",
+              "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(calories) AS avg_calories,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Cà phê';",
             oracle:
-              "SELECT o.order_id, c.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'thẻ'",
+              "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(calories) AS avg_calories,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Cà phê'",
           },
         },
         {
-          label: "Đổi 'thẻ' thành 'tiền mặt'",
+          label: "Đổi 'Cà phê' thành 'Topping'",
           sql: {
             mysql:
-              "SELECT o.order_id, o.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'tiền mặt';",
+              "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(price) AS avg_price,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Topping';",
             oracle:
-              "SELECT o.order_id, o.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'tiền mặt'",
+              "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(price) AS avg_price,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Topping'",
           },
         },
         {
-          label: 'Thêm ORDER BY c.full_name',
+          label: "Đổi 'Cà phê' thành 'Không có'",
           sql: {
             mysql:
-              "SELECT o.order_id, o.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'thẻ'\nORDER BY c.full_name;",
+              "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(price) AS avg_price,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Không có';",
             oracle:
-              "SELECT o.order_id, o.customer_id, c.full_name\nFROM orders o\nJOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.payment = 'thẻ'\nORDER BY c.full_name",
+              "SELECT COUNT(*) AS items,\n       SUM(price) AS total_price,\n       AVG(price) AS avg_price,\n       MIN(price) AS min_price,\n       MAX(price) AS max_price\nFROM products\nWHERE category = 'Không có'",
           },
         },
       ],
-      say: 'Hai column customer_id cho cùng một giá trị, vì ON đã bắt chúng bằng nhau. Chọn bên nào cũng được.',
-    },
-    {
-      type: 'oracle',
-      body: [
-        'MySQL nhận `orders AS o` lẫn `orders o`. Oracle chỉ nhận `orders o`.',
-        'Viết AS trước alias của table thì Oracle báo ORA-00933. Xóa chữ AS là xong.',
-        'Alias của column thì khác. Cả hai dialect đều cho viết AS.',
-        'Code Oracle cũ ở công ty hay nối bằng dấu phẩy ở FROM, còn điều kiện ghép nằm trong WHERE.',
-        'Kết quả của kiểu cũ giống INNER JOIN. Bạn sẽ gặp kiểu này khi đọc code người khác viết. Khi tự viết, dùng JOIN ... ON cho dễ đọc.',
-      ],
-      mysql: 'FROM orders AS o\nINNER JOIN customers AS c\n  ON o.customer_id = c.customer_id',
-      oracle:
-        'FROM orders o\nINNER JOIN customers c\n  ON o.customer_id = c.customer_id\n\n-- Kiểu cũ, kết quả giống hệt:\nFROM orders o, customers c\nWHERE o.customer_id = c.customer_id',
+      say: 'Cà phê cacao đá xay chưa có calo. AVG(calories) chỉ chia cho 2 món có số, nên ra 180.',
     },
     {
       type: 'quiz',
@@ -165,57 +143,57 @@ export const lesson: Lesson = {
       items: [
         {
           kind: 'choice',
-          question: 'Đơn 1003 có customer_id là NULL. Bạn INNER JOIN orders với customers. Đơn 1003 ra sao?',
+          question: 'Table có 14 món, và 3 món có calories là NULL. `COUNT(calories)` ra bao nhiêu?',
           options: [
-            { text: 'Đơn 1003 biến mất khỏi kết quả', correct: true, feedback: 'Đúng. NULL không bằng mã khách nào, nên đơn không ghép được.' },
-            { text: 'Đơn 1003 vẫn hiện, tên khách để trống', feedback: 'LEFT JOIN làm vậy, bài sau sẽ học. INNER JOIN bỏ row không ghép được.' },
-            { text: 'Database báo lỗi', feedback: 'Không có lỗi. Row không ghép được chỉ rơi ra ngoài.' },
+            { text: '14', feedback: 'COUNT(*) mới ra 14. COUNT(calories) bỏ các row NULL.' },
+            { text: '11', correct: true, feedback: 'Đúng. 14 trừ 3 row NULL còn 11.' },
+            { text: '3', feedback: '3 là số row NULL. COUNT(calories) đếm các row có giá trị.' },
           ],
         },
         {
           kind: 'choice',
-          question: 'Bạn chọn `customer_id` mà không ghi table đứng trước, trong query ghép orders và customers. Chuyện gì xảy ra?',
+          question: 'Bạn muốn biết tiệm bán mấy nhóm món khác nhau. Viết gì?',
           options: [
-            { text: 'Database báo lỗi vì không biết lấy column của table nào', correct: true, feedback: 'Đúng. MySQL báo 1052, Oracle báo ORA-00918.' },
-            { text: 'Database tự lấy column của table đầu tiên', feedback: 'Database không đoán. Database dừng lại và báo lỗi.' },
-            { text: 'Database trả mọi row của cả hai table', feedback: 'Lỗi xảy ra trước khi query chạy, nên không có row nào.' },
+            { text: '`COUNT(category)`', feedback: 'Cách này đếm mọi row có category, nên ra 14 thay vì 4.' },
+            { text: '`COUNT(DISTINCT category)`', correct: true, feedback: 'Đúng. DISTINCT chỉ đếm mỗi giá trị một lần.' },
+            { text: '`SUM(category)`', feedback: 'SUM cộng số. Category là chữ, không cộng được.' },
           ],
         },
         {
-          kind: 'match',
-          question: 'Nối mỗi mẩu với ý của nó.',
-          pairs: [
-            { left: 'ON o.customer_id = c.customer_id', right: 'Điều kiện để hai row dính nhau' },
-            { left: 'FROM orders o, customers c', right: 'Cách nối kiểu cũ trong code Oracle' },
-            { left: 'orders AS o', right: 'Oracle báo ORA-00933' },
-            { left: 'ORA-00918', right: 'Column trùng tên ở hai table' },
+          kind: 'choice',
+          question: 'Ba món Cà phê có calories là 150, 210 và NULL. `AVG(calories)` ra bao nhiêu?',
+          options: [
+            { text: '120', feedback: '120 là 360 chia cho 3. AVG chia cho số row có giá trị, tức là 2.' },
+            { text: '180', correct: true, feedback: 'Đúng. AVG bỏ row NULL: 360 chia cho 2.' },
+            { text: 'NULL', feedback: 'AVG bỏ qua NULL và tính từ các số còn lại.' },
           ],
-          done: 'Đúng hết. Bốn mẩu này gặp nhiều nhất khi nối hai table.',
         },
       ],
     },
     {
       type: 'realworld',
-      title: 'Lịch sử đơn trong app mua sắm',
+      title: 'Số liệu đầu trang báo cáo',
       paragraphs: [
-        'Bạn mở lịch sử đơn và thấy tên món, giá và tên người nhận trên cùng một màn hình.',
-        'Những thông tin ấy thường nằm ở nhiều table khác nhau. App ghép chúng bằng JOIN rồi mới hiện lên.',
+        'Báo cáo cuối ngày của một chuỗi cửa hàng thường mở đầu bằng vài con số: tổng đơn, tổng tiền, đơn lớn nhất.',
+        'Mỗi con số là một function gom chạy trên cả table.',
       ],
     },
     {
       type: 'keypoints',
       items: [
-        'JOIN ghép row của hai table qua column chung. Điều kiện ghép viết sau ON.',
-        'INNER JOIN giữ các row ghép được và bỏ các row còn lại.',
-        'Alias làm tên table ngắn lại. Oracle không nhận AS trước alias của table.',
-        'Hai table có column trùng tên thì ghi rõ table đứng trước, như `o.customer_id`.',
+        'Function gom nhận nhiều row và trả một giá trị. Năm function: COUNT, SUM, AVG, MIN, MAX.',
+        '`COUNT(*)` đếm mọi row. `COUNT(column)` bỏ row NULL.',
+        '`COUNT(DISTINCT column)` đếm số giá trị khác nhau.',
+        'SUM, AVG, MIN, MAX bỏ qua NULL. AVG chia cho số row có giá trị.',
       ],
     },
     {
       type: 'sources',
       items: [
-        { name: 'Harvard CS50 SQL, Lecture 1', url: 'https://cs50.harvard.edu/sql/notes/1/', note: 'CC BY-NC-SA 4.0' },
-        { name: 'SQLBolt, bài 6: Multi-table queries with JOINs', url: 'https://sqlbolt.com/lesson/select_queries_with_joins' },
+        { name: 'Harvard CS50 SQL, Lecture 0', url: 'https://cs50.harvard.edu/sql/notes/0/', note: 'CC BY-NC-SA 4.0' },
+        { name: 'SQLBolt, bài 10: Queries with aggregates (Pt. 1)', url: 'https://sqlbolt.com/lesson/select_queries_with_aggregates' },
+        { name: 'MySQL 8.0 Reference Manual, Aggregate Function Descriptions', url: 'https://dev.mysql.com/doc/refman/8.0/en/aggregate-functions.html' },
+        { name: 'Oracle Database 19c SQL Language Reference, Aggregate Functions', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Aggregate-Functions.html' },
       ],
     },
   ],

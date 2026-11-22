@@ -22,16 +22,16 @@ export const uiCertificate = {
     downloadFail: 'Không tải được ảnh. Bấm lại lần nữa.',
   },
 
-  alt: (name: string) =>
+  alt: (name: string, chapterCount: number) =>
     name
-      ? `Giấy chứng nhận của ${name}: đã học xong 7 chương về database và SQL, điểm 10, lời phê Giỏi lắm.`
+      ? `Giấy chứng nhận của ${name}: đã học xong ${chapterCount} chương về database và SQL, điểm 10, lời phê Giỏi lắm.`
       : 'Bản xem trước của giấy chứng nhận Learn Database.',
 
   paper: {
     site: 'Learn Database',
     heading: 'Giấy chứng nhận',
     giveTo: 'Trao cho',
-    sentence: 'đã học xong 7 chương về database và SQL',
+    sentence: (chapterCount: number) => `đã học xong ${chapterCount} chương về database và SQL`,
     datePrefix: 'Ngày',
     score: '10',
     praise: 'Giỏi lắm',

@@ -4,227 +4,170 @@ export const lesson: Lesson = {
   id: 'c5-b4',
   chapter: 5,
   order: 4,
-  title: 'Báo cáo doanh thu',
-  lead: 'Bạn dựng ba báo cáo doanh thu cho tháng 3: theo ngày, theo món và theo tiệm.',
-  minutes: 20,
+  title: 'Ngày giờ',
+  lead: 'Bạn lọc đơn theo ngày và đổi cách hiện ngày giờ.',
+  minutes: 18,
   goals: [
-    'Tính doanh thu bằng SUM(quantity * unit_price)',
-    'Bỏ đơn cancelled bằng WHERE',
-    'Gom doanh thu theo ngày, theo món và theo tiệm',
-    'Giữ báo cáo ngắn bằng ORDER BY cùng LIMIT hoặc FETCH FIRST',
+    'Lọc đơn theo ngày bằng khoảng >= và <',
+    'Biết vì sao so bằng một ngày không ra row nào',
+    'Đổi cách hiện ngày giờ bằng DATE_FORMAT và TO_CHAR',
+    'Đổi chữ thành ngày bằng STR_TO_DATE và TO_DATE',
   ],
   blocks: [
     {
       type: 'story',
-      title: 'Tháng 3 tiệm thu được bao nhiêu?',
+      title: 'Hôm qua bán được mấy đơn?',
       paragraphs: [
-        'Cuối tháng 3, chủ tiệm nhờ Bi làm ba báo cáo.',
-        'Báo cáo một: mỗi ngày thu bao nhiêu. Báo cáo hai: món nào mang về nhiều tiền. Báo cáo ba: tiệm nào thu nhiều nhất.',
-        'Bài này dùng database teashop-big, gồm 200 đơn của tháng 3 năm 2026.',
-        'Bi chỉ cộng các đơn đã bán. Đơn cancelled không thu tiền, nên mình bỏ ra.',
+        'Sáng nay quản lý hỏi Bi: "Hôm qua có mấy đơn?"',
+        'Mỗi đơn lưu giờ đặt trong column ordered_at. Giờ đặt có cả ngày lẫn giờ, ví dụ ngày 8 tháng 3 lúc 14:00.',
+        'Bi cần giữ mọi đơn của ngày 8, dù khách đặt lúc sáng sớm hay tối muộn.',
+        'Đồng hồ của khóa học đứng yên ở 2026-03-09 10:30:00. Hôm nay luôn là ngày 9 tháng 3, nên hôm qua luôn là ngày 8.',
       ],
     },
     {
       type: 'text',
-      title: 'Doanh thu nằm ở order_items',
+      title: 'Giờ đặt có cả ngày lẫn giờ',
       paragraphs: [
-        'Tiền của một đơn nằm ở table order_items. Mỗi row ghi một món trong đơn, kèm quantity và unit_price.',
-        'Tiền của một row bằng `quantity * unit_price`. Doanh thu là tổng các row đó: `SUM(quantity * unit_price)`.',
-        'Ngày đặt và trạng thái nằm ở table orders. Query cần ghép hai table.',
-        '**[[join]]** ghép hai table theo key. Ở đây order_items nối với orders bằng order_id. Chương 6 sẽ dạy JOIN kỹ. Bây giờ bạn chỉ cần dùng khung có sẵn.',
-        'Khung ghép: `FROM orders o JOIN order_items oi ON oi.order_id = o.order_id`. Chữ `o` và `oi` là alias của hai table.',
-        '`WHERE o.status <> \'cancelled\'` bỏ các đơn đã hủy.',
-        'Báo cáo một gom theo ngày. MySQL cắt giờ bằng `DATE(...)`, Oracle cắt giờ bằng `TRUNC(...)`. Query chỉ lấy 7 ngày đầu để dễ xem.',
+        'Column ordered_at chứa **[[datetime]]**, tức là cả ngày lẫn giờ.',
+        'DATE của Oracle cũng lưu cả giờ. Tên DATE dễ làm bạn hiểu nhầm.',
+        'Một ngày viết một mình, như 2026-03-08, nghĩa là 00:00:00 của ngày đó.',
+        'Vì vậy `ordered_at = ngày 8` chỉ giữ đơn đặt đúng nửa đêm. Gần như không đơn nào đặt lúc đó.',
+        'Cách đúng là hỏi một khoảng. Giữ đơn từ đầu ngày 8 tới trước đầu ngày 9.',
+        'Viết `>=` cho đầu khoảng và `<` cho ngày hôm sau.',
+        'Oracle cần chữ DATE đứng trước ngày, như `DATE \'2026-03-08\'`. MySQL chỉ cần ngày nằm trong nháy đơn.',
       ],
     },
     {
       type: 'playground',
-      title: 'Báo cáo 1: doanh thu theo ngày',
-      intro: 'Bấm Chạy. Mỗi row là doanh thu của một ngày. Mở Query Theater để xem các row nối nhau rồi vào nhóm.',
-      database: 'teashop-big',
-      tables: ['orders', 'order_items'],
+      title: 'Thử tay ngay: đơn của hôm qua',
+      intro: 'Bấm Chạy. Query giữ đơn từ đầu ngày 8 tới trước đầu ngày 9.',
+      database: 'teashop',
+      tables: ['orders'],
       dialects: ['mysql', 'oracle'],
       sql: {
-        mysql:
-          "SELECT DATE(o.ordered_at) AS order_date,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nWHERE o.status <> 'cancelled'\nGROUP BY DATE(o.ordered_at)\nORDER BY order_date\nLIMIT 7;",
+        mysql: "SELECT order_id, ordered_at, status\nFROM orders\nWHERE ordered_at >= '2026-03-08'\n  AND ordered_at < '2026-03-09';",
         oracle:
-          "SELECT TRUNC(o.ordered_at) AS order_date,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nWHERE o.status <> 'cancelled'\nGROUP BY TRUNC(o.ordered_at)\nORDER BY order_date\nFETCH FIRST 7 ROWS ONLY",
+          "SELECT order_id, ordered_at, status\nFROM orders\nWHERE ordered_at >= DATE '2026-03-08'\n  AND ordered_at < DATE '2026-03-09'",
       },
       tries: [
         {
-          label: 'Đổi ORDER BY order_date thành ORDER BY revenue DESC',
+          label: 'Đổi cả khoảng thành ordered_at = ngày 8',
           sql: {
-            mysql:
-              "SELECT DATE(o.ordered_at) AS order_date,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nWHERE o.status <> 'cancelled'\nGROUP BY DATE(o.ordered_at)\nORDER BY revenue DESC\nLIMIT 7;",
-            oracle:
-              "SELECT TRUNC(o.ordered_at) AS order_date,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nWHERE o.status <> 'cancelled'\nGROUP BY TRUNC(o.ordered_at)\nORDER BY revenue DESC\nFETCH FIRST 7 ROWS ONLY",
+            mysql: "SELECT order_id, ordered_at, status\nFROM orders\nWHERE ordered_at = '2026-03-08';",
+            oracle: "SELECT order_id, ordered_at, status\nFROM orders\nWHERE ordered_at = DATE '2026-03-08'",
           },
         },
         {
-          label: 'Bỏ WHERE, tính cả đơn cancelled',
+          label: 'Cắt giờ: DATE(ordered_at) ở MySQL, TRUNC(ordered_at) ở Oracle',
           sql: {
-            mysql:
-              'SELECT DATE(o.ordered_at) AS order_date,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nGROUP BY DATE(o.ordered_at)\nORDER BY order_date\nLIMIT 7;',
-            oracle:
-              'SELECT TRUNC(o.ordered_at) AS order_date,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nGROUP BY TRUNC(o.ordered_at)\nORDER BY order_date\nFETCH FIRST 7 ROWS ONLY',
+            mysql: "SELECT order_id, ordered_at, status\nFROM orders\nWHERE DATE(ordered_at) = '2026-03-08';",
+            oracle: "SELECT order_id, ordered_at, status\nFROM orders\nWHERE TRUNC(ordered_at) = DATE '2026-03-08'",
           },
         },
         {
-          label: 'Thêm COUNT(DISTINCT o.order_id) AS orders_count',
+          label: 'Tính hôm qua từ đồng hồ, không gõ ngày',
           sql: {
-            mysql:
-              "SELECT DATE(o.ordered_at) AS order_date,\n       COUNT(DISTINCT o.order_id) AS orders_count,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nWHERE o.status <> 'cancelled'\nGROUP BY DATE(o.ordered_at)\nORDER BY order_date\nLIMIT 7;",
-            oracle:
-              "SELECT TRUNC(o.ordered_at) AS order_date,\n       COUNT(DISTINCT o.order_id) AS orders_count,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nWHERE o.status <> 'cancelled'\nGROUP BY TRUNC(o.ordered_at)\nORDER BY order_date\nFETCH FIRST 7 ROWS ONLY",
+            mysql: 'SELECT order_id, ordered_at, status\nFROM orders\nWHERE DATEDIFF(CURDATE(), ordered_at) = 1;',
+            oracle: 'SELECT order_id, ordered_at, status\nFROM orders\nWHERE TRUNC(SYSDATE) - TRUNC(ordered_at) = 1',
           },
         },
         {
-          label: 'Thêm OFFSET 7 để xem 7 ngày kế tiếp',
+          label: 'Đổi đầu khoảng thành STR_TO_DATE hoặc TO_DATE',
           sql: {
             mysql:
-              "SELECT DATE(o.ordered_at) AS order_date,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nWHERE o.status <> 'cancelled'\nGROUP BY DATE(o.ordered_at)\nORDER BY order_date\nLIMIT 7 OFFSET 7;",
+              "SELECT order_id, ordered_at, status\nFROM orders\nWHERE ordered_at >= STR_TO_DATE('08/03/2026', '%d/%m/%Y')\n  AND ordered_at < '2026-03-09';",
             oracle:
-              "SELECT TRUNC(o.ordered_at) AS order_date,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nWHERE o.status <> 'cancelled'\nGROUP BY TRUNC(o.ordered_at)\nORDER BY order_date\nOFFSET 7 ROWS FETCH NEXT 7 ROWS ONLY",
+              "SELECT order_id, ordered_at, status\nFROM orders\nWHERE ordered_at >= TO_DATE('08/03/2026', 'DD/MM/YYYY')\n  AND ordered_at < DATE '2026-03-09'",
           },
         },
       ],
-      say: 'Bỏ WHERE thì doanh thu tăng ở ngày nào có đơn cancelled, vì đơn đó cũng bị cộng vào.',
+      say: 'Thử mục "ordered_at = ngày 8". Cả hai dialect trả 0 row, vì không đơn nào đặt đúng 00:00:00.',
     },
     {
       type: 'text',
-      title: 'Doanh thu theo món',
+      title: 'Cắt giờ và lấy ngày hôm nay',
       paragraphs: [
-        'Báo cáo hai cần tên món. Tên nằm ở table products, nên ghép thêm products bằng product_id.',
-        'Query gom theo tên món, sắp theo doanh thu giảm dần, và giữ 5 món đầu.',
-        'Muốn xem món bán nhiều ly nhất thay cho nhiều tiền nhất, đổi tổng tiền thành `SUM(quantity)`.',
+        'Còn một hướng khác: cắt phần giờ trước, rồi mới so.',
+        'MySQL có `DATE(x)`. Oracle có **[[trunc]]**: `TRUNC(x)`. Cả hai trả về ngày lúc 00:00:00.',
+        'MySQL lấy giờ hiện tại bằng `NOW()` và ngày hôm nay bằng `CURDATE()`. Oracle lấy giờ hiện tại bằng `SYSDATE`.',
+        'MySQL có `DATEDIFF(a, b)` để tính số ngày giữa hai ngày. Oracle lấy hai ngày trừ nhau: `a - b`.',
+        'Mục "Tính hôm qua từ đồng hồ" ở trên dùng đúng các function này. Đồng hồ đứng yên, nên kết quả không đổi theo ngày bạn học.',
       ],
-    },
-    {
-      type: 'playground',
-      title: 'Báo cáo 2: năm món mang về nhiều tiền nhất',
-      intro: 'Bấm Chạy. Query nối ba table: orders, order_items và products.',
-      database: 'teashop-big',
-      tables: ['orders', 'order_items', 'products'],
-      dialects: ['mysql', 'oracle'],
-      sql: {
-        mysql:
-          "SELECT p.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN products p ON p.product_id = oi.product_id\nWHERE o.status <> 'cancelled'\nGROUP BY p.name\nORDER BY revenue DESC\nLIMIT 5;",
-        oracle:
-          "SELECT p.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN products p ON p.product_id = oi.product_id\nWHERE o.status <> 'cancelled'\nGROUP BY p.name\nORDER BY revenue DESC\nFETCH FIRST 5 ROWS ONLY",
-      },
-      tries: [
-        {
-          label: 'Đổi 5 thành 3',
-          sql: {
-            mysql:
-              "SELECT p.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN products p ON p.product_id = oi.product_id\nWHERE o.status <> 'cancelled'\nGROUP BY p.name\nORDER BY revenue DESC\nLIMIT 3;",
-            oracle:
-              "SELECT p.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN products p ON p.product_id = oi.product_id\nWHERE o.status <> 'cancelled'\nGROUP BY p.name\nORDER BY revenue DESC\nFETCH FIRST 3 ROWS ONLY",
-          },
-        },
-        {
-          label: 'Đổi tổng tiền thành SUM(quantity) AS cups_sold',
-          sql: {
-            mysql:
-              "SELECT p.name,\n       SUM(oi.quantity) AS cups_sold\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN products p ON p.product_id = oi.product_id\nWHERE o.status <> 'cancelled'\nGROUP BY p.name\nORDER BY cups_sold DESC\nLIMIT 5;",
-            oracle:
-              "SELECT p.name,\n       SUM(oi.quantity) AS cups_sold\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN products p ON p.product_id = oi.product_id\nWHERE o.status <> 'cancelled'\nGROUP BY p.name\nORDER BY cups_sold DESC\nFETCH FIRST 5 ROWS ONLY",
-          },
-        },
-        {
-          label: 'Bỏ DESC để xem năm món thấp nhất',
-          sql: {
-            mysql:
-              "SELECT p.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN products p ON p.product_id = oi.product_id\nWHERE o.status <> 'cancelled'\nGROUP BY p.name\nORDER BY revenue\nLIMIT 5;",
-            oracle:
-              "SELECT p.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN products p ON p.product_id = oi.product_id\nWHERE o.status <> 'cancelled'\nGROUP BY p.name\nORDER BY revenue\nFETCH FIRST 5 ROWS ONLY",
-          },
-        },
-        {
-          label: 'Đổi p.name thành p.category',
-          sql: {
-            mysql:
-              "SELECT p.category,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN products p ON p.product_id = oi.product_id\nWHERE o.status <> 'cancelled'\nGROUP BY p.category\nORDER BY revenue DESC\nLIMIT 5;",
-            oracle:
-              "SELECT p.category,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN products p ON p.product_id = oi.product_id\nWHERE o.status <> 'cancelled'\nGROUP BY p.category\nORDER BY revenue DESC\nFETCH FIRST 5 ROWS ONLY",
-          },
-        },
-      ],
-      say: 'Xếp theo tiền và xếp theo số ly cho hai danh sách khác nhau. Món rẻ bán nhiều ly vẫn mang về ít tiền.',
     },
     {
       type: 'text',
-      title: 'Doanh thu theo tiệm',
+      title: 'Đổi cách hiện ngày giờ',
       paragraphs: [
-        'Báo cáo ba cần tên tiệm. Tên nằm ở table stores, nên ghép stores bằng store_id.',
-        'Chỉ có 4 tiệm, nên không cần LIMIT.',
-        'Sau khi nối, một đơn có nhiều row, mỗi món một row. `COUNT(*)` ra số row món. Số này thường lớn hơn số đơn.',
-        'Muốn đếm đơn, viết `COUNT(DISTINCT o.order_id)`. DISTINCT đếm mỗi đơn một lần.',
+        '**[[date-format]]** đổi ngày giờ thành chữ theo khuôn bạn viết. MySQL gọi `DATE_FORMAT`. Oracle gọi `TO_CHAR`.',
+        'Khuôn của MySQL dùng `%d` (ngày), `%m` (tháng), `%Y` (năm), `%H` (giờ), `%i` (phút).',
+        'Khuôn của Oracle viết `DD`, `MM`, `YYYY`, `HH24`, `MI`.',
+        'Query dưới đây hiện giờ đặt của hai ngày cuối theo kiểu Việt Nam.',
       ],
     },
     {
       type: 'playground',
-      title: 'Báo cáo 3: doanh thu theo tiệm',
-      intro: 'Bấm Chạy. Mỗi tiệm một row, tiệm thu nhiều nhất đứng đầu.',
-      database: 'teashop-big',
-      tables: ['orders', 'order_items', 'stores'],
+      title: 'Thử tay ngay: giờ đặt kiểu Việt Nam',
+      intro: 'Bấm Chạy. Column shown_time là chữ, không còn là ngày giờ.',
+      database: 'teashop',
+      tables: ['orders'],
       dialects: ['mysql', 'oracle'],
       sql: {
         mysql:
-          "SELECT s.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN stores s ON s.store_id = o.store_id\nWHERE o.status <> 'cancelled'\nGROUP BY s.name\nORDER BY revenue DESC;",
+          "SELECT order_id, DATE_FORMAT(ordered_at, '%d/%m/%Y %H:%i') AS shown_time, status\nFROM orders\nWHERE ordered_at >= '2026-03-07'\n  AND ordered_at < '2026-03-09';",
         oracle:
-          "SELECT s.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN stores s ON s.store_id = o.store_id\nWHERE o.status <> 'cancelled'\nGROUP BY s.name\nORDER BY revenue DESC",
+          "SELECT order_id, TO_CHAR(ordered_at, 'DD/MM/YYYY HH24:MI') AS shown_time, status\nFROM orders\nWHERE ordered_at >= DATE '2026-03-07'\n  AND ordered_at < DATE '2026-03-09'",
       },
       tries: [
         {
-          label: 'Thêm COUNT(DISTINCT o.order_id) AS orders_count',
+          label: "Đổi khuôn thành chỉ có giờ và phút",
           sql: {
             mysql:
-              "SELECT s.name,\n       COUNT(DISTINCT o.order_id) AS orders_count,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN stores s ON s.store_id = o.store_id\nWHERE o.status <> 'cancelled'\nGROUP BY s.name\nORDER BY revenue DESC;",
+              "SELECT order_id, DATE_FORMAT(ordered_at, '%H:%i') AS shown_time, status\nFROM orders\nWHERE ordered_at >= '2026-03-07'\n  AND ordered_at < '2026-03-09';",
             oracle:
-              "SELECT s.name,\n       COUNT(DISTINCT o.order_id) AS orders_count,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN stores s ON s.store_id = o.store_id\nWHERE o.status <> 'cancelled'\nGROUP BY s.name\nORDER BY revenue DESC",
+              "SELECT order_id, TO_CHAR(ordered_at, 'HH24:MI') AS shown_time, status\nFROM orders\nWHERE ordered_at >= DATE '2026-03-07'\n  AND ordered_at < DATE '2026-03-09'",
           },
         },
         {
-          label: 'Bỏ DESC để tiệm thu ít nhất đứng đầu',
+          label: 'Đổi khuôn thành chỉ có ngày và tháng',
           sql: {
             mysql:
-              "SELECT s.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN stores s ON s.store_id = o.store_id\nWHERE o.status <> 'cancelled'\nGROUP BY s.name\nORDER BY revenue;",
+              "SELECT order_id, DATE_FORMAT(ordered_at, '%d/%m') AS shown_time, status\nFROM orders\nWHERE ordered_at >= '2026-03-07'\n  AND ordered_at < '2026-03-09';",
             oracle:
-              "SELECT s.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN stores s ON s.store_id = o.store_id\nWHERE o.status <> 'cancelled'\nGROUP BY s.name\nORDER BY revenue",
+              "SELECT order_id, TO_CHAR(ordered_at, 'DD/MM') AS shown_time, status\nFROM orders\nWHERE ordered_at >= DATE '2026-03-07'\n  AND ordered_at < DATE '2026-03-09'",
           },
         },
         {
-          label: 'Bỏ WHERE, tính cả đơn cancelled',
+          label: 'Thêm column NOW() ở MySQL, SYSDATE ở Oracle',
           sql: {
             mysql:
-              'SELECT s.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN stores s ON s.store_id = o.store_id\nGROUP BY s.name\nORDER BY revenue DESC;',
+              "SELECT order_id, DATE_FORMAT(ordered_at, '%d/%m/%Y %H:%i') AS shown_time, NOW() AS now_time\nFROM orders\nWHERE ordered_at >= '2026-03-07'\n  AND ordered_at < '2026-03-09';",
             oracle:
-              'SELECT s.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN stores s ON s.store_id = o.store_id\nGROUP BY s.name\nORDER BY revenue DESC',
-          },
-        },
-        {
-          label: 'Thêm HAVING SUM(...) > 4000000',
-          sql: {
-            mysql:
-              "SELECT s.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN stores s ON s.store_id = o.store_id\nWHERE o.status <> 'cancelled'\nGROUP BY s.name\nHAVING SUM(oi.quantity * oi.unit_price) > 4000000\nORDER BY revenue DESC;",
-            oracle:
-              "SELECT s.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.order_id\nJOIN stores s ON s.store_id = o.store_id\nWHERE o.status <> 'cancelled'\nGROUP BY s.name\nHAVING SUM(oi.quantity * oi.unit_price) > 4000000\nORDER BY revenue DESC",
+              "SELECT order_id, TO_CHAR(ordered_at, 'DD/MM/YYYY HH24:MI') AS shown_time, SYSDATE AS now_time\nFROM orders\nWHERE ordered_at >= DATE '2026-03-07'\n  AND ordered_at < DATE '2026-03-09'",
           },
         },
       ],
-      say: 'Ba báo cáo dùng chung một khung: nối table, bỏ đơn cancelled, gom nhóm, cộng tiền.',
+      say: 'Đổi khuôn chỉ đổi cách hiện. Ngày giờ lưu trong table vẫn như cũ.',
+    },
+    {
+      type: 'text',
+      title: 'Đổi chữ thành ngày',
+      paragraphs: [
+        'Đôi khi ngày đến từ một đoạn chữ, như người dùng gõ `08/03/2026`. Bạn phải đổi chữ đó thành ngày trước khi so.',
+        '**[[str-to-date]]** đổi chữ thành ngày theo khuôn bạn nói. MySQL gọi `STR_TO_DATE`. Oracle gọi `TO_DATE`.',
+        "MySQL viết `STR_TO_DATE('08/03/2026', '%d/%m/%Y')`. Oracle viết `TO_DATE('08/03/2026', 'DD/MM/YYYY')`.",
+        'Mục cuối trong ô thử tay đầu tiên dùng đúng hai function này.',
+      ],
     },
     {
       type: 'oracle',
       body: [
-        'Ba báo cáo khác nhau giữa hai dialect ở ba chỗ.',
-        'Cắt giờ ra ngày: MySQL dùng `DATE(...)`, Oracle dùng `TRUNC(...)`.',
-        'Giữ n row đầu: MySQL dùng `LIMIT n`, Oracle dùng `FETCH FIRST n ROWS ONLY`.',
-        'Alias của table: Oracle không nhận AS trước alias. Viết `FROM orders o`, không viết `FROM orders AS o`.',
+        "DATE của Oracle luôn có giờ. `ordered_at = DATE '2026-03-08'` chỉ khớp đơn đặt đúng 00:00:00, nên ra 0 row.",
+        "Oracle đọc chuỗi ngày theo một dạng mặc định, và dạng đó khác 2026-03-08. Vì vậy `ordered_at = '2026-03-08'` báo lỗi ORA-01861.",
+        "Gặp ORA-01861, kiểm lại: ngày đã đứng sau chữ DATE, hay nằm trong TO_DATE chưa?",
+        "MySQL đổi chữ dạng 2026-03-08 thành ngày giúp bạn, nên `ordered_at >= '2026-03-08'` chạy bình thường.",
       ],
-      mysql: 'GROUP BY DATE(o.ordered_at)\nORDER BY order_date\nLIMIT 7',
-      oracle: 'GROUP BY TRUNC(o.ordered_at)\nORDER BY order_date\nFETCH FIRST 7 ROWS ONLY',
+      mysql: "WHERE ordered_at >= '2026-03-08'\n  AND ordered_at < '2026-03-09'",
+      oracle: "WHERE ordered_at >= DATE '2026-03-08'\n  AND ordered_at < DATE '2026-03-09'",
     },
     {
       type: 'quiz',
@@ -232,57 +175,57 @@ export const lesson: Lesson = {
       items: [
         {
           kind: 'choice',
-          question: 'Doanh thu của các row trong order_items tính bằng gì?',
+          question: "Bạn chạy `WHERE ordered_at = DATE '2026-03-08'` trên Oracle. Chuyện gì xảy ra?",
           options: [
-            { text: '`SUM(quantity)`', feedback: 'Cách này ra tổng số ly, không ra tiền.' },
-            { text: '`SUM(unit_price)`', feedback: 'Cộng đơn giá mà bỏ quantity thì món mua 2 ly chỉ tính 1 ly.' },
-            { text: '`SUM(quantity * unit_price)`', correct: true, feedback: 'Đúng. Mỗi row nhân quantity với unit_price trước, rồi cộng lại.' },
+            { text: 'Ra mọi đơn của ngày 8', feedback: 'Ngày viết một mình là 00:00:00. Chỉ đơn đặt đúng giờ đó mới khớp.' },
+            { text: 'Ra 0 row', correct: true, feedback: 'Đúng. DATE của Oracle có cả giờ, và không đơn nào đặt đúng 00:00:00.' },
+            { text: 'Oracle báo ORA-01861', feedback: 'ORA-01861 xuất hiện khi so ngày với chuỗi mà thiếu chữ DATE hoặc TO_DATE.' },
           ],
         },
         {
           kind: 'choice',
-          question: 'Bạn muốn doanh thu không tính đơn đã hủy. Thêm gì vào query?',
+          question: 'Cách nào giữ mọi đơn của ngày 8 ở cả hai dialect?',
           options: [
-            { text: "`WHERE o.status <> 'cancelled'`", correct: true, feedback: 'Đúng. WHERE bỏ row của đơn cancelled trước khi cộng tiền.' },
-            { text: '`ORDER BY o.status`', feedback: 'ORDER BY chỉ sắp xếp. Đơn cancelled vẫn được cộng.' },
-            { text: '`LIMIT 1`', feedback: 'LIMIT chỉ cắt số row của kết quả, không lọc đơn nào.' },
+            { text: 'Từ đầu ngày 8 (`>=`) tới trước đầu ngày 9 (`<`)', correct: true, feedback: 'Đúng. Khoảng này gồm mọi giờ của ngày 8.' },
+            { text: '`ordered_at <= ngày 8`', feedback: 'Ngày 8 viết một mình là 00:00:00. Đơn lúc 14:00 lớn hơn mức đó nên bị bỏ.' },
+            { text: '`ordered_at = ngày 8`', feedback: 'Cách này chỉ giữ đơn đặt đúng 00:00:00.' },
           ],
         },
         {
           kind: 'choice',
-          question: 'Bạn nối orders với order_items rồi viết `COUNT(*)` cho từng tiệm. Con số đó là gì?',
+          question: 'Đồng hồ của khóa học đang chỉ lúc nào?',
           options: [
-            { text: 'Số đơn của tiệm', feedback: 'Một đơn có nhiều món, nên chiếm nhiều row sau khi nối. Muốn đếm đơn, dùng `COUNT(DISTINCT o.order_id)`.' },
-            { text: 'Số row món của tiệm, không phải số đơn', correct: true, feedback: 'Đúng. Mỗi món trong đơn là một row, và COUNT(*) đếm từng row.' },
-            { text: 'Số khách của tiệm', feedback: 'Query không đụng tới table customers, nên không đếm được khách.' },
+            { text: 'Giờ thật trên máy của bạn', feedback: 'Khóa học cố định đồng hồ để mọi người thấy cùng một kết quả.' },
+            { text: '2026-03-09 10:30:00, và đứng yên', correct: true, feedback: 'Đúng. Hôm nay luôn là ngày 9 tháng 3, nên hôm qua luôn là ngày 8.' },
+            { text: '2026-03-01 00:00:00', feedback: 'Đó là ngày đầu của dữ liệu tháng 3, không phải đồng hồ.' },
           ],
         },
       ],
     },
     {
       type: 'realworld',
-      title: 'Báo cáo doanh thu cuối ngày của một chuỗi cửa hàng',
+      title: 'Báo cáo đơn của ngày hôm qua',
       paragraphs: [
-        'Cuối ngày, quản lý khu vực mở báo cáo doanh thu của từng cửa hàng.',
-        'Query nối đơn với từng món, bỏ đơn đã hủy, gom theo cửa hàng và cộng tiền. Đó cũng là khung của báo cáo ba trong bài này.',
+        'Mỗi sáng, quản lý một chuỗi cửa hàng mở báo cáo đơn của ngày hôm qua.',
+        'Query giữ đơn từ đầu ngày hôm qua tới trước đầu ngày hôm nay. Viết khoảng như vậy thì báo cáo không sót đơn đặt lúc tối muộn.',
       ],
     },
     {
       type: 'keypoints',
       items: [
-        'Doanh thu là `SUM(quantity * unit_price)` trên order_items.',
-        'WHERE bỏ đơn cancelled trước khi cộng tiền.',
-        'Báo cáo theo ngày, theo món, theo tiệm chỉ khác nhau ở column đứng sau GROUP BY.',
-        'ORDER BY kèm LIMIT hoặc FETCH FIRST giữ báo cáo ngắn và dễ đọc.',
+        'ordered_at có cả ngày lẫn giờ. DATE của Oracle cũng có giờ.',
+        'Lọc theo ngày bằng khoảng `>=` và `<` ngày hôm sau. Cũng có thể cắt giờ bằng DATE ở MySQL, TRUNC ở Oracle.',
+        "Ở Oracle, viết ngày bằng `DATE '2026-03-08'` hoặc TO_DATE. So thẳng với chuỗi '2026-03-08' thì gặp ORA-01861.",
+        'DATE_FORMAT và TO_CHAR đổi ngày thành chữ. STR_TO_DATE và TO_DATE đổi chữ thành ngày.',
       ],
     },
     {
       type: 'sources',
       items: [
-        { name: 'SQLBolt, bài 10: Queries with aggregates (Pt. 1)', url: 'https://sqlbolt.com/lesson/select_queries_with_aggregates' },
-        { name: 'SQLBolt, bài 11: Queries with aggregates (Pt. 2)', url: 'https://sqlbolt.com/lesson/select_queries_with_aggregates_pt_2' },
-        { name: 'MySQL 8.0 Reference Manual, Aggregate Function Descriptions', url: 'https://dev.mysql.com/doc/refman/8.0/en/aggregate-functions.html' },
-        { name: 'Oracle Database 19c SQL Language Reference, Aggregate Functions', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Aggregate-Functions.html' },
+        { name: 'MySQL 8.0 Reference Manual, Date and Time Functions', url: 'https://dev.mysql.com/doc/refman/8.0/en/date-and-time-functions.html' },
+        { name: 'Oracle Database 19c SQL Language Reference, Data Types (mục DATE)', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Data-Types.html' },
+        { name: 'Oracle Database 19c SQL Language Reference, TO_CHAR (datetime)', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/TO_CHAR-datetime.html' },
+        { name: 'Oracle Database 19c SQL Language Reference, TRUNC (date)', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/TRUNC-date.html' },
       ],
     },
   ],

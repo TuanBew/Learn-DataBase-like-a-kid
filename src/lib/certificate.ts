@@ -3,12 +3,17 @@ import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { Mascot } from '../components/Mascot';
 import { chapters } from '../content/course';
+import { exerciseMap } from '../content/exercise-map';
 import { uiCertificate as T } from '../content/ui-certificate';
 import type { Progress } from './progress';
 
 export const CERT_W = 1600;
 export const CERT_H = 1130;
-export const BOSS_IDS = chapters.map((c) => `c${c.id}-boss`);
+/** Mọi bài boss đang có, theo thứ tự chương. Chương nào chưa có bài boss thì không tính. */
+export const BOSS_IDS = Object.values(exerciseMap)
+  .flat()
+  .filter((id) => id.endsWith('-boss'))
+  .sort((a, b) => Number(a.slice(1, a.indexOf('-'))) - Number(b.slice(1, b.indexOf('-'))));
 
 export interface CertificateStatus {
   lessonsDone: number;
@@ -184,7 +189,7 @@ export async function drawCertificate(canvas: HTMLCanvasElement, opts: Certifica
   const P = T.paper;
   const name = opts.preview ? P.previewName : opts.name.trim();
   const dateText = `${P.datePrefix} ${opts.date}`;
-  const allText = [P.site, P.heading, P.giveTo, name, P.sentence, dateText, P.score, P.praise, P.preview, ...opts.chapters].join(' ');
+  const allText = [P.site, P.heading, P.giveTo, name, P.sentence(opts.chapters.length), dateText, P.score, P.praise, P.preview, ...opts.chapters].join(' ');
 
   const loads = [F.site, F.heading, F.giveTo, F.nameAt(96), F.sentence, F.date, F.score, F.praise, F.chipAt(24), F.previewMark];
   try {
@@ -245,7 +250,7 @@ export async function drawCertificate(canvas: HTMLCanvasElement, opts: Certifica
 
   ctx.fillStyle = INK;
   ctx.font = F.sentence;
-  ctx.fillText(P.sentence, cx, 600);
+  ctx.fillText(P.sentence(opts.chapters.length), cx, 600);
 
   // chip chương
   const chips = layoutChips(ctx, opts.chapters);

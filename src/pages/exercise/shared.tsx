@@ -11,6 +11,7 @@ import { exercises } from '../../content/exercises';
 import type { Exercise } from '../../content/types';
 import { uiApp } from '../../content/ui-app';
 import type { Database, Dialect } from '../../engine/types';
+import { BOSS_IDS } from '../../lib/certificate';
 import { play } from '../../sfx/sfx';
 
 const U = uiApp.exercise;
@@ -96,7 +97,7 @@ export function DoneCard({ exercise, why, children, actions }: { exercise: Exerc
             <Icon name="arrow" size={18} />
           </Link>
         )}
-        {boss && exercise.chapter === 7 && (
+        {boss && exercise.id === BOSS_IDS[BOSS_IDS.length - 1] && (
           <Link href="/chung-nhan" className="btn btn--sm btn--matcha">
             {U.certificate}
             <Icon name="arrow" size={18} />

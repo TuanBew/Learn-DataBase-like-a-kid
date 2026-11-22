@@ -41,7 +41,7 @@ export const lesson: Lesson = {
         'Cách chữa là **[[normalizing]]**. Mỗi loại thông tin vào một table riêng.',
         'Họ tên và số điện thoại của khách nằm ở table customers, mỗi khách một row. Table orders chỉ giữ customer_id.',
         'Giờ số điện thoại chỉ nằm ở một chỗ. Sửa một lần ở customers, mọi đơn đều thấy số mới.',
-        'Tách table không làm mất thông tin. Từ customer_id trên đơn, bạn nối về khách bằng foreign key. Chương 6 dạy lệnh **[[join]]** để nối.',
+        'Tách table không làm mất thông tin. Từ customer_id trên đơn, bạn nối về khách bằng foreign key. Chương 7 dạy lệnh **[[join]]** để nối.',
       ],
     },
     {

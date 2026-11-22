@@ -4,134 +4,128 @@ export const lesson: Lesson = {
   id: 'c6-b2',
   chapter: 6,
   order: 2,
-  title: 'LEFT JOIN',
-  lead: 'Bạn giữ mọi row của table bên trái, kể cả row không ghép được.',
+  title: 'GROUP BY',
+  lead: 'Bạn chia row vào từng nhóm, rồi tính một con số cho mỗi nhóm.',
   minutes: 16,
   goals: [
-    'Giữ mọi row bên trái bằng LEFT JOIN',
-    'Đọc NULL ở column của table bên phải',
-    'Tìm món chưa từng bán bằng LEFT JOIN và IS NULL',
-    'Tìm đơn của khách vãng lai',
+    'Chia row thành nhóm bằng GROUP BY',
+    'Tính một con số cho mỗi nhóm bằng function gom',
+    'Biết column trong SELECT phải nằm trong GROUP BY hoặc trong function gom',
+    'Đọc lỗi ORA-00979',
   ],
   blocks: [
     {
       type: 'story',
-      title: 'Món nào chưa ai mua?',
+      title: 'Mỗi nhóm món có mấy món?',
       paragraphs: [
-        'Chủ tiệm hỏi Bi: "Món nào chưa bán được ly nào?"',
-        'Bi không đi từng đơn để xem món nào xuất hiện. Mình đi từng món trong thực đơn.',
-        'Với mỗi món, Bi tìm các đơn có món đó. Món nào không tìm thấy đơn nào thì ghi lại.',
-        'Bi phải giữ mọi món trong danh sách, kể cả món không có đơn. INNER JOIN làm rơi mất các món này.',
+        'Chủ tiệm hỏi Bi: "Mỗi nhóm món có mấy món?"',
+        'Bi chuẩn bị bốn hộp: Trà sữa, Trà trái cây, Cà phê và Topping. Mình bỏ từng món vào đúng hộp.',
+        'Xong thì Bi đếm số món trong từng hộp.',
+        'SQL làm đúng hai bước đó: chia row vào hộp, rồi tính trên từng hộp.',
       ],
     },
     {
       type: 'text',
-      title: 'LEFT JOIN giữ mọi row bên trái',
+      title: 'GROUP BY chia row thành nhóm',
       paragraphs: [
-        '**[[left-join]]** giữ mọi row của table bên trái. Row nào không ghép được thì column của table bên phải là **[[null]]**.',
-        'Table bên trái là table đứng trước chữ JOIN. Table bên phải đứng sau.',
-        'Bạn cũng gặp cách viết `LEFT OUTER JOIN`. Hai cách có nghĩa như nhau.',
-        'Query dưới đây lấy các đơn của tiệm 3, kèm tên khách. Table orders đứng bên trái.',
+        '**[[group-by]]** chia row thành nhóm. Các row có cùng giá trị ở column đó vào cùng một nhóm.',
+        'Function gom chạy trên từng nhóm. Mỗi nhóm cho ra đúng một row kết quả.',
+        'Query dưới đây đếm món theo nhóm. Mở Query Theater để xem từng row bay vào hộp của nhóm đó.',
       ],
     },
     {
       type: 'playground',
-      title: 'Thử tay ngay: đơn của tiệm 3, kèm tên khách',
-      intro: 'Bấm Chạy. Tìm đơn nào có full_name là NULL.',
+      title: 'Thử tay ngay: đếm món theo nhóm',
+      intro: 'Bấm Chạy. Table có 14 row, kết quả có 4 row, mỗi category một row.',
       database: 'teashop',
-      tables: ['orders', 'customers'],
+      tables: ['products'],
       dialects: ['mysql', 'oracle'],
       sql: {
-        mysql:
-          'SELECT o.order_id, o.store_id, c.full_name\nFROM orders o\nLEFT JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 3;',
-        oracle:
-          'SELECT o.order_id, o.store_id, c.full_name\nFROM orders o\nLEFT JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 3',
+        mysql: 'SELECT category, COUNT(*) AS items\nFROM products\nGROUP BY category;',
+        oracle: 'SELECT category, COUNT(*) AS items\nFROM products\nGROUP BY category',
       },
       tries: [
         {
-          label: 'Đổi LEFT JOIN thành INNER JOIN',
+          label: 'Thêm ROUND(AVG(price), 0) AS avg_price',
           sql: {
-            mysql:
-              'SELECT o.order_id, o.store_id, c.full_name\nFROM orders o\nINNER JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 3;',
-            oracle:
-              'SELECT o.order_id, o.store_id, c.full_name\nFROM orders o\nINNER JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 3',
+            mysql: 'SELECT category, COUNT(*) AS items, ROUND(AVG(price), 0) AS avg_price\nFROM products\nGROUP BY category;',
+            oracle: 'SELECT category, COUNT(*) AS items, ROUND(AVG(price), 0) AS avg_price\nFROM products\nGROUP BY category',
           },
         },
         {
-          label: 'Đổi WHERE o.store_id = 3 thành WHERE c.customer_id IS NULL',
+          label: 'Đổi COUNT(*) thành MAX(price)',
           sql: {
-            mysql:
-              'SELECT o.order_id, o.store_id, c.full_name\nFROM orders o\nLEFT JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE c.customer_id IS NULL;',
-            oracle:
-              'SELECT o.order_id, o.store_id, c.full_name\nFROM orders o\nLEFT JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE c.customer_id IS NULL',
+            mysql: 'SELECT category, MAX(price) AS max_price\nFROM products\nGROUP BY category;',
+            oracle: 'SELECT category, MAX(price) AS max_price\nFROM products\nGROUP BY category',
           },
         },
         {
-          label: 'Đổi store_id = 3 thành store_id = 4',
+          label: 'Thêm ORDER BY items DESC',
           sql: {
-            mysql:
-              'SELECT o.order_id, o.store_id, c.full_name\nFROM orders o\nLEFT JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 4;',
-            oracle:
-              'SELECT o.order_id, o.store_id, c.full_name\nFROM orders o\nLEFT JOIN customers c\n  ON o.customer_id = c.customer_id\nWHERE o.store_id = 4',
+            mysql: 'SELECT category, COUNT(*) AS items\nFROM products\nGROUP BY category\nORDER BY items DESC;',
+            oracle: 'SELECT category, COUNT(*) AS items\nFROM products\nGROUP BY category\nORDER BY items DESC',
           },
         },
       ],
-      say: 'Đơn 1017 vẫn có mặt, nhưng full_name là NULL. Đổi sang INNER JOIN thì đơn này biến mất.',
+      say: 'Thứ tự các nhóm không cố định. Muốn xếp nhóm theo thứ tự, thêm ORDER BY.',
     },
     {
       type: 'text',
-      title: 'Dùng NULL để tìm row không ghép được',
+      title: 'Column trong SELECT',
       paragraphs: [
-        'Đơn 1017 là đơn của khách vãng lai. Column customer_id của đơn ấy là NULL, vì khách không đăng ký thành viên.',
-        'LEFT JOIN giữ đơn này lại. Column bên phải của đơn ấy là NULL hết.',
-        'Bạn tận dụng điều đó. Thêm `WHERE` kiểm một column bên phải có NULL. Kết quả chỉ còn các row không ghép được.',
-        'Chọn column primary key của table bên phải để kiểm. Row thật luôn có primary key, nên NULL ở đó chỉ có nghĩa là không ghép được.',
-        'Với món chưa từng bán, table products đứng bên trái và order_items đứng bên phải. Kiểm `i.item_id IS NULL`.',
+        'Column trong SELECT phải nằm trong GROUP BY, hoặc nằm trong một function gom.',
+        'Lý do: mỗi nhóm có nhiều row. Database không biết lấy name của row nào để hiện cho cả nhóm.',
+        '`SELECT category, name, COUNT(*) FROM products GROUP BY category` vi phạm luật này. Oracle báo ORA-00979.',
+        'Gom theo hai column thì mỗi cặp giá trị là một nhóm.',
+        'Query dưới đây đếm đơn theo cặp tiệm và trạng thái.',
       ],
     },
     {
       type: 'playground',
-      title: 'Món chưa từng bán',
-      intro: 'Bấm Chạy. Kết quả là các món không có trong đơn nào.',
+      title: 'Thử tay ngay: đơn theo tiệm và trạng thái',
+      intro: 'Bấm Chạy. Mỗi cặp store_id và status là một nhóm.',
       database: 'teashop',
-      tables: ['products', 'order_items'],
+      tables: ['orders'],
       dialects: ['mysql', 'oracle'],
       sql: {
-        mysql:
-          'SELECT p.name, p.category\nFROM products p\nLEFT JOIN order_items i\n  ON p.product_id = i.product_id\nWHERE i.item_id IS NULL;',
-        oracle:
-          'SELECT p.name, p.category\nFROM products p\nLEFT JOIN order_items i\n  ON p.product_id = i.product_id\nWHERE i.item_id IS NULL',
+        mysql: 'SELECT store_id, status, COUNT(*) AS orders_count\nFROM orders\nGROUP BY store_id, status;',
+        oracle: 'SELECT store_id, status, COUNT(*) AS orders_count\nFROM orders\nGROUP BY store_id, status',
       },
       tries: [
         {
-          label: 'Đổi LEFT JOIN thành INNER JOIN',
+          label: 'Thêm ORDER BY store_id, status',
           sql: {
-            mysql:
-              'SELECT p.name, p.category\nFROM products p\nINNER JOIN order_items i\n  ON p.product_id = i.product_id\nWHERE i.item_id IS NULL;',
-            oracle:
-              'SELECT p.name, p.category\nFROM products p\nINNER JOIN order_items i\n  ON p.product_id = i.product_id\nWHERE i.item_id IS NULL',
+            mysql: 'SELECT store_id, status, COUNT(*) AS orders_count\nFROM orders\nGROUP BY store_id, status\nORDER BY store_id, status;',
+            oracle: 'SELECT store_id, status, COUNT(*) AS orders_count\nFROM orders\nGROUP BY store_id, status\nORDER BY store_id, status',
           },
         },
         {
-          label: "Thêm AND p.category = 'Topping'",
+          label: 'Bỏ status khỏi SELECT và GROUP BY',
           sql: {
-            mysql:
-              "SELECT p.name, p.category\nFROM products p\nLEFT JOIN order_items i\n  ON p.product_id = i.product_id\nWHERE i.item_id IS NULL AND p.category = 'Topping';",
-            oracle:
-              "SELECT p.name, p.category\nFROM products p\nLEFT JOIN order_items i\n  ON p.product_id = i.product_id\nWHERE i.item_id IS NULL AND p.category = 'Topping'",
+            mysql: 'SELECT store_id, COUNT(*) AS orders_count\nFROM orders\nGROUP BY store_id;',
+            oracle: 'SELECT store_id, COUNT(*) AS orders_count\nFROM orders\nGROUP BY store_id',
           },
         },
         {
-          label: 'Đổi IS NULL thành IS NOT NULL',
+          label: 'Đổi status thành payment',
           sql: {
-            mysql:
-              'SELECT p.name, p.category\nFROM products p\nLEFT JOIN order_items i\n  ON p.product_id = i.product_id\nWHERE i.item_id IS NOT NULL;',
-            oracle:
-              'SELECT p.name, p.category\nFROM products p\nLEFT JOIN order_items i\n  ON p.product_id = i.product_id\nWHERE i.item_id IS NOT NULL',
+            mysql: 'SELECT store_id, payment, COUNT(*) AS orders_count\nFROM orders\nGROUP BY store_id, payment;',
+            oracle: 'SELECT store_id, payment, COUNT(*) AS orders_count\nFROM orders\nGROUP BY store_id, payment',
           },
         },
       ],
-      say: 'Có hai món chưa ai mua: Trà ô long sữa và Kem cheese. Cả hai ra mắt ngày 1 tháng 3.',
+      say: 'Bỏ status thì còn 4 nhóm, mỗi tiệm một nhóm. Thêm status thì tiệm nào có đơn cancelled sẽ tách thêm nhóm.',
+    },
+    {
+      type: 'oracle',
+      body: [
+        'Column trong SELECT không nằm trong GROUP BY và không nằm trong function gom thì Oracle báo ORA-00979. Lời báo cổ điển của lỗi này là "not a GROUP BY expression".',
+        'Nếu query không có GROUP BY mà SELECT lẫn column với function gom, Oracle báo ORA-00937.',
+        'MySQL 8 cũng chặn, với mã 1055. Riêng MySQL cho chọn thêm column của một table khi đã GROUP BY primary key của table đó.',
+        'Cách sửa ở cả hai dialect: thêm column vào GROUP BY, hoặc bọc nó trong function gom như `MAX(name)`.',
+      ],
+      mysql: 'SELECT category, name, COUNT(*)\nFROM products\nGROUP BY category;\n-- lỗi 1055',
+      oracle: 'SELECT category, name, COUNT(*)\nFROM products\nGROUP BY category\n-- lỗi ORA-00979',
     },
     {
       type: 'quiz',
@@ -139,55 +133,58 @@ export const lesson: Lesson = {
       items: [
         {
           kind: 'choice',
-          question: 'Query `FROM a LEFT JOIN b ON ...` giữ mọi row của table nào?',
+          question: 'Query nào chạy được ở cả hai dialect?',
           options: [
-            { text: 'Table a, đứng bên trái', correct: true, feedback: 'Đúng. Table đứng trước chữ JOIN là table bên trái.' },
-            { text: 'Table b, đứng bên phải', feedback: 'Bên phải là table b. LEFT JOIN giữ bên trái, tức table a.' },
-            { text: 'Cả hai table', feedback: 'Giữ cả hai bên là FULL JOIN, khóa học này không dạy.' },
+            { text: '`SELECT category, name FROM products GROUP BY category`', feedback: 'name không nằm trong GROUP BY và không nằm trong function gom. Oracle báo ORA-00979.' },
+            { text: '`SELECT category, COUNT(*) FROM products GROUP BY category`', correct: true, feedback: 'Đúng. category nằm trong GROUP BY, COUNT là function gom.' },
+            { text: '`SELECT category, COUNT(*) FROM products`', feedback: 'Có function gom mà thiếu GROUP BY, nên category không biết lấy từ row nào. Oracle báo ORA-00937.' },
           ],
         },
         {
           kind: 'choice',
-          question: 'Bạn LEFT JOIN products với order_items. Món chưa bán có giá trị nào ở column của order_items?',
+          question: 'Bạn gom orders theo `store_id, status`. Mỗi nhóm gồm những row nào?',
           options: [
-            { text: 'NULL', correct: true, feedback: 'Đúng. Không có row để ghép, nên mọi column bên phải để NULL.' },
-            { text: 'Số 0', feedback: 'Số 0 là một giá trị thật. Ở đây không có giá trị nào cả.' },
-            { text: 'Chuỗi rỗng', feedback: 'Chuỗi rỗng cũng là một giá trị. Ở đây column là NULL.' },
+            { text: 'Các row cùng store_id, bất kể status', feedback: 'Có hai column trong GROUP BY, nên cả hai đều phải trùng.' },
+            { text: 'Các row trùng cả store_id lẫn status', correct: true, feedback: 'Đúng. Mỗi cặp giá trị khác nhau là một nhóm.' },
+            { text: 'Các row cùng status, bất kể store_id', feedback: 'Có hai column trong GROUP BY, nên cả hai đều phải trùng.' },
           ],
         },
         {
           kind: 'choice',
-          question: 'Bạn muốn tìm đơn của khách vãng lai bằng LEFT JOIN orders với customers. Điều kiện nào đúng?',
+          question: 'Table products có 14 row và 4 giá trị category khác nhau. `GROUP BY category` cho ra bao nhiêu row?',
           options: [
-            { text: '`WHERE c.customer_id IS NULL`', correct: true, feedback: 'Đúng. Đơn không ghép được có customer_id bên customers là NULL.' },
-            { text: '`WHERE c.customer_id = NULL`', feedback: 'So bằng với NULL không bao giờ đúng. Dùng IS NULL.' },
-            { text: '`WHERE c.customer_id = 0`', feedback: 'Không khách nào có mã 0. Query này trả 0 row.' },
+            { text: '14', feedback: 'Mỗi nhóm cho ra đúng một row. Số row kết quả bằng số nhóm.' },
+            { text: '4', correct: true, feedback: 'Đúng. Mỗi category là một nhóm, mỗi nhóm một row.' },
+            { text: '1', feedback: 'Một row chỉ ra khi không có GROUP BY và cả table là một nhóm.' },
           ],
         },
       ],
     },
     {
       type: 'realworld',
-      title: 'Báo cáo "chưa có ai"',
+      title: 'Chi tiêu theo danh mục trong app ngân hàng',
       paragraphs: [
-        'Cửa hàng online muốn biết sản phẩm nào chưa có đơn nào trong tháng. Lớp học muốn biết bạn nào chưa nộp bài.',
-        'Hai câu hỏi này cùng một dạng: giữ mọi row của danh sách gốc, rồi tìm row không ghép được. Dạng này hay dùng LEFT JOIN.',
+        'App ngân hàng cho bạn xem chi tiêu tháng này theo danh mục: ăn uống, đi lại, mua sắm.',
+        'Mỗi danh mục là một nhóm. Query cộng tiền của từng nhóm và cho ra một row mỗi danh mục.',
       ],
     },
     {
       type: 'keypoints',
       items: [
-        'LEFT JOIN giữ mọi row của table bên trái.',
-        'Row không ghép được có NULL ở mọi column của table bên phải.',
-        'Muốn tìm row không ghép được, thêm WHERE kiểm primary key bên phải bằng IS NULL.',
-        'INNER JOIN bỏ các row này, LEFT JOIN giữ chúng.',
+        'GROUP BY chia row thành nhóm. Mỗi nhóm cho ra một row kết quả.',
+        'Function gom chạy trên từng nhóm.',
+        'Column trong SELECT phải nằm trong GROUP BY hoặc trong function gom. Vi phạm thì Oracle báo ORA-00979, MySQL báo 1055.',
+        'Gom theo hai column thì mỗi cặp giá trị là một nhóm.',
       ],
     },
     {
       type: 'sources',
       items: [
-        { name: 'Harvard CS50 SQL, Lecture 1', url: 'https://cs50.harvard.edu/sql/notes/1/', note: 'CC BY-NC-SA 4.0' },
-        { name: 'SQLBolt, bài 7: OUTER JOINs', url: 'https://sqlbolt.com/lesson/select_queries_with_outer_joins' },
+        { name: 'Harvard CS50 SQL, Lecture 0', url: 'https://cs50.harvard.edu/sql/notes/0/', note: 'CC BY-NC-SA 4.0' },
+        { name: 'SQLBolt, bài 10: Queries with aggregates (Pt. 1)', url: 'https://sqlbolt.com/lesson/select_queries_with_aggregates' },
+        { name: 'MySQL 8.0 Reference Manual, MySQL Handling of GROUP BY', url: 'https://dev.mysql.com/doc/refman/8.0/en/group-by-handling.html' },
+        { name: 'Oracle Database 19c SQL Language Reference, Aggregate Functions', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Aggregate-Functions.html' },
+        { name: 'Oracle Database Error Messages, ORA-00979', url: 'https://docs.oracle.com/en/error-help/db/ora-00979/' },
       ],
     },
   ],

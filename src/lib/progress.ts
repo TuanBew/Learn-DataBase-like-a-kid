@@ -3,11 +3,12 @@ import type { Dialect } from '../engine/types';
 
 /**
  * Tiến trình học, lưu ở localStorage. Mọi số là mốc thời gian (ms) lúc xong.
- * Đổi cấu trúc thì tăng `CURRENT_VERSION` và thêm một nhánh trong `migrate`.
+ * Đổi cấu trúc hoặc đổi id bài thì tăng `CURRENT_VERSION` và thêm một nhánh trong `migrate`.
+ * v2: id bài đổi sang dàn ý 12 chương (`docs/id-map-v2.md`). Dữ liệu v1 và v0 dùng id cũ nên bị bỏ qua, chỉ giữ tên.
  */
 export const STORAGE_KEY = 'ldb:progress';
-export const CURRENT_VERSION = 1;
-const CODE_PREFIX = 'LDB1-';
+export const CURRENT_VERSION = 2;
+const CODE_PREFIX = 'LDB2-';
 
 export interface ExerciseDone {
   mysql?: number;
@@ -15,7 +16,7 @@ export interface ExerciseDone {
 }
 
 export interface Progress {
-  v: 1;
+  v: 2;
   lessons: Record<string, number>;
   exercises: Record<string, ExerciseDone>;
   name?: string;
@@ -23,7 +24,7 @@ export interface Progress {
 
 const DIALECTS: Dialect[] = ['mysql', 'oracle'];
 
-const emptyProgress = (): Progress => ({ v: 1, lessons: {}, exercises: {} });
+const emptyProgress = (): Progress => ({ v: 2, lessons: {}, exercises: {} });
 const isRecord = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 const isStamp = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
 
@@ -31,7 +32,11 @@ const isStamp = (x: unknown): x is number => typeof x === 'number' && Number.isF
 export function migrate(raw: unknown): Progress {
   const out = emptyProgress();
   if (!isRecord(raw)) return out;
-  // Bản trước khi có trường `v` (v0) đã dùng cùng hình dạng với v1. Các bản sau đặt nhánh riêng ở đây.
+  // v0 và v1 dùng id bài của dàn ý cũ. Id đó không còn trỏ đúng bài nào, nên bỏ tiến trình và chỉ giữ tên.
+  if (raw.v !== CURRENT_VERSION) {
+    if (typeof raw.name === 'string' && raw.name.trim()) out.name = raw.name.trim().slice(0, 60);
+    return out;
+  }
   const lessons = isRecord(raw.lessons) ? raw.lessons : {};
   for (const [id, t] of Object.entries(lessons)) if (isStamp(t)) out.lessons[id] = t;
   const exercises = isRecord(raw.exercises) ? raw.exercises : {};
@@ -142,7 +147,7 @@ export function resetProgress(): void {
 /* ---------- Mã chuyển tiến trình giữa các máy ---------- */
 
 interface Packed {
-  v: 1;
+  v: 2;
   l?: Record<string, number>;
   e?: Record<string, [number, number]>; // [mysql, oracle], 0 là chưa xong
   n?: string;
@@ -164,7 +169,7 @@ function fromBase64Url(code: string): string {
 
 export function exportCode(): string {
   const p = getProgress();
-  const packed: Packed = { v: 1 };
+  const packed: Packed = { v: 2 };
   if (Object.keys(p.lessons).length > 0) packed.l = p.lessons;
   const ex = Object.entries(p.exercises);
   if (ex.length > 0) packed.e = Object.fromEntries(ex.map(([id, d]) => [id, [d.mysql ?? 0, d.oracle ?? 0] as [number, number]]));
@@ -185,7 +190,7 @@ export function importCode(code: string): ImportResult {
     const data: unknown = JSON.parse(fromBase64Url(text.slice(CODE_PREFIX.length)));
     if (!isRecord(data)) return { ok: false, reason: 'format' };
     if (typeof data.v === 'number' && data.v > CURRENT_VERSION) return { ok: false, reason: 'version' };
-    if (data.v !== 1) return { ok: false, reason: 'format' };
+    if (data.v !== CURRENT_VERSION) return { ok: false, reason: 'format' };
     const exercises: Record<string, unknown> = {};
     if (data.e !== undefined) {
       if (!isRecord(data.e)) return { ok: false, reason: 'format' };
@@ -195,7 +200,7 @@ export function importCode(code: string): ImportResult {
       }
     }
     if (data.l !== undefined && !isRecord(data.l)) return { ok: false, reason: 'format' };
-    incoming = migrate({ lessons: data.l, exercises, name: data.n });
+    incoming = migrate({ v: CURRENT_VERSION, lessons: data.l, exercises, name: data.n });
   } catch {
     return { ok: false, reason: 'format' };
   }

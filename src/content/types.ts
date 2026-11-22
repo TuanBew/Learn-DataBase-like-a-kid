@@ -98,6 +98,8 @@ export type LessonBlock =
   | { type: 'scene'; scene: string; title: string; intro: Rich }
   /** "Thử tay ngay": một editor nhỏ kèm Query Theater, chạy trên dữ liệu thật. */
   | PlaygroundBlock
+  /** "Xưởng dựng table": gõ lệnh tạo và sửa table, database giữ nguyên giữa các lần Chạy. */
+  | WorkshopBlock
   /** Một đoạn code có chú thích từng phần, ví dụ CREATE TABLE. */
   | { type: 'code'; title: string; intro?: Rich; code: string; notes: { find: string; text: Rich }[] }
   | { type: 'quiz'; title: string; items: Quiz[] }
@@ -121,6 +123,27 @@ export interface PlaygroundBlock {
   sql: Partial<Record<Dialect, string>>;
   /** Các query gợi ý để bấm thử, mỗi cái đổi một điểm so với query gốc. */
   tries?: { label: string; sql: Partial<Record<Dialect, string>> }[];
+  /** Bi nói một câu dưới editor. */
+  say?: Rich;
+}
+
+/**
+ * Xưởng dựng table. Khác khối playground ở ba điểm: database giữ nguyên giữa các lần Chạy,
+ * một lần Chạy nhận nhiều lệnh ngăn bằng dấu `;`, và bên cạnh có khung hiện cấu trúc các table đang có.
+ */
+export interface WorkshopBlock {
+  type: 'workshop';
+  title: string;
+  intro: Rich;
+  /** Database lúc mở: 'empty' là trống, 'mine' là database người học đã dựng ở các bài tập trước. */
+  start: 'empty' | 'mine';
+  /** Các lệnh chạy sẵn lúc mở, người học không thấy. Ví dụ tạo table của bài trước. */
+  setup?: Partial<Record<Dialect, string>>;
+  dialects: Dialect[];
+  /** Lệnh có sẵn trong editor lúc mở. */
+  sql: Partial<Record<Dialect, string>>;
+  /** Các lệnh gợi ý để bấm thử. `expect: 'error'` là lệnh cố ý sai, để người học đọc lỗi. */
+  tries?: { label: string; sql: Partial<Record<Dialect, string>>; expect?: 'ok' | 'error' }[];
   /** Bi nói một câu dưới editor. */
   say?: Rich;
 }

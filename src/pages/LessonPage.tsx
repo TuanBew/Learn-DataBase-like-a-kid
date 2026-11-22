@@ -76,6 +76,16 @@ function Block({ block }: { block: LessonBlock }) {
           </Suspense>
         </section>
       );
+    case 'workshop':
+      // Tạm thời: chỉ hiện tiêu đề và lời dẫn. Component xưởng dựng table sẽ thay chỗ này.
+      return (
+        <section className="scene sheet" aria-label={uiApp.scenes.sceneLabel}>
+          <h2 className="scene__title">{block.title}</h2>
+          <p className="scene__intro">
+            <Rich text={block.intro} />
+          </p>
+        </section>
+      );
     case 'code':
       return <AnnotatedCode title={block.title} intro={block.intro} code={block.code} notes={block.notes} />;
     case 'quiz':

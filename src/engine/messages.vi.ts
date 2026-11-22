@@ -137,7 +137,7 @@ export const friendly: Record<string, (p: P) => string> = {
   'seq-missing': (p) => `Database không có sequence tên ${p.name}.`,
   'seq-curr-undefined': (p) => `Phiên làm việc này chưa gọi ${p.name}.NEXTVAL, nên CURRVAL chưa có giá trị. Gọi NEXTVAL trước.`,
   'no-tx': () => 'Chưa có thay đổi nào đang chờ, nên không có gì để lưu hay bỏ.',
-  'select-only': () => 'Chỗ này chỉ chạy câu SELECT. Lệnh sửa dữ liệu có bài riêng ở Chương 7.',
+  'select-only': () => 'Chỗ này chỉ chạy câu SELECT. Lệnh tạo table và sửa dữ liệu có bài riêng ở các chương sau.',
   internal: () => 'Engine của khóa học chưa chạy được query này. Thử viết query gọn hơn.',
   unsupported: (p) => `Khóa học chưa dạy tới ${p.feature}. Trang Học tiếp có chỗ để bạn học thêm phần này.`,
   'not-yet': (p) => `${p.feature} sẽ có ở các chương sau. Bài này chỉ cần SELECT.`,

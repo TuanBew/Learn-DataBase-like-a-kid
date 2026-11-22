@@ -32,7 +32,7 @@ export type TraceStep =
   | {
       /** Ghép thêm một table vào các row đang có. */
       kind: 'join';
-      joinKind: 'inner' | 'left' | 'cross';
+      joinKind: 'inner' | 'left' | 'right' | 'full' | 'cross';
       table: string;
       alias?: string;
       /** Điều kiện ON, nguyên văn. */
@@ -42,8 +42,10 @@ export type TraceStep =
       /** Mọi column sau khi ghép. */
       columns: TraceCol[];
       rows: TraceRow[];
-      /** Row mới ghép từ row bên trái nào và row bên phải nào. `right` là null khi LEFT JOIN không tìm thấy row khớp. */
-      links: { id: number; left: number; right: number | null }[];
+      /** Row mới ghép từ row bên trái nào và row bên phải nào. `right` là null khi LEFT hay FULL JOIN không tìm thấy row khớp. `left` là null khi RIGHT hay FULL JOIN không tìm thấy row khớp. */
+      links: { id: number; left: number | null; right: number | null }[];
+      /** USING hay NATURAL: tên các column được gộp thành một khi SELECT *. */
+      merged?: string[];
     }
   | {
       /** Một subquery chạy trước, ra một giá trị hoặc một danh sách. */

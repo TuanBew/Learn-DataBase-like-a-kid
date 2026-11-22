@@ -146,15 +146,22 @@ export function buildFrames(trace: Trace): Frame[] {
       case 'join': {
         const active = runIdx('FROM');
         const sideRows = toRows(step.rightRows, step.rightColumns);
-        const side = { title: T.sideTable(step.table), cols: toCols(step.rightColumns), rows: sideRows.slice(0, 6), more: Math.max(0, sideRows.length - 6) };
+        const keepRight = step.joinKind === 'right' || step.joinKind === 'full';
+        const matchedRight = new Set(step.links.filter((l) => l.left !== null && l.right !== null).map((l) => l.right));
+        // RIGHT và FULL JOIN giữ cả row bên phải không khớp: đánh dấu ngay trên table đang bay vào.
+        const sideShown = keepRight ? sideRows.map((r) => (matchedRight.has(r.id) ? r : { ...r, mark: 'passed' as const, note: T.joinKeep })) : sideRows;
+        const side = { title: T.sideTable(step.table), cols: toCols(step.rightColumns), rows: sideShown.slice(0, 6), more: Math.max(0, sideRows.length - 6) };
         push({ phase: 'from', active, side, caption: step.on ? T.joinArrive(step.table, step.on) : T.joinCross(step.table), hold: 2400, sfx: [{ name: 'fly' }] });
         const matches = new Map<number, number>();
         const kept = new Set<number>();
         for (const l of step.links) {
+          if (l.left === null) continue;
           kept.add(l.left);
           if (l.right !== null) matches.set(l.left, (matches.get(l.left) ?? 0) + 1);
         }
         const lonely = rows.filter((r) => !matches.has(r.id)).length;
+        // Row bên phải không có row khớp bên trái: RIGHT hay FULL JOIN ghép chúng với NULL.
+        const nullLeft = new Set(step.links.filter((l) => l.left === null).map((l) => l.right)).size;
         rows = rows.map((r) => {
           const n = matches.get(r.id) ?? 0;
           // Khớp đúng một row là chuyện thường gặp: chỉ đánh dấu tích, cho sân khấu đỡ rối. Khớp nhiều row mới ghi số.
@@ -162,13 +169,22 @@ export function buildFrames(trace: Trace): Frame[] {
           if (n > 1) return { ...r, mark: 'passed' as const, note: T.joinNote(n) };
           return kept.has(r.id) ? { ...r, mark: 'passed' as const, note: T.joinKeep } : { ...r, mark: 'fail' as const, note: T.joinNote(0) };
         });
+        const dropsLeft = step.joinKind === 'inner' || step.joinKind === 'right';
+        const caption =
+          step.joinKind === 'left'
+            ? T.joinLeft(lonely, step.table)
+            : step.joinKind === 'right'
+              ? T.joinRight(nullLeft, lonely, step.table)
+              : step.joinKind === 'full'
+                ? T.joinFull(nullLeft, lonely, step.table)
+                : T.joinInner(lonely);
         push({
           phase: 'from',
           active,
           side,
-          caption: step.joinKind === 'left' ? T.joinLeft(lonely, step.table) : T.joinInner(lonely),
+          caption,
           hold: 2400,
-          sfx: lonely > 0 && step.joinKind !== 'left' ? [{ name: 'tick' }, { name: 'drop', at: 0.95 }] : [{ name: 'tick' }],
+          sfx: lonely > 0 && dropsLeft ? [{ name: 'tick' }, { name: 'drop', at: 0.95 }] : [{ name: 'tick' }],
         });
         cols = toCols(step.columns);
         rows = toRows(step.rows, step.columns);

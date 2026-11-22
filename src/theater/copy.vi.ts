@@ -10,6 +10,13 @@ export const theaterCopy = {
   joinInner: (dropped: number) => (dropped === 0 ? 'Row nào cũng tìm được row khớp ở table kia.' : `${dropped} row không tìm được row khớp nên bị loại.`),
   joinLeft: (nulls: number, table: string) =>
     nulls === 0 ? 'LEFT JOIN giữ mọi row bên trái. Lần này row nào cũng có row khớp.' : `LEFT JOIN giữ mọi row bên trái. ${nulls} row không có row khớp, nên các column của ${table} là NULL.`,
+  joinRight: (nulls: number, dropped: number, table: string) =>
+    (nulls === 0 ? `RIGHT JOIN giữ mọi row của table ${table}. Lần này row nào cũng có row khớp.` : `RIGHT JOIN giữ mọi row của table ${table}. ${nulls} row không có row khớp, nên các column bên trái là NULL.`) +
+    (dropped > 0 ? ` ${dropped} row bên trái không khớp nên bị loại.` : ''),
+  joinFull: (nullsRight: number, nullsLeft: number, table: string) =>
+    nullsRight + nullsLeft === 0
+      ? 'FULL JOIN giữ row của cả hai bên. Lần này row nào cũng có row khớp.'
+      : `FULL JOIN giữ row của cả hai bên. ${nullsLeft} row bên trái và ${nullsRight} row của table ${table} không có row khớp, nên bên kia là NULL.`,
   joinDone: (rows: number, cols: number) => `Ghép xong: ${rows} row, ${cols} column.`,
   joinNote: (n: number) => (n === 0 ? 'không khớp' : `khớp ${n} row`),
   joinKeep: 'không khớp, vẫn giữ',

@@ -70,6 +70,14 @@ const ORA: Record<string, string> = {
   '01400': 'cannot insert NULL',
   '32795': 'cannot insert into a generated always identity column',
   '01407': 'cannot update to NULL',
+  '01416': 'two tables cannot be outer-joined to each other',
+  '01468': 'a predicate may reference only one outer-joined table',
+  '01719': 'outer join operator (+) not allowed in operand of OR or IN',
+  '01799': 'a column may not be outer-joined to a subquery',
+  '25154': 'column part of USING clause cannot have qualifier',
+  '25155': 'column used in NATURAL join cannot have qualifier',
+  '25156': 'old style outer join (+) cannot be used with ANSI joins',
+  '30563': 'outer join operator (+) is not allowed here',
   '01427': 'single-row subquery returns more than one row',
   '01430': 'column being added already exists in table',
   '01438': 'value larger than specified precision allowed for this column',
@@ -154,7 +162,7 @@ export function unknownTable(dialect: Dialect, dbName: string, name: string, spa
   return new SqlError('name', 'ORA-00942', oraMessage('00942'), 'unknown-table', text, span, tip);
 }
 
-export type MysqlWhere = 'field list' | 'where clause' | 'order clause' | 'group statement' | 'having clause' | 'on clause';
+export type MysqlWhere = 'field list' | 'where clause' | 'order clause' | 'group statement' | 'having clause' | 'on clause' | 'from clause';
 
 export function unknownColumn(
   dialect: Dialect,

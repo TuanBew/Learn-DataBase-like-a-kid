@@ -10,7 +10,8 @@ export type Expr =
   | { t: 'null'; span: Span }
   | { t: 'bool'; v: boolean; span: Span }
   | { t: 'date'; v: string; span: Span }
-  | { t: 'col'; table?: string; name: string; quoted?: boolean; span: Span }
+  /** `outer`: Oracle viết dấu `(+)` ngay sau column trong WHERE (nối ngoài kiểu cũ). */
+  | { t: 'col'; table?: string; name: string; quoted?: boolean; outer?: boolean; span: Span }
   | { t: 'unary'; op: '-' | '+' | 'NOT'; e: Expr; span: Span }
   | { t: 'bin'; op: BinOp; l: Expr; r: Expr; span: Span; opSpan: Span }
   | { t: 'isnull'; e: Expr; not: boolean; span: Span }
@@ -49,14 +50,21 @@ export interface TableRef {
   table: string;
   quoted?: boolean;
   alias?: string;
+  /** MySQL: chữ FULL đứng ngay sau table, trước JOIN, bị đọc thành alias. */
+  fullAlias?: boolean;
   span: Span;
 }
 
 export interface Join {
-  /** cross: nối bằng dấu phẩy, hoặc JOIN không có ON ở MySQL. */
-  kind: 'inner' | 'left' | 'cross';
+  /** cross: nối bằng dấu phẩy, CROSS JOIN, hoặc JOIN không có ON ở MySQL. */
+  kind: 'inner' | 'left' | 'right' | 'full' | 'cross';
   ref: TableRef;
   on?: Expr;
+  /** JOIN ... USING (a, b) */
+  using?: { name: string; span: Span }[];
+  natural?: boolean;
+  /** Nối bằng dấu phẩy trong FROM. */
+  comma?: boolean;
   span: Span;
 }
 

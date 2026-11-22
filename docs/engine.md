@@ -8,7 +8,7 @@ API: `run(sql, db, dialect)` cho SELECT. `createSession(db, dialect).run(sql)` c
 
 - `SELECT [DISTINCT] *`, `t.*`, column, biểu thức, alias bằng `AS` hoặc viết liền sau.
 - `FROM table [alias]`. Oracle không nhận `AS` trước alias của table. `FROM DUAL`. MySQL cho `SELECT` không có FROM.
-- `[INNER] JOIN ... ON ...`, `LEFT [OUTER] JOIN ... ON ...`, nối nhiều table. Nối kiểu cũ bằng dấu phẩy và điều kiện trong WHERE cũng chạy. Chưa có: RIGHT JOIN, FULL JOIN, CROSS JOIN, NATURAL, USING.
+- `[INNER] JOIN ... ON ...`, `LEFT [OUTER] JOIN`, `RIGHT [OUTER] JOIN`, `CROSS JOIN`, nối nhiều table, nối kiểu cũ bằng dấu phẩy và điều kiện trong WHERE. Chi tiết ở mục "JOIN" bên dưới.
 - `WHERE`: `= <> != < <= > >=`, AND, OR, NOT, `IN (danh sách)`, `IN (subquery)`, BETWEEN, LIKE với `%` và `_`, IS NULL, IS NOT NULL.
 - `GROUP BY` một hay nhiều biểu thức. `HAVING`. COUNT(*), COUNT(column), COUNT(DISTINCT column), SUM, AVG, MIN, MAX.
 - Column đứng ngoài function gom mà không nằm trong GROUP BY: Oracle báo ORA-00979 (có GROUP BY) hoặc ORA-00937 (không có GROUP BY); MySQL báo 1055 hoặc 1140. Riêng MySQL cho chọn column khác của một table khi đã GROUP BY primary key của table đó.
@@ -18,6 +18,21 @@ API: `run(sql, db, dialect)` cho SELECT. `createSession(db, dialect).run(sql)` c
 - Scalar subquery không phụ thuộc query bên ngoài: `WHERE price > (SELECT AVG(price) FROM products)`. Chưa có: subquery trong FROM, subquery nhắc tới table bên ngoài, EXISTS, UNION, window function, CAST.
 - `CASE WHEN ... THEN ... ELSE ... END`, `CASE x WHEN ...`.
 - Phép tính `+ - * /`. MySQL có `%` và `MOD`; Oracle chỉ có `MOD(a, b)`. Chia cho 0: MySQL ra NULL, Oracle báo ORA-01476.
+
+## JOIN
+
+Mọi kiểu dưới đây chạy ở cả hai dialect, trừ khi ghi riêng. Trace của Query Theater có cùng dạng cho mọi kiểu: một bước `join` mỗi lần nối, kèm `links` (`left` là null khi row bên phải không có row khớp, `right` là null khi row bên trái không có row khớp). Mọi kiểu nối đều xử lý từ trái sang phải.
+
+- `RIGHT [OUTER] JOIN ... ON ...`: giữ mọi row bên phải. MySQL xếp row theo table bên phải.
+- `FULL [OUTER] JOIN ... ON ...`: chỉ Oracle. Ở MySQL, chữ FULL ngay sau table bị đọc như alias (đã kiểm trên MySQL 8.0.46). `a FULL JOIN b ON ...` báo 1054 vì tên `a` không còn dùng được. `a x FULL JOIN b` và `a FULL OUTER JOIN b` báo 1064 tại chữ FULL hoặc OUTER. `a FULL JOIN b USING (c)` chạy như JOIN thường. Mọi lỗi này kèm lời giải thích: MySQL không có FULL JOIN, ghép LEFT JOIN và RIGHT JOIN bằng UNION.
+- `CROSS JOIN`: ghép mọi row với mọi row. `a JOIN b` không có ON: MySQL coi là CROSS JOIN, Oracle báo ORA-00905. `CROSS JOIN ... ON`: MySQL coi là INNER JOIN, Oracle báo ORA-00933 (mã chưa có nguồn xác nhận).
+- `JOIN ... USING (c1, c2)`: nối theo column cùng tên. `SELECT *` hiện column trong USING một lần, đứng đầu. MySQL xếp theo thứ tự trong table bên trái (RIGHT JOIN thì theo table bên phải, và column còn lại của bên phải đứng trước bên trái). Oracle xếp theo thứ tự viết trong USING, rồi column còn lại của bên trái, rồi bên phải (theo chuẩn SQL, chưa có nguồn xác nhận cho RIGHT JOIN). Giá trị column gộp là giá trị khác NULL đầu tiên của hai bên, nên RIGHT JOIN hiện giá trị của bên phải. `t.*` vẫn hiện đủ column của table t.
+- Column trong USING và NATURAL: MySQL cho viết `alias.column`. Oracle báo ORA-25154 (USING) hoặc ORA-25155 (NATURAL).
+- Column trong USING không có ở một bên: MySQL 1054 ở `from clause`, Oracle ORA-00904 (chưa có nguồn xác nhận). Column có ở nhiều table bên trái: MySQL 1052, Oracle ORA-00918.
+- `NATURAL [INNER | LEFT | RIGHT] JOIN`: nối theo mọi column cùng tên. Không có column nào trùng thì thành CROSS JOIN. Oracle có thêm `NATURAL FULL JOIN`. Sau NATURAL không viết ON hay USING (MySQL 1064, Oracle ORA-00933). `NATURAL CROSS JOIN` không có ở cả hai.
+- Dấu `(+)` của Oracle, trong WHERE, FROM ngăn bằng dấu phẩy: `WHERE a.x = b.x(+)` giữ mọi row của a. Điều kiện lọc có `(+)` (như `AND b.y(+) = 'x'`) nằm trong phần nối, còn điều kiện không có `(+)` lọc sau khi nối. Trace là LEFT JOIN: table có `(+)` nối sau, nên `a.x(+) = b.x` cho trace bắt đầu từ b. `SELECT *` vẫn theo thứ tự table trong FROM. Một table được nối ngoài với nhiều table kia thì chạy. MySQL báo 1064 tại dấu `)`.
+- Lỗi của `(+)`: ở hai table trong một điều kiện ORA-01468; trong OR hoặc IN ORA-01719; so với subquery ORA-01799; trong SELECT, GROUP BY, HAVING, ORDER BY ORA-30563; chung query với JOIN ... ON ORA-25156; hai table nối ngoài vào nhau ORA-01416.
+- Chưa có: subquery trong FROM, ngoặc để đổi thứ tự nối (`a JOIN (b JOIN c)`), và độ ưu tiên của JOIN so với dấu phẩy trong FROM như MySQL (engine nối từ trái sang phải).
 
 ## Function
 

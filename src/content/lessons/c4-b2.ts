@@ -4,14 +4,14 @@ export const lesson: Lesson = {
   id: 'c4-b2',
   chapter: 4,
   order: 2,
-  title: 'Lọc row bằng WHERE',
-  lead: 'Bạn giữ lại những row thỏa điều kiện và bỏ các row còn lại.',
-  minutes: 18,
+  title: 'WHERE: so sánh, AND, OR, NOT',
+  lead: 'Bạn giữ lại những row thỏa điều kiện, và ghép nhiều điều kiện thành một.',
+  minutes: 14,
   goals: [
     'Lọc row bằng các dấu so sánh',
     'Ghép điều kiện bằng AND, OR, NOT',
-    'Lọc chữ bằng LIKE, và biết chữ nằm trong nháy đơn',
-    'Tìm row thiếu giá trị bằng IS NULL',
+    'Biết AND chạy trước OR, và dùng ngoặc để đổi thứ tự',
+    'Viết chữ trong nháy đơn và biết cách so chữ ở hai dialect',
   ],
   blocks: [
     {
@@ -30,7 +30,7 @@ export const lesson: Lesson = {
       paragraphs: [
         '**[[where]]** giữ lại row thỏa điều kiện và bỏ các row còn lại.',
         'WHERE đứng sau FROM. Database kiểm điều kiện cho từng row, mỗi row một lần.',
-        'Điều kiện so một column với một giá trị. Các dấu so sánh gồm `=` (bằng), `<>` (khác), `<` (nhỏ hơn), `<=` (nhỏ hơn hoặc bằng), `>` (lớn hơn), `>=` (lớn hơn hoặc bằng).',
+        'Điều kiện so một column với một giá trị. Có sáu dấu so sánh: `=` (bằng), `<>` (khác), `<` (nhỏ hơn), `<=` (nhỏ hơn hoặc bằng), `>` (lớn hơn), `>=` (lớn hơn hoặc bằng).',
         'Query sau giữ món có price lớn hơn 40000.',
       ],
     },
@@ -61,10 +61,17 @@ export const lesson: Lesson = {
           },
         },
         {
-          label: 'Đổi > 40000 thành BETWEEN 30000 AND 40000',
+          label: 'Đổi > 40000 thành < 15000',
           sql: {
-            mysql: 'SELECT name, price\nFROM products\nWHERE price BETWEEN 30000 AND 40000;',
-            oracle: 'SELECT name, price\nFROM products\nWHERE price BETWEEN 30000 AND 40000',
+            mysql: 'SELECT name, price\nFROM products\nWHERE price < 15000;',
+            oracle: 'SELECT name, price\nFROM products\nWHERE price < 15000',
+          },
+        },
+        {
+          label: 'Đổi > 40000 thành = 25000',
+          sql: {
+            mysql: 'SELECT name, price\nFROM products\nWHERE price = 25000;',
+            oracle: 'SELECT name, price\nFROM products\nWHERE price = 25000',
           },
         },
       ],
@@ -72,13 +79,13 @@ export const lesson: Lesson = {
     },
     {
       type: 'text',
-      title: 'Ghép nhiều điều kiện',
+      title: 'Lọc chữ và ghép điều kiện',
       paragraphs: [
-        'Một điều kiện chưa đủ thì ghép thêm. AND giữ row khi cả hai điều kiện đúng. OR giữ row khi một trong hai điều kiện đúng. NOT đảo điều kiện.',
-        'AND chạy trước OR. Muốn đổi thứ tự thì đặt điều kiện trong dấu ngoặc.',
-        '`BETWEEN 30000 AND 40000` giữ giá từ 30000 đến 40000, gồm cả hai đầu. `IN (...)` giữ giá trị có trong danh sách.',
         'Khi lọc chữ, đặt chữ trong nháy đơn, như `\'Trà sữa\'`. Số thì không cần nháy.',
-        '**[[like]]** tìm chữ theo mẫu. Dấu `%` thay cho một đoạn chữ bất kỳ, kể cả đoạn rỗng. Dấu `_` thay cho đúng một ký tự.',
+        'Một điều kiện chưa đủ thì ghép thêm bằng ba từ khóa.',
+        '**[[and]]** giữ row khi cả hai điều kiện đúng. **[[or]]** giữ row khi một trong hai điều kiện đúng.',
+        '**[[not]]** đảo một điều kiện. `NOT category = \'Topping\'` giữ mọi món không thuộc Topping.',
+        'AND làm kết quả ít đi, vì row phải qua cả hai cửa. OR làm kết quả nhiều lên, vì row chỉ cần qua một cửa.',
       ],
     },
     {
@@ -89,40 +96,95 @@ export const lesson: Lesson = {
       tables: ['products'],
       dialects: ['mysql', 'oracle'],
       sql: {
-        mysql: "SELECT name, category\nFROM products\nWHERE category = 'Trà sữa';",
-        oracle: "SELECT name, category\nFROM products\nWHERE category = 'Trà sữa'",
+        mysql: "SELECT name, category, price\nFROM products\nWHERE category = 'Trà sữa';",
+        oracle: "SELECT name, category, price\nFROM products\nWHERE category = 'Trà sữa'",
       },
       tries: [
         {
-          label: "Đổi = thành IN ('Cà phê', 'Topping')",
+          label: 'Đổi = thành <>',
           sql: {
-            mysql: "SELECT name, category\nFROM products\nWHERE category IN ('Cà phê', 'Topping');",
-            oracle: "SELECT name, category\nFROM products\nWHERE category IN ('Cà phê', 'Topping')",
-          },
-        },
-        {
-          label: "Đổi = 'Trà sữa' thành LIKE 'Trà%'",
-          sql: {
-            mysql: "SELECT name, category\nFROM products\nWHERE category LIKE 'Trà%';",
-            oracle: "SELECT name, category\nFROM products\nWHERE category LIKE 'Trà%'",
+            mysql: "SELECT name, category, price\nFROM products\nWHERE category <> 'Trà sữa';",
+            oracle: "SELECT name, category, price\nFROM products\nWHERE category <> 'Trà sữa'",
           },
         },
         {
           label: 'Thêm AND price < 40000',
           sql: {
-            mysql: "SELECT name, category\nFROM products\nWHERE category = 'Trà sữa' AND price < 40000;",
-            oracle: "SELECT name, category\nFROM products\nWHERE category = 'Trà sữa' AND price < 40000",
+            mysql: "SELECT name, category, price\nFROM products\nWHERE category = 'Trà sữa' AND price < 40000;",
+            oracle: "SELECT name, category, price\nFROM products\nWHERE category = 'Trà sữa' AND price < 40000",
           },
         },
         {
-          label: "Đổi 'Trà sữa' thành 'tra sua'",
+          label: "Thêm OR category = 'Cà phê'",
           sql: {
-            mysql: "SELECT name, category\nFROM products\nWHERE category = 'tra sua';",
-            oracle: "SELECT name, category\nFROM products\nWHERE category = 'tra sua'",
+            mysql: "SELECT name, category, price\nFROM products\nWHERE category = 'Trà sữa' OR category = 'Cà phê';",
+            oracle: "SELECT name, category, price\nFROM products\nWHERE category = 'Trà sữa' OR category = 'Cà phê'",
+          },
+        },
+        {
+          label: "Đổi điều kiện thành NOT category = 'Topping'",
+          sql: {
+            mysql: "SELECT name, category, price\nFROM products\nWHERE NOT category = 'Topping';",
+            oracle: "SELECT name, category, price\nFROM products\nWHERE NOT category = 'Topping'",
           },
         },
       ],
-      say: "Thử mục cuối ở cả hai dialect. 'tra sua' khớp ở MySQL nhưng không khớp ở Oracle.",
+      say: 'Query gốc cho 4 row. Thêm AND còn 3 row. Thêm OR lên 7 row.',
+    },
+    {
+      type: 'text',
+      title: 'Bẫy: AND chạy trước OR',
+      paragraphs: [
+        'Query có cả AND lẫn OR thì database làm AND trước, rồi mới làm OR.',
+        'Giả sử khách hỏi: "Cà phê hoặc Topping, và giá dưới 10.000 đồng."',
+        'Bạn viết `category = \'Cà phê\' OR category = \'Topping\' AND price < 10000`. Database đọc thành: Cà phê ở mọi giá, hoặc Topping dưới 10.000 đồng.',
+        'Kết quả có cả ly Cà phê 65.000 đồng. Khách không muốn món đó.',
+        'Đặt ngoặc quanh phần OR để ép database làm phần đó trước. Ngoặc luôn chạy trước. Thấy AND và OR chung một query thì thêm ngoặc cho rõ ý.',
+      ],
+    },
+    {
+      type: 'playground',
+      title: 'Thử tay ngay: có ngoặc và không ngoặc',
+      intro: 'Bấm Chạy. Query chưa có ngoặc. Đếm số row, rồi thêm ngoặc ở mục thử đầu tiên.',
+      database: 'teashop',
+      tables: ['products'],
+      dialects: ['mysql', 'oracle'],
+      sql: {
+        mysql:
+          "SELECT name, category, price\nFROM products\nWHERE category = 'Cà phê'\n   OR category = 'Topping'\n  AND price < 10000;",
+        oracle:
+          "SELECT name, category, price\nFROM products\nWHERE category = 'Cà phê'\n   OR category = 'Topping'\n  AND price < 10000",
+      },
+      tries: [
+        {
+          label: 'Thêm ngoặc quanh hai điều kiện OR',
+          sql: {
+            mysql:
+              "SELECT name, category, price\nFROM products\nWHERE (category = 'Cà phê'\n   OR category = 'Topping')\n  AND price < 10000;",
+            oracle:
+              "SELECT name, category, price\nFROM products\nWHERE (category = 'Cà phê'\n   OR category = 'Topping')\n  AND price < 10000",
+          },
+        },
+        {
+          label: 'Thêm ngoặc quanh Topping AND price',
+          sql: {
+            mysql:
+              "SELECT name, category, price\nFROM products\nWHERE category = 'Cà phê'\n   OR (category = 'Topping'\n  AND price < 10000);",
+            oracle:
+              "SELECT name, category, price\nFROM products\nWHERE category = 'Cà phê'\n   OR (category = 'Topping'\n  AND price < 10000)",
+          },
+        },
+        {
+          label: 'Đổi < 10000 thành <= 10000',
+          sql: {
+            mysql:
+              "SELECT name, category, price\nFROM products\nWHERE category = 'Cà phê'\n   OR category = 'Topping'\n  AND price <= 10000;",
+            oracle:
+              "SELECT name, category, price\nFROM products\nWHERE category = 'Cà phê'\n   OR category = 'Topping'\n  AND price <= 10000",
+          },
+        },
+      ],
+      say: 'Không ngoặc: 4 row, có Cà phê 65.000 đồng. Ngoặc quanh OR: còn 1 row. Ngoặc quanh AND cho kết quả giống query gốc, vì AND vốn chạy trước.',
     },
     {
       type: 'oracle',
@@ -130,56 +192,12 @@ export const lesson: Lesson = {
         "Khi so chữ, MySQL không phân biệt hoa thường và dấu theo mặc định. `'tra sua'` khớp với 'Trà sữa'.",
         'Oracle so từng ký tự đúng như bạn gõ. Khác hoa thường hoặc khác dấu là khác chữ.',
         'Cách so chữ do **[[collation]]** quyết định. Cả hai nơi đều cho đổi collation. Bài này dùng mặc định.',
-        "Chữ luôn nằm trong nháy đơn, vì nháy kép khác nhau ở hai nơi. MySQL nhận cả nháy đơn lẫn nháy kép cho chữ. Oracle dùng nháy kép để bao tên column.",
+        'Chữ luôn nằm trong nháy đơn, vì nháy kép khác nhau ở hai nơi. MySQL nhận cả nháy đơn lẫn nháy kép cho chữ. Oracle dùng nháy kép để bao tên column.',
         'Gõ `category = "Topping"` trên Oracle, database tìm column tên Topping. Database không thấy column đó và báo ORA-00904.',
+        '`<>` và `!=` đều chạy ở cả hai dialect. Bài này dùng `<>`.',
       ],
       mysql: "WHERE category = 'tra sua'\n-- 4 row",
       oracle: "WHERE category = 'tra sua'\n-- 0 row",
-    },
-    {
-      type: 'text',
-      title: 'Row thiếu giá trị',
-      paragraphs: [
-        'Vài món chưa có số calo. Ở những row đó, column calories là **[[null]]**, nghĩa là chưa có giá trị.',
-        'NULL không bằng gì cả, kể cả chính NULL. Vì vậy `calories = NULL` không bao giờ đúng.',
-        'Muốn tìm NULL, viết `IS NULL`. Muốn loại NULL, viết `IS NOT NULL`.',
-      ],
-    },
-    {
-      type: 'playground',
-      title: 'Tìm món chưa có calo',
-      intro: 'Bấm Chạy. Query giữ các món có calories là NULL.',
-      database: 'teashop',
-      tables: ['products'],
-      dialects: ['mysql', 'oracle'],
-      sql: {
-        mysql: 'SELECT name, calories\nFROM products\nWHERE calories IS NULL;',
-        oracle: 'SELECT name, calories\nFROM products\nWHERE calories IS NULL',
-      },
-      tries: [
-        {
-          label: 'Đổi IS NULL thành = NULL',
-          sql: {
-            mysql: 'SELECT name, calories\nFROM products\nWHERE calories = NULL;',
-            oracle: 'SELECT name, calories\nFROM products\nWHERE calories = NULL',
-          },
-        },
-        {
-          label: 'Đổi IS NULL thành IS NOT NULL',
-          sql: {
-            mysql: 'SELECT name, calories\nFROM products\nWHERE calories IS NOT NULL;',
-            oracle: 'SELECT name, calories\nFROM products\nWHERE calories IS NOT NULL',
-          },
-        },
-        {
-          label: 'Thêm AND price > 40000',
-          sql: {
-            mysql: 'SELECT name, calories\nFROM products\nWHERE calories IS NULL AND price > 40000;',
-            oracle: 'SELECT name, calories\nFROM products\nWHERE calories IS NULL AND price > 40000',
-          },
-        },
-      ],
-      say: 'Query với = NULL vẫn chạy, nhưng trả 0 row. Database không báo lỗi, nên dễ bỏ sót.',
     },
     {
       type: 'quiz',
@@ -187,20 +205,20 @@ export const lesson: Lesson = {
       items: [
         {
           kind: 'choice',
-          question: 'Bạn muốn món có giá từ 30000 đến 40000, gồm cả hai đầu. Cách nào đúng?',
+          question: 'Bạn muốn món Trà sữa có giá dưới 40000. Nối hai điều kiện bằng gì?',
           options: [
-            { text: '`price BETWEEN 30000 AND 40000`', correct: true, feedback: 'Đúng. BETWEEN gồm cả hai đầu.' },
-            { text: '`price > 30000 AND price < 40000`', feedback: 'Cách này bỏ món giá đúng 30000 và đúng 40000.' },
-            { text: '`price BETWEEN 40000 AND 30000`', feedback: 'BETWEEN cần số nhỏ trước, số lớn sau. Đổi chỗ thì không row nào đạt.' },
+            { text: 'AND', correct: true, feedback: 'Đúng. Row phải thỏa cả hai điều kiện.' },
+            { text: 'OR', feedback: 'OR giữ row khi một điều kiện đúng. Món nào dưới 40000 cũng lọt vào, kể cả Cà phê.' },
+            { text: 'NOT', feedback: 'NOT đảo một điều kiện, không nối được hai điều kiện.' },
           ],
         },
         {
           kind: 'choice',
-          question: 'Điều kiện nào tìm món chưa có calories?',
+          question: "Database đọc `category = 'Cà phê' OR category = 'Topping' AND price < 10000` thế nào?",
           options: [
-            { text: '`calories IS NULL`', correct: true, feedback: 'Đúng. IS NULL là cách duy nhất để tìm NULL.' },
-            { text: '`calories = NULL`', feedback: 'Query chạy được nhưng trả 0 row. NULL không bằng gì cả.' },
-            { text: '`calories = 0`', feedback: 'Số 0 là một giá trị có thật. Row thiếu giá trị thì không có số nào.' },
+            { text: "Cà phê hoặc Topping, rồi chỉ giữ món dưới 10000", feedback: 'Đọc vậy thì phần OR phải nằm trong ngoặc. Query này chưa có ngoặc.' },
+            { text: "Cà phê ở mọi giá, hoặc Topping dưới 10000", correct: true, feedback: 'Đúng. AND chạy trước, nên Topping và giá dưới 10000 thành một cặp.' },
+            { text: 'Đọc từ phải sang trái', feedback: 'Database không đọc theo hướng. Độ ưu tiên quyết định: AND trước, OR sau.' },
           ],
         },
         {
@@ -216,20 +234,19 @@ export const lesson: Lesson = {
     },
     {
       type: 'realworld',
-      title: 'Sao kê của app ngân hàng',
+      title: 'Bộ lọc của sàn mua sắm',
       paragraphs: [
-        'Bạn bấm "Tháng này" trong app ngân hàng và thấy danh sách giao dịch.',
-        'App gửi cho database một query có WHERE. Điều kiện giữ các giao dịch nằm giữa ngày đầu và ngày cuối tháng.',
+        'Bạn mở một sàn mua sắm và chọn "Giày", rồi chọn "Dưới 500.000 đồng". Hai lựa chọn nối nhau bằng AND.',
+        'Bạn chọn thêm hãng Nike và Adidas. Hai hãng nối nhau bằng OR, và nằm trong một cặp ngoặc để AND không chạy lẫn vào.',
       ],
     },
     {
       type: 'keypoints',
       items: [
-        'WHERE giữ row thỏa điều kiện.',
-        'AND cần cả hai điều kiện đúng, OR cần một trong hai.',
-        'Chữ nằm trong nháy đơn. Oracle không nhận nháy kép cho chữ.',
-        'MySQL so chữ không phân biệt hoa thường và dấu. Oracle có phân biệt.',
-        'Tìm NULL bằng IS NULL, không bằng dấu =.',
+        'WHERE giữ row thỏa điều kiện. Điều kiện so column với giá trị bằng `=`, `<>`, `<`, `<=`, `>`, `>=`.',
+        'AND cần cả hai điều kiện đúng. OR cần một trong hai. NOT đảo điều kiện.',
+        'AND chạy trước OR. Có cả hai trong một query thì thêm ngoặc.',
+        'Chữ nằm trong nháy đơn. MySQL so chữ không phân biệt hoa thường và dấu. Oracle có phân biệt.',
       ],
     },
     {
@@ -237,7 +254,8 @@ export const lesson: Lesson = {
       items: [
         { name: 'Harvard CS50 SQL, Lecture 0', url: 'https://cs50.harvard.edu/sql/notes/0/', note: 'CC BY-NC-SA 4.0' },
         { name: 'SQLBolt, bài 2: Queries with constraints (Pt. 1)', url: 'https://sqlbolt.com/lesson/select_queries_with_constraints' },
-        { name: 'SQLBolt, bài 3: Queries with constraints (Pt. 2)', url: 'https://sqlbolt.com/lesson/select_queries_with_constraints_pt_2' },
+        { name: 'MySQL 8.0 Reference Manual, Operator Precedence', url: 'https://dev.mysql.com/doc/refman/8.0/en/operator-precedence.html' },
+        { name: 'Oracle Database 19c SQL Language Reference, Comparison Conditions', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Comparison-Conditions.html' },
       ],
     },
   ],

@@ -30,7 +30,7 @@ export const lesson: Lesson = {
       paragraphs: [
         '**[[subquery]]** là query nhỏ nằm trong dấu ngoặc của một query lớn.',
         'Database chạy subquery trước. Kết quả của subquery thế chỗ dấu ngoặc, rồi query ngoài chạy tiếp.',
-        'Subquery chỉ ra một giá trị gọi là **[[scalar-subquery]]**. Bạn dùng nó như một con số viết sẵn.',
+        'Subquery chỉ cho ra một giá trị thì gọi là **[[scalar-subquery]]**. Bạn dùng nó như một con số viết sẵn.',
         'Ví dụ: `AVG(salary)` cho ra một con số. Bạn đặt nó vào ngoặc: `WHERE salary > (SELECT AVG(salary) FROM employees)`.',
         'Lương trung bình của công ty là 22.350.000 đồng. Database tính con số này một lần, rồi so lương từng người với nó.',
       ],
@@ -123,7 +123,7 @@ export const lesson: Lesson = {
           options: [
             { text: '`WHERE salary = (SELECT MAX(salary) FROM employees)`', correct: true, feedback: 'Đúng. Subquery ra đúng một con số, là lương cao nhất.' },
             { text: '`WHERE salary = (SELECT salary FROM employees)`', feedback: 'Subquery này ra 40 con số, mỗi người một số. Database báo lỗi vì vế phải của dấu = cần một giá trị.' },
-            { text: '`WHERE salary = MAX(salary)`', feedback: 'Hàm gom như MAX không đứng trực tiếp trong WHERE. Đặt nó vào subquery như đáp án đầu.' },
+            { text: '`WHERE salary = MAX(salary)`', feedback: 'Aggregate function như MAX không đứng trực tiếp trong WHERE. Đặt nó vào subquery như đáp án đầu.' },
           ],
         },
         {
@@ -132,7 +132,7 @@ export const lesson: Lesson = {
           options: [
             { text: 'Database báo lỗi: MySQL 1242, Oracle ORA-01427', correct: true, feedback: 'Đúng. Vế phải của `>` chỉ nhận một giá trị.' },
             { text: 'Database lấy row đầu tiên', feedback: 'Database không đoán thay bạn. Muốn lấy một row, bạn phải viết rõ như MAX hay LIMIT 1.' },
-            { text: 'Database so với cả 6 giá trị', feedback: 'So với cả danh sách là việc của IN, ANY, ALL. Bài sau sẽ dạy.' },
+            { text: 'Database so với cả 6 giá trị', feedback: 'Muốn so với cả danh sách, bạn dùng IN, ANY hoặc ALL. Bài sau dạy các từ khóa này.' },
           ],
         },
         {

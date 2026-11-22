@@ -40,7 +40,7 @@ export const lesson: Lesson = {
       type: 'text',
       title: 'Bốn phép ghép kết quả',
       paragraphs: [
-        'JOIN thêm column cho mỗi row. Phép ghép kết quả làm khác: nó xếp row của query này nối tiếp row của query kia.',
+        'JOIN thêm column cho mỗi row. Phép ghép kết quả xếp row của query này nối tiếp row của query kia.',
         '**[[union]]** ghép hai danh sách và bỏ row trùng. **[[union-all]]** ghép và giữ mọi row, kể cả row trùng.',
         '**[[intersect]]** chỉ giữ row có mặt ở cả hai danh sách.',
         '**[[minus]]** chỉ giữ row có ở danh sách bên trái mà không có ở bên phải. MySQL gọi phép này là **[[except]]**.',

@@ -48,7 +48,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Subquery ở các bài trước đứng riêng, không nhắc tới query ngoài.',
         '**[[correlated-subquery]]** nhắc tới column của query ngoài. Vì vậy database không tính nó một lần được.',
-        'Database lấy từng row của query ngoài và đưa giá trị xuống subquery. Rồi subquery chạy cho row đó. Query ngoài có 40 row thì subquery được hỏi 40 lần.',
+        'Database lấy từng row của query ngoài và đưa giá trị xuống subquery. Rồi subquery chạy cho row đó. Query ngoài có 40 row thì database hỏi subquery 40 lần.',
         'Để phân biệt column của hai query, bạn đặt alias cho table ngoài: `FROM employees e`. Trong subquery, `e.department_id` là phòng của người đang xét.',
         'Đọc query dưới đây từng chữ: lương của `e` lớn hơn lương trung bình của những người cùng phòng với `e`.',
       ],
@@ -96,7 +96,7 @@ export const lesson: Lesson = {
       title: 'Bẫy quên alias, và subquery trong danh sách SELECT',
       paragraphs: [
         'Mục thứ ba ở khối thử tay bỏ `e.` và chỉ ra 10 người, không phải 13. Đây là bẫy hay gặp.',
-        'Trong subquery, tên column không có alias được hiểu là column của table nằm trong subquery. Vì vậy `department_id = department_id` so một column với chính nó.',
+        'Trong subquery, database hiểu tên column không có alias là column của table nằm trong subquery. Vì vậy `department_id = department_id` so một column với chính nó.',
         'Điều kiện đó đúng với mọi row có phòng. Subquery tính trung bình của mọi người có phòng và không còn theo phòng của `e`. Luôn viết alias cho column của query ngoài.',
         'Subquery phụ thuộc cũng đứng được trong danh sách SELECT, như mục cuối ở khối thử tay. Mỗi row ngoài nhận một giá trị tính riêng.',
         'Khối kế tiếp đếm nhân viên của từng phòng bằng cách đó. Phòng 80 chưa có ai.',
@@ -186,7 +186,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Một bộ phận kiểm toán muốn tìm các khoản chi cao hơn mức trung bình của chính phòng đã chi.',
         'Mỗi phòng có mức chi trung bình khác nhau, nên một ngưỡng chung không dùng được.',
-        'Họ viết subquery phụ thuộc: mỗi khoản chi được so với trung bình của phòng chứa khoản chi đó.',
+        'Họ viết subquery phụ thuộc: họ so mỗi khoản chi với trung bình của phòng chứa khoản chi đó.',
       ],
     },
     {

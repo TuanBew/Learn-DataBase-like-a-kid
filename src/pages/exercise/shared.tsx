@@ -5,6 +5,7 @@ import { Confetti } from '../../components/Confetti';
 import { Icon } from '../../components/Icon';
 import { Mascot, Says } from '../../components/Mascot';
 import { Rich } from '../../components/Rich';
+import { SchemaDialogButton } from '../../components/SchemaDialog';
 import { SchemaChips } from '../../components/sql/parts';
 import { exerciseMap } from '../../content/exercise-map';
 import { exercises } from '../../content/exercises';
@@ -61,7 +62,10 @@ export function TaskCard({ exercise, db, dialect }: { exercise: Exercise; db?: D
       {note && <p className="ex-kindnote pen">{note}</p>}
       {tables.length > 0 && dialect && (
         <div className="ex-data">
-          <h3 className="ex-h ex-h--sm">{U.data}</h3>
+          <div className="ex-data__head">
+            <h3 className="ex-h ex-h--sm">{U.data}</h3>
+            <SchemaDialogButton db={db} />
+          </div>
           <SchemaChips tables={tables} dialect={dialect} />
         </div>
       )}

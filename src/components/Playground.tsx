@@ -8,6 +8,7 @@ import { useLoad } from '../lib/useLoad';
 import { play } from '../sfx/sfx';
 import { Theater } from '../theater/Theater';
 import { Icon } from './Icon';
+import { SchemaDialogButton } from './SchemaDialog';
 import { Says } from './Mascot';
 import { ResultTable } from './ResultTable';
 import { Rich } from './Rich';
@@ -49,7 +50,12 @@ export default function Playground({ block }: { block: PlaygroundBlock }) {
   return (
     <div className="pg">
       <div className="pg__top">
-        <div className="pg__schema">{db && <SchemaChips tables={tables} dialect={dialect} />}</div>
+        <div className="pg__schema">
+          <div className="pg__schemahead">
+            <SchemaDialogButton db={db} />
+          </div>
+          {db && <SchemaChips tables={tables} dialect={dialect} />}
+        </div>
         <DialectToggle
           dialects={block.dialects}
           value={dialect}

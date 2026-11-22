@@ -25,6 +25,7 @@ const SCENES = [
   { id: 'c2-b6', idx: 0, name: 'constraint-gate', steps: ['4 Bánh flan', 'Đưa qua cổng'], marker: 'reset' },
   { id: 'c2-b7', idx: 0, name: 'erd', steps: ['stores'], marker: '.erd__box.is-sel' },
   { id: 'c4-b6', idx: 0, name: 'clause-order', steps: ['FROM:', 'WHERE:', 'GROUP BY:', 'HAVING:', 'SELECT:', 'ORDER BY:', 'LIMIT:', 'Kiểm tra'] },
+  { id: 'c7-b1', idx: 0, name: 'schema-path', steps: ['order_items', 'customers'], marker: '.spath__conds li' },
   { id: 'c10-b1', idx: 0, name: 'dml-rehearsal', steps: ['UPDATE quên WHERE', 'Chạy'] },
   { id: 'c10-b3', idx: 0, name: 'tx-cart', steps: ['Đổi giá món 2', 'COMMIT'], marker: 'reset' },
   { id: 'c11-b5', idx: 0, name: 'index-race', steps: ['1.000.000', 'Chạy'], marker: 'reset' },

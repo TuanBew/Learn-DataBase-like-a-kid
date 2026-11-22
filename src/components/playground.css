@@ -61,3 +61,7 @@
 .pg__say .says__bubble {
   font-size: 0.98rem;
 }
+
+.pg__schemahead {
+  display: flex;
+}

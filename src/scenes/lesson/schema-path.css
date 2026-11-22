@@ -1,0 +1,21 @@
+.spath {
+  display: grid;
+  gap: var(--s4);
+  min-width: 0;
+  max-width: 780px;
+}
+.spath__say .says__bubble {
+  font-size: 0.98rem;
+}
+.spath__lead {
+  font-weight: 700;
+}
+.spath__conds {
+  margin: 4px 0 0;
+  padding-left: 22px;
+}
+.spath__conds code {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}

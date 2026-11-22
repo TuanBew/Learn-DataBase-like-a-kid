@@ -742,3 +742,9 @@
     min-width: 0;
   }
 }
+
+.qt-partial {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+}

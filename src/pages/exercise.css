@@ -460,3 +460,11 @@
 .ex-verdict__boss {
   font-weight: 600;
 }
+
+.ex-data__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+}

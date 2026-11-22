@@ -1,5 +1,6 @@
 /** Mọi câu chữ của Query Theater. Sửa chữ ở đây, không cần đụng vào code. */
 export const theaterCopy = {
+  partialNote: 'Theater chỉ diễn phần ngoài cùng của query này.',
   written: 'Bạn viết query theo thứ tự này.',
   run: (first: string) => `Database lại chạy theo thứ tự khác. ${first} chạy đầu tiên.`,
   runSingle: 'Query này chỉ có một clause, nên database chạy luôn.',

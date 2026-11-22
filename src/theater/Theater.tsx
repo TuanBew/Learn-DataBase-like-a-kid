@@ -38,6 +38,8 @@ export function Theater({ trace, autoPlay = true, onEnd }: Props) {
   const frames = useMemo(() => buildFrames(trace), [trace]);
   const focus = useMemo(() => new Set(trace.focus), [trace]);
   const reduced = useReducedMotion() ?? false;
+  /* `partial` do engine thêm vào Trace sau: query mà Theater chỉ diễn được phần ngoài cùng. Chưa có trong kiểu thì đọc qua ép kiểu cục bộ. */
+  const partial = (trace as Trace & { partial?: boolean }).partial === true;
   const last = frames.length - 1;
 
   const [i, setI] = useState(0);
@@ -158,6 +160,7 @@ export function Theater({ trace, autoPlay = true, onEnd }: Props) {
             </span>
           </div>
           {reduced && <p className="qt-reduced">{T.reducedNote}</p>}
+          {partial && <p className="qt-partial">{T.partialNote}</p>}
         </div>
 
         <div className="qt-floor">

@@ -1,0 +1,254 @@
+.sm {
+  display: grid;
+  gap: var(--s3);
+  min-width: 0;
+  max-width: 100%;
+}
+.sm__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.sm__modes {
+  display: inline-flex;
+  border: var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--sheet);
+}
+.sm__mode {
+  min-height: 44px;
+  padding: 4px 16px;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.sm__mode + .sm__mode {
+  border-left: var(--line);
+}
+.sm__mode[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.sm__status {
+  margin: 0;
+  min-height: 1.5em;
+  font-weight: 700;
+  color: var(--ink);
+}
+.sm__board {
+  position: relative;
+  display: grid;
+  gap: 44px 52px;
+  padding: var(--s3);
+  background: var(--paper);
+  border: var(--line);
+  border-radius: var(--r-md);
+  align-items: start;
+}
+.sm__box {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0 0 6px;
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: var(--r-sm);
+  box-shadow: var(--depth-sm);
+  cursor: pointer;
+  overflow: hidden;
+  scroll-margin: 80px;
+  transition:
+    opacity 180ms var(--ease-out),
+    background-color 180ms var(--ease-out);
+}
+.sm__box:hover {
+  background: var(--paper-2);
+}
+.sm__box.is-near {
+  background: color-mix(in srgb, var(--sky) 45%, var(--sheet));
+}
+.sm__box.is-sel {
+  background: var(--mango);
+  box-shadow: 0 5px 0 var(--slab);
+}
+.sm__box.is-dim {
+  opacity: 0.35;
+}
+.sm__box.is-flash {
+  outline: 3px solid var(--red);
+  outline-offset: 2px;
+}
+.sm__name {
+  display: block;
+  width: 100%;
+  min-height: 32px;
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.9rem;
+  line-height: 24px;
+  text-align: left;
+  color: var(--ink);
+  background: var(--taro);
+  border: 0;
+  border-bottom: var(--line);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+.sm__box.is-sel .sm__name {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.sm__col {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 8px 1px 6px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.sm__col.is-pk {
+  font-weight: 800;
+}
+.sm__slot {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+.sm__icon {
+  display: block;
+}
+.sm__cname {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sm__lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.sm__line {
+  transition: opacity 180ms var(--ease-out);
+}
+.sm__line path {
+  stroke: var(--ink-soft);
+  stroke-width: 1.75;
+  transition:
+    stroke-width 180ms var(--ease-out),
+    stroke 180ms var(--ease-out);
+}
+.sm__line.is-off {
+  opacity: 0.18;
+}
+.sm__line.is-on path {
+  stroke: var(--red);
+  stroke-width: 3.5;
+}
+.sm__card circle {
+  fill: var(--sheet);
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+.sm__card text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  fill: var(--ink);
+}
+.sm__line.is-on .sm__card circle {
+  fill: var(--mango);
+}
+.sm__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px var(--s4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.sm__legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sm__result {
+  padding: var(--s3);
+  background: var(--sheet);
+  border: var(--line);
+  border-radius: var(--r-sm);
+}
+.sm__rtitle {
+  margin: 0 0 4px;
+  font-weight: 700;
+}
+.sm__result ol {
+  margin: 0;
+  padding-left: 22px;
+}
+.sm__result code {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+/* Màn hình hẹp: bỏ lưới, xếp các hộp thành danh sách dọc. */
+.sm--list .sm__board {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s3);
+  padding: var(--s2);
+}
+.sm--list .sm__col {
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  padding-block: 2px;
+}
+.sm--list .sm__name {
+  min-height: 44px;
+  line-height: 36px;
+}
+.sm__jump {
+  min-height: 44px;
+  margin-left: auto;
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: underline;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+@media (max-width: 1000px) {
+  .sm__board {
+    gap: 40px 36px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sm__box,
+  .sm__line,
+  .sm__line path {
+    transition: none;
+  }
+}

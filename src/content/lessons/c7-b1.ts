@@ -182,6 +182,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c7-e7'] },
     {
       type: 'realworld',
       title: 'Tiếp quản database không có tài liệu',

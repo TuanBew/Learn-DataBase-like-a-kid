@@ -146,6 +146,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c8-e2'] },
     {
       type: 'realworld',
       title: 'Tìm đơn hàng bất thường',

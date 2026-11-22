@@ -136,6 +136,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c8-e8', 'c8-e9'] },
     {
       type: 'realworld',
       title: 'Đối soát hai danh sách khách',

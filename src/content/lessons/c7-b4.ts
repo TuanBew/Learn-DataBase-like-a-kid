@@ -73,8 +73,17 @@ export const lesson: Lesson = {
             'SELECT d.department_id, d.department_name\nFROM departments d\nLEFT JOIN employees e\n  ON e.department_id = d.department_id\nWHERE e.employee_id IS NULL',
           ),
         },
+        {
+          label: 'Giữ cả hai bên: Oracle dùng FULL OUTER JOIN, MySQL ghép bằng UNION',
+          sql: {
+            mysql:
+              'SELECT COUNT(*) AS so_row\nFROM (\n  SELECT e.employee_id, d.department_id\n  FROM employees e\n  LEFT JOIN departments d\n    ON e.department_id = d.department_id\n  UNION\n  SELECT e.employee_id, d.department_id\n  FROM employees e\n  RIGHT JOIN departments d\n    ON e.department_id = d.department_id\n) t;',
+            oracle:
+              'SELECT COUNT(*) AS so_row\nFROM employees e\nFULL OUTER JOIN departments d\n  ON e.department_id = d.department_id',
+          },
+        },
       ],
-      say: 'INNER ra 38 row. LEFT thêm 2 nhân viên chưa có phòng, thành 40. RIGHT thêm 1 phòng chưa có ai, thành 39. Mục cuối đảo bên và tìm ra đúng phòng ấy.',
+      say: 'INNER ra 38 row. LEFT thêm 2 nhân viên chưa có phòng, thành 40. RIGHT thêm 1 phòng chưa có ai, thành 39. Mục thứ tư đảo bên và tìm ra đúng phòng ấy. Mục cuối giữ cả hai bên và ra 41 row.',
     },
     {
       type: 'text',
@@ -136,11 +145,11 @@ export const lesson: Lesson = {
         'Oracle viết `FULL OUTER JOIN`, hoặc ngắn hơn là `FULL JOIN`. Hai cách cho cùng kết quả.',
         'MySQL không có FULL OUTER JOIN. Bạn viết nó ra thì MySQL báo lỗi 1064.',
         'Ở MySQL, bạn ghép LEFT JOIN và RIGHT JOIN bằng **[[union]]**. LEFT JOIN giữ row bên trái. RIGHT JOIN giữ row bên phải. UNION gộp hai kết quả rồi bỏ row trùng.',
-        'Kết quả giống FULL OUTER JOIN của Oracle. Chương 8 dạy UNION, nên bài này chỉ cho bạn xem câu mẫu.',
+        'Kết quả giống FULL OUTER JOIN của Oracle. Mục thử cuối ở khối đầu bài chạy cách này trên MySQL. Chương 8 dạy UNION kỹ hơn.',
         'RIGHT JOIN và LEFT JOIN thì chạy giống nhau ở cả hai dialect, như khối đầu bài.',
       ],
       mysql:
-        '-- Chương 8 dạy UNION\nSELECT e.employee_id, e.last_name, d.department_id, d.department_name\nFROM employees e\nLEFT JOIN departments d\n  ON e.department_id = d.department_id\nUNION\nSELECT e.employee_id, e.last_name, d.department_id, d.department_name\nFROM employees e\nRIGHT JOIN departments d\n  ON e.department_id = d.department_id;',
+        'SELECT e.employee_id, e.last_name, d.department_id, d.department_name\nFROM employees e\nLEFT JOIN departments d\n  ON e.department_id = d.department_id\nUNION\nSELECT e.employee_id, e.last_name, d.department_id, d.department_name\nFROM employees e\nRIGHT JOIN departments d\n  ON e.department_id = d.department_id;',
       oracle:
         'SELECT e.employee_id, e.last_name, d.department_id, d.department_name\nFROM employees e\nFULL OUTER JOIN departments d\n  ON e.department_id = d.department_id',
     },
@@ -181,6 +190,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c7-e8'] },
     {
       type: 'realworld',
       title: 'Đối soát hai nguồn số liệu',

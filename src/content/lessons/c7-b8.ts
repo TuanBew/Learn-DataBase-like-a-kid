@@ -118,8 +118,17 @@ export const lesson: Lesson = {
             'SELECT o.store_id, COUNT(DISTINCT o.order_id) AS so_don\nFROM orders o\nINNER JOIN order_items i\n  ON i.order_id = o.order_id\nGROUP BY o.store_id\nORDER BY o.store_id',
           ),
         },
+        {
+          label: 'Gom trước rồi mới nối: hai kết quả đã gom, mỗi tiệm một row',
+          sql: {
+            mysql:
+              'SELECT st.store_id, st.name, l.tong_luong, d.so_don\nFROM stores AS st\nINNER JOIN (\n  SELECT store_id, SUM(salary) AS tong_luong\n  FROM staff\n  GROUP BY store_id\n) AS l ON l.store_id = st.store_id\nINNER JOIN (\n  SELECT store_id, COUNT(*) AS so_don\n  FROM orders\n  GROUP BY store_id\n) AS d ON d.store_id = st.store_id\nORDER BY st.store_id;',
+            oracle:
+              'SELECT st.store_id, st.name, l.tong_luong, d.so_don\nFROM stores st\nINNER JOIN (\n  SELECT store_id, SUM(salary) AS tong_luong\n  FROM staff\n  GROUP BY store_id\n) l ON l.store_id = st.store_id\nINNER JOIN (\n  SELECT store_id, COUNT(*) AS so_don\n  FROM orders\n  GROUP BY store_id\n) d ON d.store_id = st.store_id\nORDER BY st.store_id',
+          },
+        },
       ],
-      say: 'Query A và query B đều đúng, vì mỗi query chỉ nối một phía "nhiều". Mục nối order_items đếm món chứ không đếm đơn: tiệm 1 có 12 món trên 6 đơn.',
+      say: 'Query A và query B đều đúng, vì mỗi query chỉ nối một phía "nhiều". Mục nối order_items đếm món chứ không đếm đơn: tiệm 1 có 12 món trên 6 đơn. Mục cuối gom từng phía trước, rồi nối: mỗi tiệm một row, hai số đều đúng.',
     },
     {
       type: 'text',
@@ -127,7 +136,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Cách sửa thứ hai là gom trước rồi mới nối. Bạn gom mỗi table "nhiều" về một row cho mỗi tiệm bằng GROUP BY.',
         'Sau đó bạn nối các kết quả đã gom với table stores. Nối một row với một row thì không có gì để nhân.',
-        'Cách này cần subquery nằm trong FROM. Chương 8 dạy cách viết này.',
+        'Cách này dùng subquery nằm trong FROM. Mục thử cuối của khối trên chạy được nó. Chương 8 dạy subquery kỹ hơn.',
         'Trước đó, hai query riêng là cách đơn giản và ít sai nhất. Bạn đặt hai kết quả cạnh nhau là xong.',
         'Nhớ quy tắc: một table "một" nối với hai table "nhiều" thì hỏi ngay xem row có bị nhân không.',
       ],
@@ -182,6 +191,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c7-e12'] },
     {
       type: 'realworld',
       title: 'Doanh thu gấp ba lần số của kế toán',

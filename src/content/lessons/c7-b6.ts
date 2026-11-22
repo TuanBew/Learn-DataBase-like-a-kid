@@ -177,6 +177,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c7-e10'] },
     {
       type: 'realworld',
       title: 'Ai duyệt chi phí của ai',

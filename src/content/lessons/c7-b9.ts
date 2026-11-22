@@ -197,6 +197,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c7-e13', 'c7-boss'] },
     {
       type: 'realworld',
       title: 'Sửa một báo cáo mười năm tuổi',

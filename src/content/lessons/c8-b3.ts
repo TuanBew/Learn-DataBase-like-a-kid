@@ -200,6 +200,7 @@ WHERE t.revenue IS NULL`,
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c8-e4'] },
     {
       type: 'realworld',
       title: 'Báo cáo doanh thu không khớp sổ kế toán',

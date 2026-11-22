@@ -226,6 +226,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c7-e11'] },
     {
       type: 'realworld',
       title: 'Phí vận chuyển theo cân nặng',

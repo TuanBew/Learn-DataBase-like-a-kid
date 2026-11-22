@@ -183,6 +183,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c8-e6', 'c8-e7'] },
     {
       type: 'realworld',
       title: 'Dọn danh mục sản phẩm',

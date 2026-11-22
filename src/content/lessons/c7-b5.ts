@@ -242,6 +242,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c7-e5', 'c7-e6', 'c7-e9'] },
     {
       type: 'realworld',
       title: 'Hóa đơn trong app mua sắm',

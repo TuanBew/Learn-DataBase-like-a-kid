@@ -194,6 +194,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c7-e1', 'c7-e2'] },
     {
       type: 'realworld',
       title: 'Lịch sử đơn trong app mua sắm',

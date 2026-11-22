@@ -198,6 +198,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c8-e10', 'c8-boss'] },
     {
       type: 'realworld',
       title: 'Báo cáo cuối tháng đọc không nổi',

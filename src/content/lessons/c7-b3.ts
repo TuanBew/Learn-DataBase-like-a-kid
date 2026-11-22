@@ -143,7 +143,7 @@ export const lesson: Lesson = {
           options: [
             { text: 'Table a, đứng bên trái', correct: true, feedback: 'Đúng. Table đứng trước chữ JOIN là table bên trái.' },
             { text: 'Table b, đứng bên phải', feedback: 'Bên phải là table b. LEFT JOIN giữ bên trái, tức table a.' },
-            { text: 'Cả hai table', feedback: 'Giữ cả hai bên là FULL JOIN, khóa học này không dạy.' },
+            { text: 'Cả hai table', feedback: 'Giữ cả hai bên là FULL OUTER JOIN. Bài sau dạy kiểu này.' },
           ],
         },
         {
@@ -166,6 +166,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c7-e3', 'c7-e4'] },
     {
       type: 'realworld',
       title: 'Báo cáo "chưa có ai"',

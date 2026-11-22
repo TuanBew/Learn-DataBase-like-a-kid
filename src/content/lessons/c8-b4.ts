@@ -179,6 +179,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c8-e5'] },
     {
       type: 'realworld',
       title: 'Khoản chi cao bất thường theo từng phòng',

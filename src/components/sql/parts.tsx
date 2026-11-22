@@ -85,10 +85,10 @@ export function EditorBox(props: EditorProps) {
 }
 
 /** Thẻ báo lỗi: lời dễ hiểu của Bi, kèm nguyên văn dòng lỗi của DBMS thật. */
-export function ErrorCard({ error, dialect }: { error: SqlError; dialect: Dialect }) {
+export function ErrorCard({ error, dialect, title }: { error: SqlError; dialect: Dialect; title?: string }) {
   return (
     <section className="ex-error sheet" role="alert">
-      <h3 className="ex-h">{error.kind === 'unsupported' ? U.outOfScope : U.errorTitle}</h3>
+      <h3 className="ex-h">{error.kind === 'unsupported' ? U.outOfScope : (title ?? U.errorTitle)}</h3>
       <div className="ex-error__say">
         <Mascot size={52} mood="think" />
         <p>

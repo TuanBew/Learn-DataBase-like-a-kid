@@ -74,7 +74,7 @@ export function ScriptOutput({ out, dialect }: { out: ScriptOut; dialect: Dialec
       {failed && !failed.ok && out.failedAt !== undefined && (
         <>
           <p className="so__fail">{T.failedAt(out.failedAt + 1, out.total)}</p>
-          <ErrorCard error={failed.error} dialect={dialect} />
+          <ErrorCard error={failed.error} dialect={dialect} title={T.errorTitle} />
         </>
       )}
     </div>

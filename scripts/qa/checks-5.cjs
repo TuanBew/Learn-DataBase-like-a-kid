@@ -193,6 +193,25 @@ async function runScene(page, tag, scope, steps, marker, bubbleRequired = true) 
       } catch (e) { bad(tag, String(e.message).split('\n')[0]); }
     }
 
+    // Xưởng: khung cấu trúc table
+    {
+      const tag = `[${w}] workshop c3-b3`;
+      try {
+        await page.goto(`${BASE}/bai/c3-b3`, { waitUntil: 'networkidle' });
+        const scope = page.locator('.ws').first();
+        await scope.evaluate((r) => r.scrollIntoView({ block: 'center' }));
+        const n0 = await scope.locator('.sp-table').count();
+        await clickBtn(scope, 'Chạy');
+        await page.waitForTimeout(600);
+        const n1 = await scope.locator('.sp-table').count();
+        check(`${tag} table mới hiện ra`, n1 > n0, `số table ${n0} thành ${n1}`);
+        const an = await longAnims(scope);
+        if (an.finite.length) bad(`${tag} không còn animation dài`, [...new Set(an.finite)].slice(0, 4).join('; '));
+        else ok(`${tag} không còn animation dài`);
+        if (an.infinite.length) wrn(`${tag} animation lặp vô hạn`, [...new Set(an.infinite)].join('; '));
+      } catch (e) { bad(tag, String(e.message).split('\n')[0]); }
+    }
+
     if (errs.length) errs.forEach((e) => bad(`[${w}] lỗi console/page`, e)); else ok(`[${w}] không có lỗi console/page`);
     await ctx.close();
   }

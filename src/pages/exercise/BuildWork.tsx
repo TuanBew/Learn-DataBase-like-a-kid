@@ -25,21 +25,33 @@ const B = uiWorkshop.build;
 
 const hasTable = (db: Database, name: string) => db.tables.some((t) => t.name.toLowerCase() === name.toLowerCase());
 
-/** Mở bài: database trống, hoặc "Database của bạn" khi bài làm tiếp các bài trước. */
-function openDb(ex: BuildExercise): { db: Database; missing: string[] } {
-  if (ex.start !== 'mine') return { db: emptyDb(), missing: [] };
-  const db = loadMyDb() ?? emptyDb();
-  return { db, missing: (ex.needs ?? []).filter((n) => !hasTable(db, n)) };
+/** Session dựng từ `base` (trạng thái ngay trước bài). */
+function baseSession(ex: BuildExercise, d: Dialect): Session {
+  const s = createSession(emptyDb(), d);
+  s.runScript(ex.base?.[d] ?? '');
+  return s;
+}
+
+/**
+ * Mở bài: database trống, hoặc "Database của bạn" khi bài làm tiếp các bài trước.
+ * Nếu "Database của bạn" đã đạt hết yêu cầu của bài thì vào chế độ luyện lại: dựng từ `base`, không ghi đè.
+ */
+function openSession(ex: BuildExercise, d: Dialect): { session: Session; missing: string[]; practice: boolean } {
+  if (ex.start !== 'mine') return { session: createSession(emptyDb(), d), missing: [], practice: false };
+  const db: Database = loadMyDb() ?? emptyDb();
+  if (db.tables.length > 0 && gradeSchema(db, ex.spec, d).ok) return { session: baseSession(ex, d), missing: [], practice: true };
+  return { session: createSession(db, d), missing: (ex.needs ?? []).filter((n) => !hasTable(db, n)), practice: false };
 }
 
 /** Bài dựng table: viết lệnh tạo table, máy chấm so cấu trúc với `spec` sau mỗi lần Chạy. */
 export function BuildWork({ exercise }: { exercise: BuildExercise }) {
   const [dialect, setDialect] = useState<Dialect>(exercise.dialects[0]);
   const [texts, setTexts] = useState<Record<Dialect, string>>({ mysql: exercise.starter.mysql ?? '', oracle: exercise.starter.oracle ?? '' });
-  const [boot] = useState(() => openDb(exercise));
+  const [boot] = useState(() => openSession(exercise, exercise.dialects[0]));
   const [missing, setMissing] = useState(boot.missing);
-  const [session, setSession] = useState<Session>(() => createSession(boot.db, exercise.dialects[0]));
-  const [view, setView] = useState(() => session.schema());
+  const [practice, setPractice] = useState(boot.practice);
+  const [session, setSession] = useState<Session>(boot.session);
+  const [view, setView] = useState(() => boot.session.schema());
   const [out, setOut] = useState<ScriptOut | null>(null);
   const [report, setReport] = useState<SchemaReport | null>(null);
   const [solutionRun, setSolutionRun] = useState(false);
@@ -47,12 +59,11 @@ export function BuildWork({ exercise }: { exercise: BuildExercise }) {
   const progress = useProgress();
 
   const fresh = (d: Dialect, useBase = false) => {
-    const { db, missing: miss } = useBase ? { db: emptyDb(), missing: [] as string[] } : openDb(exercise);
-    const s = createSession(db, d);
-    if (useBase) s.runScript(exercise.base?.[d] ?? '');
-    setSession(s);
-    setView(s.schema());
-    setMissing(miss);
+    const o = useBase ? { session: baseSession(exercise, d), missing: [] as string[], practice: false } : openSession(exercise, d);
+    setSession(o.session);
+    setView(o.session.schema());
+    setMissing(o.missing);
+    setPractice(o.practice);
     setOut(null);
     setReport(null);
     setSolutionRun(false);
@@ -70,7 +81,7 @@ export function BuildWork({ exercise }: { exercise: BuildExercise }) {
     if (o.failedAt !== undefined) play('bonk');
     else if (rep.ok && !isSolution) {
       markExercise(exercise.id, dialect);
-      setSaved(exercise.save ? saveMyDb(session.db()) : null);
+      setSaved(exercise.save && !practice ? saveMyDb(session.db()) : null);
     } else play('bad');
   };
 
@@ -99,6 +110,7 @@ export function BuildWork({ exercise }: { exercise: BuildExercise }) {
           </div>
           <p className="ex-kindnote pen">{U.kindNote.build}</p>
           {doneBefore && <p className="chip bw-before">{B.alreadyDone(uiApp.dialects[dialect])}</p>}
+          {practice && missing.length === 0 && <p className="ex-note pen bw-practice">{B.practice}</p>}
         </section>
 
         <section className="bw-asks sheet" aria-labelledby="bw-asks">

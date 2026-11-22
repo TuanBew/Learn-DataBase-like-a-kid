@@ -8,6 +8,7 @@ export const uiWorkshop = {
   empty: 'Editor đang trống. Gõ một lệnh rồi bấm Chạy.',
   /** Báo lệnh nào trong lần Chạy bị lỗi. */
   failedAt: (n: number, total: number) => (total > 1 ? `Lệnh thứ ${n} trên ${total} bị lỗi. Các lệnh phía sau chưa chạy.` : 'Lệnh này bị lỗi.'),
+  errorTitle: 'Database chưa chạy được lệnh này',
   results: 'Kết quả từng lệnh',
   resultNo: (n: number) => `Lệnh ${n}`,
   selectCaption: (n: number) => `Kết quả lệnh ${n}`,
@@ -59,6 +60,7 @@ export const uiWorkshop = {
     saved: 'Mình đã lưu table này vào Database của bạn, trong trình duyệt này.',
     notSaved: 'Trình duyệt không cho mình lưu. Table này mất khi bạn đóng trang.',
     solutionNote: 'Mình đã chạy lời giải mẫu. Bài này chưa tính là xong.',
+    practice: 'Bạn đã làm bài này. Mình dựng lại database ở trạng thái trước bài để bạn luyện lại. Lần luyện này không ghi đè Database của bạn.',
     alreadyDone: (d: string) => `Bạn đã làm xong bài này bằng ${d}.`,
   },
 } as const;

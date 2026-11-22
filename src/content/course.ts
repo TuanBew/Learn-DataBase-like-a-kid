@@ -102,8 +102,16 @@ export const chapters: Chapter[] = [
   {
     id: 8,
     title: 'Subquery và ghép kết quả',
-    about: 'Đặt một query trong query khác để lọc row theo một danh sách.',
-    lessons: [{ id: 'c8-b2', title: 'subquery với IN', minutes: 16 }],
+    about: 'Đặt một query trong query khác, và ghép kết quả của nhiều query lại.',
+    lessons: [
+      { id: 'c8-b1', title: 'subquery trả một giá trị', minutes: 14 },
+      { id: 'c8-b2', title: 'subquery trả một danh sách: IN, NOT IN và bẫy NULL', minutes: 16 },
+      { id: 'c8-b3', title: 'subquery trong FROM: gom trước, nối sau', minutes: 16 },
+      { id: 'c8-b4', title: 'subquery phụ thuộc query bên ngoài', minutes: 16 },
+      { id: 'c8-b5', title: 'EXISTS và NOT EXISTS', minutes: 15 },
+      { id: 'c8-b6', title: 'UNION, UNION ALL, INTERSECT, MINUS', minutes: 15 },
+      { id: 'c8-b7', title: 'WITH: đặt tên cho từng bước của query', minutes: 16 },
+    ],
   },
   {
     id: 10,

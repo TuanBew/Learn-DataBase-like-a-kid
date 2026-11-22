@@ -42,6 +42,11 @@ export const chapters: Chapter[] = [
       { id: 'c3-b3', title: 'Câu CREATE TABLE đầu tiên' },
       { id: 'c3-b4', title: 'primary key và mã tự tăng' },
       { id: 'c3-b5', title: 'Đặt luật ngay lúc tạo' },
+      { id: 'c3-b6', title: 'Table thứ hai và foreign key' },
+      { id: 'c3-b7', title: 'Quan hệ nhiều với nhiều: table trung gian' },
+      { id: 'c3-b8', title: 'Đưa dữ liệu vào bằng INSERT' },
+      { id: 'c3-b9', title: 'Sửa cấu trúc bằng ALTER TABLE' },
+      { id: 'c3-b10', title: 'DROP, TRUNCATE, và xem lại database của mình' },
     ],
   },
   {

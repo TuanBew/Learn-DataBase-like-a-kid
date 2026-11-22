@@ -269,7 +269,7 @@ VALUES (3, 'Nhân sự');`,
       type: 'oracle',
       body: [
         'MySQL cho chèn nhiều row trong một câu INSERT. Oracle 19c chỉ nhận một row mỗi câu. Gộp nhiều row thì Oracle báo ORA-00933. Ở Oracle, viết mỗi row một câu INSERT.',
-        'Ngày ở Oracle viết `DATE \'2026-03-02\'`. MySQL nhận cả `\'2026-03-02\'`. Oracle nhận chuỗi thường kiểu đó thì báo ORA-01861, vì Oracle đọc chuỗi theo định dạng ngày riêng của phiên làm việc.',
+        'Ngày ở Oracle viết `DATE \'2026-03-02\'`. MySQL nhận cả `\'2026-03-02\'`. Oracle nhận chuỗi thường kiểu đó thì báo ORA-01861. Lý do: Oracle đọc chuỗi theo định dạng ngày riêng của phiên làm việc.',
         'Oracle giữ row ở trạng thái chờ cho tới khi bạn gõ COMMIT. Quên COMMIT thì người khác không thấy row của bạn. MySQL tự lưu sau mỗi câu.',
         'Số giá trị lệch số column: MySQL báo 1136, Oracle báo ORA-00947 khi thiếu giá trị.',
       ],

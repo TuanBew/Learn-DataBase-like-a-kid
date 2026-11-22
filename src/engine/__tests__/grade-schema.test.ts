@@ -195,6 +195,37 @@ describe('gradeSchema: bài làm sai', () => {
   });
 });
 
+describe('gradeSchema: minRows', () => {
+  const spec = (n: number): SchemaSpec => ({ tables: [{ name: 't', minRows: n, columns: [{ name: 'a', type: ['int', 'decimal'], label: 'a' }] }] });
+  const make = (d: Dialect, inserts: string[]) => build(d, [`CREATE TABLE t (a ${d === 'mysql' ? 'INT' : 'NUMBER'})`, ...inserts]);
+
+  for (const d of BOTH) {
+    it(`${d}: đủ row thì đạt, thiếu row thì sai và note nói số row đang có`, () => {
+      const s = make(d, ['INSERT INTO t VALUES (1)', 'INSERT INTO t VALUES (2)']);
+      const ok = gradeSchema(s.db(), spec(2), d);
+      expect(ok.ok).toBe(true);
+      expect(ok.checks.map((c) => c.id)).toEqual(['table:t', 't.a', 't:extra', 't:rows']);
+      expect(ok.checks[3].label).toBe('Table t có ít nhất 2 row');
+      const low = gradeSchema(s.db(), spec(3), d);
+      expect(failed(low)).toEqual(['t:rows']);
+      expect(low.checks[3].note).toBe('Table đang có 2 row, cần từ 3 trở lên.');
+    });
+  }
+
+  it('nhiều hơn mức tối thiểu vẫn đạt; table rỗng thì sai', () => {
+    expect(gradeSchema(make('mysql', ['INSERT INTO t VALUES (1)', 'INSERT INTO t VALUES (2)']).db(), spec(1), 'mysql').ok).toBe(true);
+    expect(failed(gradeSchema(make('oracle', []).db(), spec(1), 'oracle'))).toEqual(['t:rows']);
+  });
+
+  it('thiếu table: check row cũng sai, nói chưa có table; không ghi minRows thì không sinh check', () => {
+    const r = gradeSchema(build('mysql', []).db(), spec(1), 'mysql');
+    expect(failed(r)).toContain('t:rows');
+    expect(r.checks.find((c) => c.id === 't:rows')?.note).toBe('Chưa có table này.');
+    const none = gradeSchema(make('mysql', []).db(), { tables: [{ name: 't', columns: [{ name: 'a', type: 'int', label: 'a' }] }] }, 'mysql');
+    expect(none.checks.some((c) => c.id === 't:rows')).toBe(false);
+  });
+});
+
 describe('gradeSchema: probe', () => {
   const spec = (expect_: 'ok' | 'error', sql: string, setup?: string[]): SchemaSpec => ({
     tables: [],

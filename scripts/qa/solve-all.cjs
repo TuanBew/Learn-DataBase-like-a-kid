@@ -145,10 +145,19 @@ async function main() {
     for (const d of dialects) {
       const label = ex.kind === 'quiz' ? 'quiz' : d;
       try {
+        // Mỗi lượt bắt đầu từ trình duyệt sạch: bỏ Database của bạn mà lượt trước (dialect kia) đã lưu.
+        await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+        await page.evaluate(() => localStorage.removeItem('ldb:mydb'));
         await page.goto(`${BASE}/tap/${id}`, { waitUntil: 'domcontentloaded' });
         await page.waitForSelector('.ex-title', { timeout: 15000 });
         await page.waitForTimeout(400); // chờ editor lazy gắn xong, tránh đua với nút đổi dialect
         if (ex.kind !== 'quiz') await selectDialect(page, ex, d);
+        // Bài start 'mine' mở trong trình duyệt sạch thì thiếu table của bài trước: bấm "Dựng theo mẫu".
+        const useBase = page.locator('button', { hasText: 'Dựng theo mẫu' });
+        if (ex.kind === 'build' && ex.start === 'mine') {
+          await useBase.waitFor({ state: 'visible', timeout: 5000 });
+          await useBase.click();
+        } else if (await useBase.isVisible().catch(() => false)) await useBase.click();
         if (ex.kind === 'quiz') await doQuiz(page, ex);
         else if (ex.kind === 'build') await doBuild(page, ex, d);
         else if (ex.kind === 'order') await doOrder(page, ex, d);

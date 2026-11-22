@@ -31,6 +31,8 @@ export interface ColumnDef {
   unique?: boolean;
   /** Column tự sinh mã tăng dần: AUTO_INCREMENT ở MySQL, GENERATED AS IDENTITY ở Oracle. */
   identity?: boolean;
+  /** Oracle: GENERATED ALWAYS ('always'), BY DEFAULT ('default'), BY DEFAULT ON NULL ('on-null'). */
+  identityMode?: 'always' | 'default' | 'on-null';
   /** Tên data type như người học viết, in hoa: 'VARCHAR', 'NUMBER'... Table mẫu không có field này. */
   sqlType?: string;
   /** Độ dài tối đa của VARCHAR, VARCHAR2, CHAR. */

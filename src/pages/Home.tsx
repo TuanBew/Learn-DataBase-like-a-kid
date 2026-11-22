@@ -1,6 +1,6 @@
 import { Link } from 'wouter';
 import { Icon } from '../components/Icon';
-import { chapters } from '../content/course';
+import { chapters, totalHours } from '../content/course';
 import { exerciseMap } from '../content/exercise-map';
 import { exercises } from '../content/exercises';
 import { lessons } from '../content/lessons';
@@ -57,7 +57,7 @@ export function Home() {
               <b>{lessonCount}</b> {U.facts.lessons}
             </span>
             <span className="chip">
-              <b>{U.facts.hoursValue}</b> {U.facts.hours}
+              {U.facts.hours(totalHours)}
             </span>
             <span className="chip">{U.facts.dialects}</span>
           </div>

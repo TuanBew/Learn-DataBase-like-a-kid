@@ -183,6 +183,24 @@ SELECT COUNT(*) AS total FROM assignments;`,
       },
       tries: [
         {
+          label: 'Xem danh sách table',
+          sql: { mysql: 'SHOW TABLES;', oracle: 'SELECT table_name FROM user_tables;' },
+        },
+        {
+          label: 'Xem column của employees',
+          sql: {
+            mysql: 'DESCRIBE employees;',
+            oracle: "SELECT column_name, data_type, data_length, nullable FROM user_tab_columns WHERE table_name = 'EMPLOYEES';",
+          },
+        },
+        {
+          label: 'Xem câu tạo employees, hoặc các constraint',
+          sql: {
+            mysql: 'SHOW CREATE TABLE employees;',
+            oracle: "SELECT constraint_name, constraint_type FROM user_constraints WHERE table_name = 'EMPLOYEES';",
+          },
+        },
+        {
           label: 'TRUNCATE assignments rồi ROLLBACK',
           sql: {
             mysql: `TRUNCATE TABLE assignments;
@@ -270,7 +288,7 @@ SHOW CREATE TABLE employees;`,
         'Column CONSTRAINT_TYPE của USER_CONSTRAINTS dùng chữ cái: P là primary key, R là foreign key, U là UNIQUE, C là CHECK hoặc NOT NULL.',
         'MySQL có `DROP TABLE IF EXISTS`. Oracle 19c không có. Viết `IF EXISTS` ở Oracle 19c thì báo ORA-00933.',
         'Oracle có `DROP TABLE departments CASCADE CONSTRAINTS`. Lệnh này xóa table cha và xóa luôn các foreign key trỏ tới nó. Các table con vẫn còn, nhưng mất foreign key đó. Chỉ dùng khi bạn hiểu hậu quả.',
-        'DROP TABLE ở Oracle thường đưa table vào **[[recycle-bin]]** thay vì xóa hẳn. Thêm `PURGE` thì Oracle xóa hẳn. Đừng dựa vào recycle bin, vì DBA có thể tắt nó.',
+        'DROP TABLE ở Oracle thường đưa table vào **[[recycle-bin]]** thay vì xóa hẳn. Thêm `PURGE` thì Oracle xóa hẳn.',
         'TRUNCATE ở Oracle phải viết đủ `TRUNCATE TABLE`. MySQL cho bỏ chữ TABLE. Oracle không đặt lại mã tự tăng sau TRUNCATE.',
       ],
       mysql: `SHOW TABLES;
@@ -319,6 +337,7 @@ WHERE table_name = 'EMPLOYEES';`,
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c3-e8', 'c3-boss'] },
     {
       type: 'realworld',
       title: 'Nhầm tên table',

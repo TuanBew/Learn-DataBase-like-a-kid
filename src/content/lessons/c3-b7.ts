@@ -280,6 +280,7 @@ VALUES (3, 99, 'Lập trình');`,
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c3-e4', 'c3-e5'] },
     {
       type: 'realworld',
       title: 'Học viên và khóa học',

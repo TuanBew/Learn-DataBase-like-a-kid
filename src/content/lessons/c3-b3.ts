@@ -161,6 +161,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c3-e2'] },
     {
       type: 'realworld',
       title: 'Chạy lại script cũ',

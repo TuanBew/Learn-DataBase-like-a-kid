@@ -27,7 +27,7 @@ export const uiApp = {
     allDone: 'Xem giấy chứng nhận',
     allDoneNote: (n: number) => `Bạn đã học xong cả ${n} bài.`,
     toToc: 'Xem mục lục',
-    facts: { chapters: 'chương', lessons: 'bài', hours: 'giờ học', hoursValue: '4 tới 6', dialects: 'MySQL trước, Oracle sau' },
+    facts: { chapters: 'chương', lessons: 'bài', hours: (n: number) => `khoảng ${n} giờ học`, dialects: 'MySQL trước, Oracle sau' },
     tocTitle: 'Bạn sẽ học',
     tocLead: (n: number) => `${n} chương. Hai chương đầu giúp bạn hiểu database. Từ Chương 4 bạn mới viết query, và chương cuối là một báo cáo bằng Oracle SQL.`,
     chapter: (n: number) => `Chương ${n}`,

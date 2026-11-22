@@ -130,6 +130,7 @@ export function makeDdl(ctx: DdlCtx) {
     if (s.scale !== undefined) c.scale = s.scale;
     if (s.nullSpec === 'not null') c.notNull = true;
     if (s.identity) c.identity = true;
+    if (s.identityMode) c.identityMode = s.identityMode;
     if (s.default) c.default = s.default.text;
     return c;
   };

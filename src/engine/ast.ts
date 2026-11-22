@@ -139,6 +139,8 @@ export interface ColumnSpec {
   nullSpec?: 'not null' | 'null';
   /** AUTO_INCREMENT hoặc GENERATED ... AS IDENTITY. */
   identity?: boolean;
+  /** Oracle: ALWAYS, BY DEFAULT, hoặc BY DEFAULT ON NULL. */
+  identityMode?: 'always' | 'default' | 'on-null';
   default?: { text: string; span: Span };
   /** Luật viết ngay sau column. */
   constraints: ConstraintSpec[];

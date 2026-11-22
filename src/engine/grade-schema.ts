@@ -90,6 +90,15 @@ function tableChecks(db: Database, t: TableSpec, d: Dialect): SchemaCheck[] {
       note: !found ? missing : extra.length ? `Có column ngoài đề: ${extra.join(', ')}.` : undefined,
     });
   }
+  if (t.minRows !== undefined) {
+    const n = found?.rows.length ?? 0;
+    checks.push({
+      id: `${t.name}:rows`,
+      label: `Table ${t.name} có ít nhất ${t.minRows} row`,
+      ok: !!found && n >= t.minRows,
+      note: !found ? missing : n >= t.minRows ? undefined : `Table đang có ${n} row, cần từ ${t.minRows} trở lên.`,
+    });
+  }
   return checks;
 }
 

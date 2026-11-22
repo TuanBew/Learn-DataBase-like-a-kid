@@ -132,6 +132,16 @@ export function BuildWork({ exercise }: { exercise: BuildExercise }) {
             <Says mood="think" size={64}>
               {B.missingSay(missing)}
             </Says>
+            {exercise.dialects.length > 1 && (
+              <DialectToggle
+                dialects={exercise.dialects}
+                value={dialect}
+                onChange={(d) => {
+                  setDialect(d);
+                  fresh(d);
+                }}
+              />
+            )}
             {baseSql && (
               <>
                 <pre className="hlad__code" tabIndex={0}>

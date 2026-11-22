@@ -68,6 +68,7 @@ const ORA: Record<string, string> = {
   '00971': 'missing SET keyword',
   '00979': 'not a GROUP BY expression',
   '01400': 'cannot insert NULL',
+  '32795': 'cannot insert into a generated always identity column',
   '01407': 'cannot update to NULL',
   '01427': 'single-row subquery returns more than one row',
   '01430': 'column being added already exists in table',

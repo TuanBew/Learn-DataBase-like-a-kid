@@ -40,6 +40,6 @@ export const entries: Record<string, GlossaryEntry> = {
   'recycle-bin': {
     term: 'recycle bin',
     short: 'Thùng rác của Oracle. Table bị DROP nằm ở đây cho tới khi bị dọn, trừ khi lệnh có PURGE.',
-    example: 'Table vừa xóa vẫn còn trong thùng rác một thời gian nếu DBA chưa tắt tính năng này.',
+    example: 'Table vừa xóa vẫn còn trong thùng rác cho tới khi bị dọn, hoặc nếu lệnh có PURGE thì xóa hẳn ngay.',
   },
 };

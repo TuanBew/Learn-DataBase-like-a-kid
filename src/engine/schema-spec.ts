@@ -14,6 +14,8 @@ export interface TableSpec {
   primaryKey?: string[];
   /** Cho table có thêm column ngoài đề. Mặc định false. */
   allowExtra?: boolean;
+  /** Table phải có ít nhất ngần này row (bài chèn dữ liệu). Sinh một check riêng. */
+  minRows?: number;
 }
 
 export interface ColumnSpec {

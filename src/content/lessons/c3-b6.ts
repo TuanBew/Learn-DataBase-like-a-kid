@@ -229,6 +229,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c3-e3'] },
     {
       type: 'realworld',
       title: 'Script dừng ở table thứ 12',

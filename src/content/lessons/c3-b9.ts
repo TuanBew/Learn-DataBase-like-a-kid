@@ -220,6 +220,7 @@ ALTER TABLE employees RENAME COLUMN phone TO mobile_phone;`,
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c3-e7'] },
     {
       type: 'realworld',
       title: 'Thêm column trên database đang chạy',

@@ -313,6 +313,7 @@ COMMIT;`,
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c3-e6'] },
     {
       type: 'realworld',
       title: 'Script nạp dữ liệu dừng giữa chừng',

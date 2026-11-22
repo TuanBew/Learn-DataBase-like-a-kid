@@ -11,11 +11,11 @@ export const chapters: Chapter[] = [
     title: 'Database là gì',
     about: 'Dữ liệu nằm ở đâu, ai giữ, và bạn nói chuyện với người giữ bằng cách nào.',
     lessons: [
-      { id: 'c1-b1', title: 'Dữ liệu ở quanh ta' },
-      { id: 'c1-b2', title: 'Excel và database' },
-      { id: 'c1-b3', title: 'table, row, column' },
-      { id: 'c1-b4', title: 'DBMS và SQL' },
-      { id: 'c1-b5', title: 'client, server và câu SELECT đầu tiên' },
+      { id: 'c1-b1', title: 'Dữ liệu ở quanh ta', minutes: 12 },
+      { id: 'c1-b2', title: 'Excel và database', minutes: 12 },
+      { id: 'c1-b3', title: 'table, row, column', minutes: 12 },
+      { id: 'c1-b4', title: 'DBMS và SQL', minutes: 12 },
+      { id: 'c1-b5', title: 'client, server và câu SELECT đầu tiên', minutes: 12 },
     ],
   },
   {
@@ -23,13 +23,13 @@ export const chapters: Chapter[] = [
     title: 'Table được thiết kế ra sao',
     about: 'Mỗi row có mã riêng, các table nối với nhau, và có ô được phép để trống.',
     lessons: [
-      { id: 'c2-b1', title: 'primary key' },
-      { id: 'c2-b2', title: 'foreign key' },
-      { id: 'c2-b3', title: 'Vì sao phải tách table' },
-      { id: 'c2-b4', title: 'Ba kiểu quan hệ' },
-      { id: 'c2-b5', title: 'NULL' },
-      { id: 'c2-b6', title: 'constraint' },
-      { id: 'c2-b7', title: 'Đọc ERD và CREATE TABLE' },
+      { id: 'c2-b1', title: 'primary key', minutes: 12 },
+      { id: 'c2-b2', title: 'foreign key', minutes: 12 },
+      { id: 'c2-b3', title: 'Vì sao phải tách table', minutes: 12 },
+      { id: 'c2-b4', title: 'Ba kiểu quan hệ', minutes: 12 },
+      { id: 'c2-b5', title: 'NULL', minutes: 14 },
+      { id: 'c2-b6', title: 'constraint', minutes: 14 },
+      { id: 'c2-b7', title: 'Đọc ERD và CREATE TABLE', minutes: 16 },
     ],
   },
   {
@@ -37,16 +37,16 @@ export const chapters: Chapter[] = [
     title: 'Tạo table từ A đến Z',
     about: 'Từ tờ ghi chép tới câu CREATE TABLE: chọn data type, đặt primary key và các luật.',
     lessons: [
-      { id: 'c3-b1', title: 'Từ tờ ghi chép tới bản thiết kế' },
-      { id: 'c3-b2', title: 'Chọn data type cho từng column' },
-      { id: 'c3-b3', title: 'Câu CREATE TABLE đầu tiên' },
-      { id: 'c3-b4', title: 'primary key và mã tự tăng' },
-      { id: 'c3-b5', title: 'Đặt luật ngay lúc tạo' },
-      { id: 'c3-b6', title: 'Table thứ hai và foreign key' },
-      { id: 'c3-b7', title: 'Quan hệ nhiều với nhiều: table trung gian' },
-      { id: 'c3-b8', title: 'Đưa dữ liệu vào bằng INSERT' },
-      { id: 'c3-b9', title: 'Sửa cấu trúc bằng ALTER TABLE' },
-      { id: 'c3-b10', title: 'DROP, TRUNCATE, và xem lại database của mình' },
+      { id: 'c3-b1', title: 'Từ tờ ghi chép tới bản thiết kế', minutes: 12 },
+      { id: 'c3-b2', title: 'Chọn data type cho từng column', minutes: 14 },
+      { id: 'c3-b3', title: 'Câu CREATE TABLE đầu tiên', minutes: 15 },
+      { id: 'c3-b4', title: 'primary key và mã tự tăng', minutes: 15 },
+      { id: 'c3-b5', title: 'Đặt luật ngay lúc tạo', minutes: 15 },
+      { id: 'c3-b6', title: 'Table thứ hai và foreign key', minutes: 15 },
+      { id: 'c3-b7', title: 'Quan hệ nhiều với nhiều: table trung gian', minutes: 15 },
+      { id: 'c3-b8', title: 'Đưa dữ liệu vào bằng INSERT', minutes: 15 },
+      { id: 'c3-b9', title: 'Sửa cấu trúc bằng ALTER TABLE', minutes: 15 },
+      { id: 'c3-b10', title: 'DROP, TRUNCATE, và xem lại database của mình', minutes: 16 },
     ],
   },
   {
@@ -54,11 +54,11 @@ export const chapters: Chapter[] = [
     title: 'Query một table',
     about: 'Chọn column, lọc row, sắp xếp, và lấy vài row đầu.',
     lessons: [
-      { id: 'c4-b1', title: 'SELECT và FROM' },
-      { id: 'c4-b2', title: 'Lọc row bằng WHERE' },
-      { id: 'c4-b4', title: 'ORDER BY và DISTINCT' },
-      { id: 'c4-b5', title: 'LIMIT và FETCH FIRST' },
-      { id: 'c4-b6', title: 'Thứ tự query chạy thật' },
+      { id: 'c4-b1', title: 'SELECT và FROM', minutes: 12 },
+      { id: 'c4-b2', title: 'Lọc row bằng WHERE', minutes: 18 },
+      { id: 'c4-b4', title: 'ORDER BY và DISTINCT', minutes: 15 },
+      { id: 'c4-b5', title: 'LIMIT và FETCH FIRST', minutes: 15 },
+      { id: 'c4-b6', title: 'Thứ tự query chạy thật', minutes: 12 },
     ],
   },
   {
@@ -66,10 +66,10 @@ export const chapters: Chapter[] = [
     title: 'Function và biểu thức',
     about: 'Phép tính, function chuỗi, ngày giờ, NULL và CASE WHEN.',
     lessons: [
-      { id: 'c5-b1', title: 'Phép tính trong SELECT' },
-      { id: 'c5-b2', title: 'function chuỗi' },
-      { id: 'c5-b4', title: 'Ngày giờ' },
-      { id: 'c5-b7', title: 'Xử lý NULL và CASE WHEN' },
+      { id: 'c5-b1', title: 'Phép tính trong SELECT', minutes: 12 },
+      { id: 'c5-b2', title: 'function chuỗi', minutes: 16 },
+      { id: 'c5-b4', title: 'Ngày giờ', minutes: 18 },
+      { id: 'c5-b7', title: 'Xử lý NULL và CASE WHEN', minutes: 16 },
     ],
   },
   {
@@ -77,10 +77,10 @@ export const chapters: Chapter[] = [
     title: 'Gom nhóm và báo cáo',
     about: 'Đếm, cộng, tính trung bình theo từng nhóm.',
     lessons: [
-      { id: 'c6-b1', title: 'COUNT, SUM, AVG, MIN, MAX' },
-      { id: 'c6-b2', title: 'GROUP BY' },
-      { id: 'c6-b4', title: 'HAVING' },
-      { id: 'c6-b7', title: 'Báo cáo doanh thu' },
+      { id: 'c6-b1', title: 'COUNT, SUM, AVG, MIN, MAX', minutes: 16 },
+      { id: 'c6-b2', title: 'GROUP BY', minutes: 16 },
+      { id: 'c6-b4', title: 'HAVING', minutes: 14 },
+      { id: 'c6-b7', title: 'Báo cáo doanh thu', minutes: 20 },
     ],
   },
   {
@@ -88,24 +88,24 @@ export const chapters: Chapter[] = [
     title: 'Nối table',
     about: 'Lấy dữ liệu từ nhiều table trong cùng một query.',
     lessons: [
-      { id: 'c7-b2', title: 'INNER JOIN' },
-      { id: 'c7-b3', title: 'LEFT JOIN' },
-      { id: 'c7-b5', title: 'Nối ba table' },
+      { id: 'c7-b2', title: 'INNER JOIN', minutes: 16 },
+      { id: 'c7-b3', title: 'LEFT JOIN', minutes: 16 },
+      { id: 'c7-b5', title: 'Nối ba table', minutes: 18 },
     ],
   },
   {
     id: 8,
     title: 'Subquery và ghép kết quả',
     about: 'Đặt một query trong query khác để lọc row theo một danh sách.',
-    lessons: [{ id: 'c8-b2', title: 'subquery với IN' }],
+    lessons: [{ id: 'c8-b2', title: 'subquery với IN', minutes: 16 }],
   },
   {
     id: 10,
     title: 'Sửa dữ liệu',
     about: 'Thêm, sửa, xóa row, rồi giữ hoặc hủy thay đổi bằng transaction.',
     lessons: [
-      { id: 'c10-b1', title: 'INSERT, UPDATE, DELETE' },
-      { id: 'c10-b3', title: 'transaction, COMMIT, ROLLBACK' },
+      { id: 'c10-b1', title: 'INSERT, UPDATE, DELETE', minutes: 16 },
+      { id: 'c10-b3', title: 'transaction, COMMIT, ROLLBACK', minutes: 16 },
     ],
   },
   {
@@ -113,14 +113,20 @@ export const chapters: Chapter[] = [
     title: 'Oracle ở công ty',
     about: 'Index làm query nhanh hơn, và MySQL với Oracle khác nhau ở vài chỗ.',
     lessons: [
-      { id: 'c11-b5', title: 'index' },
-      { id: 'c11-b7', title: 'MySQL và Oracle khác nhau ở đâu' },
+      { id: 'c11-b5', title: 'index', minutes: 14 },
+      { id: 'c11-b7', title: 'MySQL và Oracle khác nhau ở đâu', minutes: 16 },
     ],
   },
   {
     id: 12,
     title: 'Dự án cuối',
     about: 'Một báo cáo hoàn chỉnh bằng Oracle SQL trên database hr.',
-    lessons: [{ id: 'c12-b1', title: 'Nhiệm vụ cuối: báo cáo bằng Oracle SQL' }],
+    lessons: [{ id: 'c12-b1', title: 'Nhiệm vụ cuối: báo cáo bằng Oracle SQL', minutes: 18 }],
   },
 ];
+
+/** Tổng số phút của mọi bài đang có trong mục lục (không tính bài tập). */
+export const totalMinutes = chapters.reduce((n, c) => n + c.lessons.filter((l) => !l.exercise).reduce((m, l) => m + l.minutes, 0), 0);
+
+/** Số giờ học làm tròn, ít nhất 1. Trang chủ ghi "khoảng N giờ học". */
+export const totalHours = Math.max(1, Math.round(totalMinutes / 60));

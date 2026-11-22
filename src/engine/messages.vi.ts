@@ -94,6 +94,8 @@ export const friendly: Record<string, (p: P) => string> = {
     (p.unit === 'byte' ? ' Chữ có dấu tốn 2 hay 3 byte. Viết VARCHAR2(n CHAR) để đếm theo ký tự.' : ' Cắt ngắn giá trị, hoặc tăng độ dài của column.'),
   'out-of-range': (p) => `Giá trị ${p.value} quá lớn cho column ${p.column} (${p.type}). Chọn giá trị nhỏ hơn, hoặc đổi data type của column.`,
   'no-default': (p) => `Column ${p.column} không được để NULL và không có DEFAULT. INSERT phải đưa giá trị cho column này.`,
+  'identity-null': (p) => `Column ${p.column} tự sinh mã, nhưng lệnh INSERT ghi NULL vào đó. Bỏ column này khỏi lệnh để database tự điền, hoặc đưa một giá trị.`,
+  'identity-always': (p) => `Column ${p.column} là GENERATED ALWAYS, nên database không nhận giá trị bạn ghi. Bỏ column này khỏi lệnh INSERT.`,
   'dup-column': (p) => `Table đã có column tên ${p.name}. Đặt tên khác.`,
   'key-column-missing': (p) => `Table không có column tên ${p.name}. Kiểm tra chính tả.`,
   'multi-pk': () => 'Table chỉ có một primary key. Muốn gồm nhiều column, viết PRIMARY KEY (a, b).',

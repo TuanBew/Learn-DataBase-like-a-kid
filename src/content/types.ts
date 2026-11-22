@@ -170,7 +170,7 @@ export interface Chapter {
   /** Một câu nói chương này dạy gì. */
   about: string;
   /** Tên các bài theo thứ tự. */
-  lessons: { id: string; title: string; /** true nếu mục này là một bài tập, không phải bài học. */ exercise?: boolean }[];
+  lessons: { id: string; title: string; /** Số phút ước lượng, bằng `minutes` trong file bài (có test giữ cho hai số khớp). */ minutes: number; /** true nếu mục này là một bài tập, không phải bài học. */ exercise?: boolean }[];
 }
 
 /* ---------- Bài tập SQL ---------- */

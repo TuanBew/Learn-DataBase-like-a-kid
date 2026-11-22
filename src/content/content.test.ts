@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { databases } from '../data';
 import { createSession, run } from '../engine';
+import { chapters, totalHours, totalMinutes } from './course';
 import { glossary } from './glossary';
 import { lessons } from './lessons';
 import type { Lesson, LessonBlock } from './types';
@@ -22,6 +23,22 @@ const ids = Object.keys(lessons).sort();
 describe('nội dung bài học', () => {
   it('có ít nhất một bài', () => {
     expect(ids.length).toBeGreaterThan(0);
+  });
+
+  it('số phút trong mục lục khớp file bài, và số giờ trang chủ tính từ đó', async () => {
+    const bad: string[] = [];
+    let sum = 0;
+    for (const c of chapters) {
+      for (const l of c.lessons) {
+        if (l.exercise) continue;
+        const lesson = await lessons[l.id]();
+        if (lesson.minutes !== l.minutes) bad.push(`${l.id}: mục lục ${l.minutes}, file bài ${lesson.minutes}`);
+        sum += l.minutes;
+      }
+    }
+    expect(bad).toEqual([]);
+    expect(totalMinutes).toBe(sum);
+    expect(totalHours).toBe(Math.max(1, Math.round(sum / 60)));
   });
 
   for (const id of ids) {

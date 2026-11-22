@@ -1071,10 +1071,16 @@ class Parser {
       } else if (this.isW('GENERATED')) {
         if (this.d === 'mysql') throw this.fail('00907', 'identity-other-dialect', { name: 'GENERATED AS IDENTITY', use: 'AUTO_INCREMENT', dialect: 'MySQL' });
         this.i++;
+        let mode: 'always' | 'default' | 'on-null' = 'always';
         if (!this.eatW('ALWAYS') && this.eatW('BY')) {
           this.needW('DEFAULT');
-          if (this.eatW('ON')) this.needW('NULL', '00908');
+          mode = 'default';
+          if (this.eatW('ON')) {
+            this.needW('NULL', '00908');
+            mode = 'on-null';
+          }
         }
+        spec.identityMode = mode;
         this.needW('AS');
         this.needW('IDENTITY');
         spec.identity = true;

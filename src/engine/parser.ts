@@ -915,13 +915,13 @@ class Parser {
       if (this.d === 'mysql') {
         if (!this.eatW('KEY')) this.eatW('INDEX');
         // Tên đặt sau UNIQUE KEY là tên của key, thắng tên đặt sau CONSTRAINT.
-        if (this.tok.type === 'word' && !this.isOp('(')) name = this.name('UNIQUE');
+        if ((this.tok.type === 'word' || this.tok.type === 'qident') && !this.isOp('(')) name = this.name('UNIQUE');
       }
       return { kind: 'unique', name: name?.text, nameSpan: name?.span, columns: this.columnList(), inline: false, span: { s, e: this.prev.e } };
     }
     if (this.eatW('FOREIGN')) {
       this.needW('KEY');
-      if (this.d === 'mysql' && this.tok.type === 'word' && !this.isOp('(')) name = this.name('KEY');
+      if (this.d === 'mysql' && (this.tok.type === 'word' || this.tok.type === 'qident') && !this.isOp('(')) name = this.name('KEY');
       const cols = this.columnList();
       this.needW('REFERENCES');
       return this.references(cols, false, name, s);
@@ -933,7 +933,7 @@ class Parser {
     }
     if (this.d === 'mysql' && !name && (this.isW('KEY') || this.isW('INDEX'))) {
       this.i++;
-      if (this.tok.type === 'word') this.i++;
+      if (this.tok.type === 'word' || this.tok.type === 'qident') this.i++;
       this.columnList();
       return null;
     }
@@ -962,7 +962,7 @@ class Parser {
     for (;;) {
       const t = this.tok;
       const isKey = t.type === 'word' && (t.value === 'CONSTRAINT' || t.value === 'PRIMARY' || t.value === 'UNIQUE' || t.value === 'FOREIGN' || t.value === 'CHECK');
-      const isIndex = this.d === 'mysql' && t.type === 'word' && (t.value === 'KEY' || t.value === 'INDEX') && (this.isOp('(', this.peek()) || (this.peek().type === 'word' && this.isOp('(', this.peek(2))));
+      const isIndex = this.d === 'mysql' && t.type === 'word' && (t.value === 'KEY' || t.value === 'INDEX') && (this.isOp('(', this.peek()) || ((this.peek().type === 'word' || this.peek().type === 'qident') && this.isOp('(', this.peek(2))));
       if (isKey || isIndex) {
         const c = this.tableConstraint();
         if (c) constraints.push(c);

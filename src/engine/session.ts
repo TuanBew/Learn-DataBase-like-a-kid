@@ -8,6 +8,8 @@ import { parse } from './parser';
 import { type DdlResult, makeDdl } from './ddl';
 import { colIndexes, deepClone, normalize, sameName, upper } from './catalog';
 import { makeFail, makeRules } from './rules';
+import { mentionsDictionary, toolCommand, withDictionary } from './describe';
+import { type SchemaView, schemaView } from './schema-view';
 import { splitStatements } from './split';
 import type { ResultSet, Trace, TraceCol, TraceRow } from './trace';
 
@@ -35,7 +37,8 @@ export interface DmlTrace {
 }
 
 export type RunResult =
-  | { ok: true; kind: 'select'; result: ResultSet; trace: Trace }
+  /** `tool` có khi đây là lệnh của công cụ SQL (DESC của Oracle), không phải câu SQL. */
+  | { ok: true; kind: 'select'; result: ResultSet; trace: Trace; tool?: true }
   | { ok: true; kind: 'dml'; dml: DmlTrace }
   /** `changes` là số lệnh sửa dữ liệu vừa được lưu (commit) hoặc vừa bị bỏ (rollback). */
   | { ok: true; kind: 'tx'; op: 'commit' | 'rollback' | 'begin'; changes: number }
@@ -45,8 +48,13 @@ export type RunResult =
 
 export interface Session {
   readonly dialect: Dialect;
-  /** Database đang làm việc, gồm cả thay đổi chưa COMMIT. */
+  /**
+   * Database đang làm việc, gồm cả thay đổi chưa COMMIT. Toàn JSON thuần: lưu bằng JSON.stringify,
+   * nạp lại bằng `createSession(JSON.parse(...), dialect)`. Đối tượng này đổi theo từng lệnh, nên lưu ngay khi cần.
+   */
   db(): Database;
+  /** Cấu trúc database, cho giao diện vẽ khung. Data type viết theo dialect của session. */
+  schema(): SchemaView;
   /** Chạy đúng một lệnh. Hai lệnh trong một lần thì báo lỗi. */
   run(sql: string): RunResult;
   /**
@@ -306,10 +314,13 @@ export function createSession(source: Database, dialect: Dialect, env: FnEnv = D
   const run = (sql: string): RunResult => {
     stmtNext.clear();
     try {
+      const tool = toolCommand(sql, working, d);
+      if (tool) return tool;
       const stmt = parse(sql, d);
       switch (stmt.t) {
         case 'select': {
-          const trace = execSelect(stmt, working, d, sql, sessEnv);
+          const from = d === 'oracle' && mentionsDictionary(sql) ? withDictionary(working) : working;
+          const trace = execSelect(stmt, from, d, sql, sessEnv);
           return { ok: true, kind: 'select', result: trace.result, trace };
         }
         case 'insert':
@@ -381,6 +392,7 @@ export function createSession(source: Database, dialect: Dialect, env: FnEnv = D
   return {
     dialect: d,
     db: () => working,
+    schema: () => schemaView(working, d),
     run,
     runScript,
     pending: () => pending,

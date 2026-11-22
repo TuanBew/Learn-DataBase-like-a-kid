@@ -117,4 +117,10 @@ export interface Trace {
   focus: string[];
   steps: TraceStep[];
   result: ResultSet;
+  /**
+   * true khi `steps` chỉ diễn lại một phần query: ghép kết quả (UNION...), WITH, subquery trong FROM,
+   * hoặc subquery phụ thuộc query bên ngoài (chạy lại cho từng row). `result` vẫn đúng và đầy đủ.
+   * Các phần đó được coi như đã có sẵn: subquery trong FROM và khối WITH thành một table đã có row.
+   */
+  partial?: boolean;
 }

@@ -7,15 +7,15 @@ API: `run(sql, db, dialect)` cho SELECT. `createSession(db, dialect).run(sql)` c
 ## SELECT
 
 - `SELECT [DISTINCT] *`, `t.*`, column, biểu thức, alias bằng `AS` hoặc viết liền sau.
-- `FROM table [alias]`. Oracle không nhận `AS` trước alias của table. `FROM DUAL`. MySQL cho `SELECT` không có FROM.
+- `FROM table [alias]`, `FROM (SELECT ...) alias`. Oracle không nhận `AS` trước alias của table. `FROM DUAL`. MySQL cho `SELECT` không có FROM, kể cả khi còn `WHERE`, `ORDER BY`, `LIMIT`.
 - `[INNER] JOIN ... ON ...`, `LEFT [OUTER] JOIN`, `RIGHT [OUTER] JOIN`, `CROSS JOIN`, nối nhiều table, nối kiểu cũ bằng dấu phẩy và điều kiện trong WHERE. Chi tiết ở mục "JOIN" bên dưới.
-- `WHERE`: `= <> != < <= > >=`, AND, OR, NOT, `IN (danh sách)`, `IN (subquery)`, BETWEEN, LIKE với `%` và `_`, IS NULL, IS NOT NULL.
+- `WHERE`: `= <> != < <= > >=`, AND, OR, NOT, `IN (danh sách)`, `IN (subquery)`, `EXISTS (subquery)`, `= ANY (subquery)`, BETWEEN, LIKE với `%` và `_`, IS NULL, IS NOT NULL.
 - `GROUP BY` một hay nhiều biểu thức. `HAVING`. COUNT(*), COUNT(column), COUNT(DISTINCT column), SUM, AVG, MIN, MAX.
 - Column đứng ngoài function gom mà không nằm trong GROUP BY: Oracle báo ORA-00979 (có GROUP BY) hoặc ORA-00937 (không có GROUP BY); MySQL báo 1055 hoặc 1140. Riêng MySQL cho chọn column khác của một table khi đã GROUP BY primary key của table đó.
 - Function gom trong WHERE: MySQL 1111, Oracle ORA-00934.
 - `ORDER BY` nhiều biểu thức, ASC, DESC, theo alias, theo số thứ tự column. Oracle có `NULLS FIRST`, `NULLS LAST`.
 - MySQL: `LIMIT n`, `LIMIT m, n`, `LIMIT n OFFSET m`. Oracle: `FETCH FIRST n ROWS ONLY`, `OFFSET m ROWS FETCH NEXT n ROWS ONLY`, và `ROWNUM` trong WHERE (ROWNUM được gán trước ORDER BY).
-- Scalar subquery không phụ thuộc query bên ngoài: `WHERE price > (SELECT AVG(price) FROM products)`. Chưa có: subquery trong FROM, subquery nhắc tới table bên ngoài, EXISTS, UNION, window function, CAST.
+- Subquery, ghép kết quả và WITH: xem các mục "Subquery", "Ghép kết quả" và "WITH" bên dưới. Chưa có: window function, CAST, WITH RECURSIVE.
 - `CASE WHEN ... THEN ... ELSE ... END`, `CASE x WHEN ...`.
 - Phép tính `+ - * /`. MySQL có `%` và `MOD`; Oracle chỉ có `MOD(a, b)`. Chia cho 0: MySQL ra NULL, Oracle báo ORA-01476.
 
@@ -32,7 +32,42 @@ Mọi kiểu dưới đây chạy ở cả hai dialect, trừ khi ghi riêng. Tr
 - `NATURAL [INNER | LEFT | RIGHT] JOIN`: nối theo mọi column cùng tên. Không có column nào trùng thì thành CROSS JOIN. Oracle có thêm `NATURAL FULL JOIN`. Sau NATURAL không viết ON hay USING (MySQL 1064, Oracle ORA-00933). `NATURAL CROSS JOIN` không có ở cả hai.
 - Dấu `(+)` của Oracle, trong WHERE, FROM ngăn bằng dấu phẩy: `WHERE a.x = b.x(+)` giữ mọi row của a. Điều kiện lọc có `(+)` (như `AND b.y(+) = 'x'`) nằm trong phần nối, còn điều kiện không có `(+)` lọc sau khi nối. Trace là LEFT JOIN: table có `(+)` nối sau, nên `a.x(+) = b.x` cho trace bắt đầu từ b. `SELECT *` vẫn theo thứ tự table trong FROM. Một table được nối ngoài với nhiều table kia thì chạy. MySQL báo 1064 tại dấu `)`.
 - Lỗi của `(+)`: ở hai table trong một điều kiện ORA-01468; trong OR hoặc IN ORA-01719; so với subquery ORA-01799; trong SELECT, GROUP BY, HAVING, ORDER BY ORA-30563; chung query với JOIN ... ON ORA-25156; hai table nối ngoài vào nhau ORA-01416.
-- Chưa có: subquery trong FROM, ngoặc để đổi thứ tự nối (`a JOIN (b JOIN c)`), và độ ưu tiên của JOIN so với dấu phẩy trong FROM như MySQL (engine nối từ trái sang phải).
+- Chưa có: ngoặc để đổi thứ tự nối (`a JOIN (b JOIN c)`), và độ ưu tiên của JOIN so với dấu phẩy trong FROM như MySQL (engine nối từ trái sang phải).
+
+## Subquery
+
+Chạy ở cả hai dialect, trừ khi ghi riêng. Mã MySQL đã kiểm trên MySQL 8.0.46. Mã Oracle theo tài liệu 19c.
+
+- Scalar subquery ở mọi chỗ nhận biểu thức: danh sách SELECT, WHERE, HAVING, ORDER BY, vế phải của `SET`. Không ra row nào thì là NULL. Ra hơn một row: MySQL 1242, Oracle ORA-01427. Ra hơn một column: MySQL 1241, Oracle ORA-00913 (cũng áp cho IN, ANY, ALL). Tên column trong danh sách SELECT: MySQL giữ nguyên chữ trong query (kể cả ngoặc), Oracle in hoa và bỏ dấu cách.
+- Subquery trong FROM: `FROM (SELECT ...) t`. Nối được với table và subquery khác, lồng nhiều tầng. MySQL bắt buộc có alias (1248) và báo 1060 khi hai column trùng tên. Oracle không bắt buộc alias, và hai column trùng tên chỉ báo ORA-00918 khi gọi tên chúng (chưa có nguồn xác nhận). Subquery trong FROM không nhìn thấy table cùng cấp (không có LATERAL).
+- Subquery phụ thuộc: nhắc tới column của query ngoài, ở WHERE, danh sách SELECT, HAVING, ORDER BY, lồng nhiều tầng (nhắc tới cả query ngoài cùng). Tên column ở subquery thắng tên cùng chữ ở query ngoài. Engine chạy lại subquery cho từng row ngoài, và nhớ kết quả theo giá trị của các column ngoài mà nó dùng.
+- `EXISTS (subquery)`, `NOT EXISTS (subquery)`. Subquery chọn gì cũng được (kể cả NULL hay nhiều column). Ở MySQL, EXISTS trong danh sách SELECT ra 1 hoặc 0. Oracle không cho đặt điều kiện trong danh sách SELECT (dùng CASE WHEN).
+- `IN`, `NOT IN` đúng luật NULL: `NOT IN` gặp một NULL trong danh sách thì không row nào qua. Subquery rỗng: IN sai, NOT IN đúng, kể cả với vế trái NULL.
+- `= ANY`, `= SOME`, `> ALL`, `<> ALL` và mọi phép so sánh với ANY, SOME, ALL. Subquery rỗng: ANY sai, ALL đúng. Có NULL trong danh sách thì kết quả có thể là "chưa biết" (NULL).
+- MySQL: `LIMIT` trong subquery của IN, ANY, SOME, ALL báo 1235 (scalar subquery và FROM thì được). Oracle nhận `FETCH FIRST`.
+- UPDATE và DELETE: subquery ở WHERE và ở vế phải của `SET` chạy bình thường, kể cả phụ thuộc row đang xét. MySQL báo 1093 khi subquery đọc chính table đang sửa (gọi theo alias nếu có); bọc phần đọc trong FROM của một subquery khác thì qua. Oracle không có luật này.
+- Trace: subquery không phụ thuộc vẫn có bước `subquery` như cũ. Subquery phụ thuộc không có bước riêng, và trace mang `partial: true`.
+
+## Ghép kết quả
+
+- `UNION`, `UNION ALL`, `INTERSECT`, và `MINUS` (Oracle) hoặc `EXCEPT` (MySQL). Chữ của dialect kia báo lỗi kèm lời chỉ sang chữ đúng: Oracle gặp EXCEPT báo ORA-00933 (chỉ sang MINUS); MySQL gặp MINUS báo 1064 ở chữ sau MINUS (chỉ sang EXCEPT). MySQL nhận thêm `UNION DISTINCT`. `INTERSECT ALL` và `EXCEPT ALL` chưa dạy.
+- Ghép nhiều hơn hai query, có ngoặc. Độ ưu tiên: MySQL 8 cho INTERSECT cao hơn UNION và EXCEPT; Oracle xếp mọi phép ngang hàng, chạy từ trái sang phải. Query trong ngoặc có ORDER BY và LIMIT riêng.
+- Tên column lấy từ query đầu. Row trùng bỏ theo collation của dialect (MySQL không phân biệt hoa thường). Không có ORDER BY thì engine giữ thứ tự gặp (Oracle thật không bảo đảm thứ tự).
+- `ORDER BY` đứng cuối áp cho cả kết quả, theo tên hoặc alias column của query đầu, hoặc theo số thứ tự. MySQL nhận cả biểu thức tính từ các tên đó (`ORDER BY d + 1`); Oracle chỉ nhận tên, alias, số thứ tự (ORA-01785). Tên không có: MySQL 1054, Oracle ORA-00904. Tên table đứng trước column: MySQL 1250, Oracle ORA-00904 (chưa có nguồn xác nhận). `ORDER BY` hay `LIMIT` đứng giữa chuỗi ghép mà không trong ngoặc: MySQL 1064, Oracle ORA-00933.
+- `LIMIT`, `FETCH FIRST`, `OFFSET` đứng cuối áp cho cả kết quả.
+- Lệch số column: MySQL 1222, Oracle ORA-01789. Lệch nhóm data type (số, chữ, ngày): Oracle ORA-01790; MySQL tự đổi cả hai vế sang chữ. NULL không làm lệch.
+- Trace luôn `partial: true`: chỉ có một bước `from` (table `kết quả ghép`, mọi row sau khi ghép), rồi `order` và `limit` nếu có. Hai vế không diễn lại từng bước.
+
+## WITH
+
+- `WITH ten AS (SELECT ...) [, ten2 AS (...)] query`. Nhiều khối, khối sau dùng được khối trước. Dùng trong FROM, JOIN, subquery và UNION của query chính. Khối che table cùng tên.
+- `WITH ten (c1, c2) AS (...)`. Số tên không khớp SELECT: MySQL 1353, Oracle ORA-32038. Hai khối trùng tên: MySQL 1066, Oracle ORA-00955 (chưa có nguồn xác nhận).
+- `WITH RECURSIVE` (MySQL) và khối WITH gọi lại chính nó (Oracle): báo "khóa học chưa dạy tới". `WITH` đứng trước UPDATE, DELETE, INSERT cũng chưa dạy.
+- Trace mang `partial: true`. Mỗi khối thành một table đã có sẵn row, hiện ở bước `from` bằng tên khối.
+
+## Trace có `partial`
+
+`trace.partial` (kiểu `Trace` trong `src/engine/trace.ts`) là `true` khi `steps` chỉ diễn lại một phần query. `result` vẫn đúng và đầy đủ, và `steps` vẫn hợp lệ cho `buildFrames`. Các loại query mang `partial`: ghép kết quả, subquery trong FROM, WITH, subquery phụ thuộc query ngoài (WHERE, SELECT, HAVING, ORDER BY, EXISTS). Với subquery trong FROM và khối WITH, query ngoài diễn như thường, coi subquery là một table đã có row.
 
 ## Function
 

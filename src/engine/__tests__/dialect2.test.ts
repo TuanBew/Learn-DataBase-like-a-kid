@@ -457,9 +457,9 @@ describe('phép chia và chia lấy dư', () => {
 
 describe('phần engine chưa dạy ra kind unsupported', () => {
   const cases: [string, string][] = [
-    ['UNION', 'SELECT name FROM products UNION SELECT name FROM stores'],
+    ['INTERSECT ALL', 'SELECT name FROM products INTERSECT ALL SELECT name FROM stores'],
     ['window function', 'SELECT name, ROW_NUMBER() OVER (ORDER BY price) FROM products'],
-    ['subquery nhắc tới table bên ngoài', 'SELECT name FROM products p WHERE price > (SELECT AVG(i.unit_price) FROM order_items i WHERE i.product_id = p.product_id)'],
+    ['ngoặc quanh JOIN trong FROM', 'SELECT * FROM (products p JOIN order_items i ON i.product_id = p.product_id)'],
   ];
   for (const [name, sql] of cases) {
     for (const d of ['mysql', 'oracle'] as Dialect[]) {

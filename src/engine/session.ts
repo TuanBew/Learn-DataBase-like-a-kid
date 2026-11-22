@@ -1,7 +1,7 @@
 import type { Database, Dialect, RawValue, TableDef, Value } from './types';
 import type { DeleteStmt, Expr, InsertStmt, UpdateStmt } from './ast';
 import { type Span, SqlError, syntaxError, unknownColumn, unsupported } from './errors';
-import { type Cx, DEFAULT_ENV, type Evaluator, execSelect, findTable, isCond, loadRows, makeEvaluator, scopeOf } from './executor';
+import { type Cx, DEFAULT_ENV, type Evaluator, checkTargetTable, execSelect, findTable, isCond, loadRows, makeEvaluator, scopeOf } from './executor';
 import type { FnEnv } from './functions';
 import { friendly } from './messages.vi';
 import { parse } from './parser';
@@ -143,6 +143,7 @@ export function createSession(source: Database, dialect: Dialect, env: FnEnv = D
 
   const whereOf = (stmt: UpdateStmt | DeleteStmt, t: TableDef, sql: string): { E: Evaluator; test: (cx: Cx) => boolean } => {
     const E = makeEvaluator(scopeOf(t, stmt.table), working, d, sql, sessEnv, t.name);
+    checkTargetTable([stmt.where], stmt.table, d);
     if (stmt.where) {
       if (d === 'oracle' && !isCond(stmt.where)) throw syntaxError(d, sql, stmt.where.span, '00920', 'need-condition');
       E.check(stmt.where, 'where clause', 'no');
@@ -239,6 +240,7 @@ export function createSession(source: Database, dialect: Dialect, env: FnEnv = D
   const update = (stmt: UpdateStmt, sql: string): RunResult => {
     const t = findTable(working, stmt.table, d);
     const { E, test } = whereOf(stmt, t, sql);
+    checkTargetTable(stmt.sets.map((s) => s.e), stmt.table, d);
     const sets = stmt.sets.map((s) => {
       const i = t.columns.findIndex((x) => x.name.toLowerCase() === s.name.toLowerCase());
       if (i < 0) throw unknownColumn(d, s.name, `"${upper(s.name)}"`, 'field list', s.span, 'unknown-column', { name: s.name, table: t.name });
@@ -325,7 +327,8 @@ export function createSession(source: Database, dialect: Dialect, env: FnEnv = D
       if (tool) return tool;
       const stmt = parse(sql, d);
       switch (stmt.t) {
-        case 'select': {
+        case 'select':
+        case 'setop': {
           const from = d === 'oracle' && mentionsDictionary(sql) ? withDictionary(working) : working;
           const trace = execSelect(stmt, from, d, sql, sessEnv);
           return { ok: true, kind: 'select', result: trace.result, trace };

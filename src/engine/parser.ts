@@ -8,6 +8,7 @@ import {
   type ColumnSpec,
   type CompareOp,
   type ConstraintSpec,
+  type Cte,
   type CreateSequenceStmt,
   type CreateTableStmt,
   type DeleteStmt,
@@ -17,8 +18,10 @@ import {
   type InsertStmt,
   type Join,
   type OrderItem,
+  type Query,
   type SelectItem,
   type SelectStmt,
+  type SetStmt,
   type Statement,
   type TableRef,
   type TruncateStmt,
@@ -65,8 +68,9 @@ const TYPES: Record<string, { type: ColumnType; only?: Dialect; use?: string }> 
   DATETIME: { type: 'datetime', only: 'mysql', use: 'DATE hoặc TIMESTAMP' },
   TIMESTAMP: { type: 'datetime' },
 };
-const OUTSIDE = new Set(['WITH', 'GRANT', 'REVOKE', 'MERGE', 'EXPLAIN', 'SHOW', 'DESCRIBE', 'DESC', 'USE', 'SET', 'CALL']);
+const OUTSIDE = new Set(['GRANT', 'REVOKE', 'MERGE', 'EXPLAIN', 'SHOW', 'DESCRIBE', 'DESC', 'USE', 'SET', 'CALL']);
 const COMPARE = new Set(['=', '<>', '<', '<=', '>', '>=']);
+const SET_WORDS = new Set(['UNION', 'INTERSECT', 'MINUS', 'EXCEPT']);
 
 export function parse(sql: string, dialect: Dialect): Statement {
   return new Parser(sql, dialect).statement();
@@ -151,8 +155,8 @@ class Parser {
     if (this.d === 'mysql' && this.sql.trim() === ';') {
       throw new SqlError('syntax', '1065', 'ERROR 1065 (42000): Query was empty', 'only-semicolon', friendly['only-semicolon']({}), this.at());
     }
-    if (this.isW('SELECT')) {
-      const stmt = this.select();
+    if (this.isW('SELECT') || this.isW('WITH') || this.isOp('(')) {
+      const stmt = this.queryExpr();
       this.end(stmt);
       return stmt;
     }
@@ -166,7 +170,7 @@ class Parser {
   }
 
   /** Sau khi đọc xong query: chỉ còn được có một dấu ; */
-  private end(stmt?: SelectStmt): void {
+  private end(stmt?: Query): void {
     if (this.eatOp(';')) {
       if (this.tok.type !== 'eof') throw this.fail('00933', 'multi-statement');
       return;
@@ -180,9 +184,6 @@ class Parser {
       const twice = stmt?.clauses.some((c) => c.kind === kind) ?? false;
       const last = this.d === 'mysql' ? 'LIMIT' : 'FETCH FIRST';
       throw this.fail('00933', twice ? 'clause-twice' : 'clause-order', { tok: t.value === 'GROUP' || t.value === 'ORDER' ? `${t.value} BY` : t.value, last });
-    }
-    if (t.type === 'word' && (t.value === 'UNION' || t.value === 'INTERSECT' || t.value === 'MINUS' || t.value === 'EXCEPT')) {
-      throw unsupported(t.value, this.at());
     }
     throw this.fail('00933', 'unexpected', { tok: this.show() });
   }
@@ -210,82 +211,85 @@ class Parser {
 
     const stmt: SelectStmt = { t: 'select', distinct, items, joins: [], clauses, span: { s: selTok.s, e: this.prev.e } };
 
-    if (!this.isW('FROM')) {
+    const hasFrom = this.isW('FROM');
+    if (!hasFrom) {
       const t = this.tok;
-      const done = t.type === 'eof' || this.isOp(';');
-      if (done && this.d === 'mysql') return stmt;
-      if (this.isOp(')') && this.d === 'mysql') return stmt;
-      if (done) throw this.fail('00923', 'no-from-oracle');
-      throw this.fail('00923', 'missing-from', { tok: this.show() });
+      const done = t.type === 'eof' || this.isOp(';') || (t.type === 'word' && SET_WORDS.has(t.value));
+      const clause = t.type === 'word' && ['WHERE', 'GROUP', 'HAVING', 'ORDER', 'LIMIT'].includes(t.value);
+      // MySQL cho SELECT không có FROM, kể cả khi còn WHERE, ORDER BY, LIMIT.
+      if (!(this.d === 'mysql' && (done || clause || this.isOp(')')))) {
+        if (done) throw this.fail('00923', 'no-from-oracle');
+        throw this.fail('00923', 'missing-from', { tok: this.show() });
+      }
     }
-
-    // FROM
-    const fromTok = this.tok;
-    this.i++;
-    open('FROM', fromTok.s);
-    if (this.isOp('(')) throw unsupported('subquery trong FROM', this.at());
-    stmt.from = this.tableRef();
-    for (;;) {
-      const jt = this.tok;
-      if (this.eatOp(',')) {
-        const ref = this.tableRef();
-        stmt.joins.push({ kind: 'cross', ref, comma: true, span: { s: jt.s, e: this.prev.e } });
-        continue;
-      }
-      // MySQL đọc FULL ngay sau table như alias. Gặp OUTER ngay sau đó thì mới biết người học định viết FULL OUTER JOIN.
-      if (this.d === 'mysql' && this.isW('OUTER') && this.isW('JOIN', this.peek()) && (stmt.joins.at(-1)?.ref ?? stmt.from)?.fullAlias) {
-        throw this.fail('00933', 'full-join-mysql');
-      }
-      if (jt.type !== 'word' || !JOIN_WORDS.has(jt.value)) break;
-      if (jt.value === 'FULL' && this.d === 'mysql') throw this.fail('00933', 'full-join-mysql');
-      const natural = this.eatW('NATURAL');
-      let kind: Join['kind'] = 'inner';
-      if (this.eatW('LEFT')) {
-        kind = 'left';
-        this.eatW('OUTER');
-      } else if (this.eatW('RIGHT')) {
-        kind = 'right';
-        this.eatW('OUTER');
-      } else if (this.isW('FULL')) {
-        if (this.d === 'mysql') throw this.fail('00933', 'full-join-mysql');
-        this.i++;
-        kind = 'full';
-        this.eatW('OUTER');
-      } else if (this.isW('CROSS')) {
-        // NATURAL CROSS JOIN không có ở cả hai dialect.
-        if (natural) throw this.fail('00933', 'unexpected', { tok: this.show() });
-        this.i++;
-        kind = 'cross';
-      } else if (!this.eatW('INNER') && !this.isW('JOIN')) {
-        throw this.fail('00905', 'missing-keyword', { kw: 'JOIN' });
-      }
-      if (!this.eatW('JOIN')) throw this.fail('00905', 'missing-keyword', { kw: 'JOIN' });
-      const ref = this.tableRef();
-      const span = () => ({ s: jt.s, e: this.prev.e });
-      if (this.isW('ON') || this.isW('USING')) {
-        const word = this.tok;
-        if (natural) throw this.fail('00933', 'natural-no-on', { tok: word.value });
-        if (kind === 'cross' && this.d === 'oracle') throw this.fail('00933', 'cross-no-on', { tok: word.value });
-        // MySQL cho CROSS JOIN kèm ON hay USING và coi đó là INNER JOIN.
-        const k: Join['kind'] = kind === 'cross' ? 'inner' : kind;
-        this.i++;
-        if (word.value === 'ON') {
-          this.ctx = 'ON';
-          stmt.joins.push({ kind: k, ref, on: this.expr(), span: span() });
-        } else {
-          stmt.joins.push({ kind: k, ref, using: this.usingList(), span: span() });
+    if (hasFrom) {
+      // FROM
+      const fromTok = this.tok;
+      this.i++;
+      open('FROM', fromTok.s);
+      stmt.from = this.tableRef(true, true);
+      for (;;) {
+        const jt = this.tok;
+        if (this.eatOp(',')) {
+          const ref = this.tableRef(true, true);
+          stmt.joins.push({ kind: 'cross', ref, comma: true, span: { s: jt.s, e: this.prev.e } });
+          continue;
         }
-      } else if (natural) {
-        stmt.joins.push({ kind, ref, natural: true, span: span() });
-      } else if (kind === 'cross') {
-        stmt.joins.push({ kind, ref, span: span() });
-      } else {
-        // MySQL coi JOIN không có ON là ghép mọi row với mọi row. Oracle và LEFT, RIGHT, FULL JOIN thì bắt buộc có ON.
-        if (this.d === 'oracle' || kind !== 'inner') throw this.fail('00905', 'join-needs-on', {}, this.tok);
-        stmt.joins.push({ kind: 'cross', ref, span: span() });
+        // MySQL đọc FULL ngay sau table như alias. Gặp OUTER ngay sau đó thì mới biết người học định viết FULL OUTER JOIN.
+        if (this.d === 'mysql' && this.isW('OUTER') && this.isW('JOIN', this.peek()) && (stmt.joins.at(-1)?.ref ?? stmt.from)?.fullAlias) {
+          throw this.fail('00933', 'full-join-mysql');
+        }
+        if (jt.type !== 'word' || !JOIN_WORDS.has(jt.value)) break;
+        if (jt.value === 'FULL' && this.d === 'mysql') throw this.fail('00933', 'full-join-mysql');
+        const natural = this.eatW('NATURAL');
+        let kind: Join['kind'] = 'inner';
+        if (this.eatW('LEFT')) {
+          kind = 'left';
+          this.eatW('OUTER');
+        } else if (this.eatW('RIGHT')) {
+          kind = 'right';
+          this.eatW('OUTER');
+        } else if (this.isW('FULL')) {
+          if (this.d === 'mysql') throw this.fail('00933', 'full-join-mysql');
+          this.i++;
+          kind = 'full';
+          this.eatW('OUTER');
+        } else if (this.isW('CROSS')) {
+          // NATURAL CROSS JOIN không có ở cả hai dialect.
+          if (natural) throw this.fail('00933', 'unexpected', { tok: this.show() });
+          this.i++;
+          kind = 'cross';
+        } else if (!this.eatW('INNER') && !this.isW('JOIN')) {
+          throw this.fail('00905', 'missing-keyword', { kw: 'JOIN' });
+        }
+        if (!this.eatW('JOIN')) throw this.fail('00905', 'missing-keyword', { kw: 'JOIN' });
+        const ref = this.tableRef(true, true);
+        const span = () => ({ s: jt.s, e: this.prev.e });
+        if (this.isW('ON') || this.isW('USING')) {
+          const word = this.tok;
+          if (natural) throw this.fail('00933', 'natural-no-on', { tok: word.value });
+          if (kind === 'cross' && this.d === 'oracle') throw this.fail('00933', 'cross-no-on', { tok: word.value });
+          // MySQL cho CROSS JOIN kèm ON hay USING và coi đó là INNER JOIN.
+          const k: Join['kind'] = kind === 'cross' ? 'inner' : kind;
+          this.i++;
+          if (word.value === 'ON') {
+            this.ctx = 'ON';
+            stmt.joins.push({ kind: k, ref, on: this.expr(), span: span() });
+          } else {
+            stmt.joins.push({ kind: k, ref, using: this.usingList(), span: span() });
+          }
+        } else if (natural) {
+          stmt.joins.push({ kind, ref, natural: true, span: span() });
+        } else if (kind === 'cross') {
+          stmt.joins.push({ kind, ref, span: span() });
+        } else {
+          // MySQL coi JOIN không có ON là ghép mọi row với mọi row. Oracle và LEFT, RIGHT, FULL JOIN thì bắt buộc có ON.
+          if (this.d === 'oracle' || kind !== 'inner') throw this.fail('00905', 'join-needs-on', {}, this.tok);
+          stmt.joins.push({ kind: 'cross', ref, span: span() });
+        }
       }
+      close();
     }
-    close();
 
     if (this.isW('WHERE')) {
       const w = this.tok;
@@ -319,6 +323,17 @@ class Parser {
       close();
     }
 
+    this.orderLimit(stmt, open, close);
+    stmt.span.e = this.prev.e;
+    return stmt;
+  }
+
+  /** ORDER BY, rồi LIMIT hoặc FETCH FIRST. Ghi vào `target`. */
+  private orderLimit(
+    target: { orderBy?: OrderItem[]; limit?: SelectStmt['limit'] },
+    open: (kind: ClauseKind, s: number) => void,
+    close: () => void,
+  ): void {
     if (this.isW('ORDER')) {
       const o = this.tok;
       this.i++;
@@ -344,7 +359,7 @@ class Parser {
         list.push({ e, desc, nulls, span: { s, e: this.prev.e } });
         if (!this.eatOp(',')) break;
       }
-      stmt.orderBy = list;
+      target.orderBy = list;
       close();
     }
 
@@ -361,7 +376,7 @@ class Parser {
       } else if (this.eatW('OFFSET')) {
         offset = this.int('OFFSET');
       }
-      stmt.limit = { style: 'limit', count, offset, span: { s: l.s, e: this.prev.e } };
+      target.limit = { style: 'limit', count, offset, span: { s: l.s, e: this.prev.e } };
       close();
     } else if ((this.isW('OFFSET') || this.isW('FETCH')) && this.d === 'oracle') {
       const f = this.tok;
@@ -380,11 +395,9 @@ class Parser {
         if (this.isW('WITH')) throw unsupported('WITH TIES', this.at());
         this.needW('ONLY');
       }
-      stmt.limit = { style: 'fetch', count, offset, span: { s: f.s, e: this.prev.e } };
+      target.limit = { style: 'fetch', count, offset, span: { s: f.s, e: this.prev.e } };
       close();
     }
-    stmt.span.e = this.prev.e;
-    return stmt;
   }
 
   private int(after: string): number {
@@ -427,6 +440,159 @@ class Parser {
     }
     item.span.e = this.prev.e;
     return item;
+  }
+
+
+  /* ---------- query đầy đủ: WITH, UNION, INTERSECT, EXCEPT, MINUS ---------- */
+
+  /** Khối đứng cuối vừa đọc xong, để biết ORDER BY và LIMIT của nó thuộc về khối hay cả kết quả. */
+  private lastTerm: { q: Query; paren: boolean } | null = null;
+
+  private queryExpr(): Query {
+    const start = this.tok.s;
+    let ctes: Cte[] | undefined;
+    if (this.isW('WITH')) ctes = this.withClause();
+    const q = this.setExpr();
+    if (ctes) {
+      q.with = ctes;
+      q.span = { s: start, e: q.span.e };
+    }
+    return q;
+  }
+
+  private withClause(): Cte[] {
+    this.i++;
+    if (this.d === 'mysql' && this.isW('RECURSIVE')) throw unsupported('WITH RECURSIVE', this.at());
+    const list: Cte[] = [];
+    for (;;) {
+      const s = this.tok.s;
+      const n = this.name('WITH');
+      let columns: Cte['columns'];
+      if (this.eatOp('(')) {
+        columns = [];
+        for (;;) {
+          const c = this.name('(');
+          columns.push({ name: c.text, span: c.span });
+          if (!this.eatOp(',')) break;
+        }
+        if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+      }
+      this.needW('AS');
+      if (!this.eatOp('(')) throw this.fail('00906', 'missing-keyword', { kw: '(' });
+      if (!this.isW('SELECT') && !this.isW('WITH') && !this.isOp('(')) throw this.fail('00936', 'missing-expression', { after: '(' });
+      const q = this.queryExpr();
+      if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+      list.push({ name: n.text, nameSpan: n.span, columns, q, span: { s, e: this.prev.e } });
+      if (!this.eatOp(',')) break;
+    }
+    if (!this.isW('SELECT') && !this.isOp('(')) {
+      if (this.tok.type === 'word' && ['UPDATE', 'DELETE', 'INSERT'].includes(this.tok.value)) throw unsupported(`WITH trước ${this.tok.value}`, this.at());
+      throw this.fail('00928', this.tok.type === 'eof' ? 'unexpected-end' : 'missing-keyword', { kw: 'SELECT', after: 'WITH' });
+    }
+    return list;
+  }
+
+  /** Một khối: SELECT, hoặc query trong ngoặc. */
+  private queryTerm(): Query {
+    if (this.isOp('(')) {
+      this.i++;
+      if (!this.isW('SELECT') && !this.isW('WITH') && !this.isOp('(')) throw this.fail('00936', 'missing-expression', { after: '(' });
+      const q = this.queryExpr();
+      if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+      this.lastTerm = { q, paren: true };
+      return q;
+    }
+    if (!this.isW('SELECT')) throw this.fail('00928', this.tok.type === 'eof' ? 'unexpected-end' : 'missing-keyword', { kw: 'SELECT', after: this.prev.text });
+    const q = this.select();
+    this.lastTerm = { q, paren: false };
+    return q;
+  }
+
+  /** Chữ ghép kết quả đang đứng ở token hiện tại. Chữ của dialect kia thì báo lỗi kèm lời chỉ sang chữ đúng. */
+  private setWord(level: 'low' | 'high'): { op: SetStmt['op']; word: string; tok: Token } | null {
+    const t = this.tok;
+    if (t.type !== 'word' || !SET_WORDS.has(t.value)) return null;
+    if (t.value === 'EXCEPT' && this.d === 'oracle') throw this.fail('00933', 'except-oracle');
+    if (t.value === 'MINUS' && this.d === 'mysql') {
+      // MySQL đọc MINUS như alias, rồi mới lỗi ở chữ đứng sau nó (đã kiểm trên MySQL 8.0.46).
+      const afterParen = this.isOp(')', this.prev);
+      const e = this.fail('00933', 'minus-mysql', {}, afterParen ? t : this.peek());
+      e.span = { s: t.s, e: t.e };
+      throw e;
+    }
+    // MySQL 8 cho INTERSECT ưu tiên hơn UNION và EXCEPT. Oracle xếp mọi phép ngang hàng, chạy từ trái sang phải.
+    const high = t.value === 'INTERSECT' && this.d === 'mysql';
+    if ((level === 'high') !== high) return null;
+    const op = t.value === 'UNION' ? 'union' : t.value === 'INTERSECT' ? 'intersect' : 'except';
+    return { op, word: t.value, tok: t };
+  }
+
+  private setOperand(): Query {
+    return this.d === 'mysql' ? this.intersectChain() : this.queryTerm();
+  }
+
+  private intersectChain(): Query {
+    const s0 = this.tok.s;
+    let left = this.queryTerm();
+    for (;;) {
+      const w = this.setWord('high');
+      if (!w) return left;
+      left = this.joinTerms(left, w, s0, () => this.queryTerm());
+    }
+  }
+
+  private joinTerms(left: Query, w: { op: SetStmt['op']; word: string; tok: Token }, s0: number, right: () => Query): SetStmt {
+    // ORDER BY hay LIMIT của một khối đứng giữa chuỗi ghép là sai chỗ: chỉ khối cuối hoặc khối trong ngoặc mới có.
+    const prev = this.lastTerm;
+    if (prev && !prev.paren && prev.q.t === 'select' && (prev.q.orderBy || prev.q.limit)) throw this.fail('00933', 'unexpected', { tok: w.tok.text });
+    this.i++;
+    let op = w.op;
+    let word = w.word;
+    if (op === 'union') {
+      if (this.isW('ALL')) {
+        this.i++;
+        op = 'union all';
+        word = 'UNION ALL';
+      } else if (this.isW('DISTINCT') && this.d === 'mysql') this.i++;
+    } else if (this.isW('ALL') || (this.isW('DISTINCT') && this.d === 'mysql')) {
+      throw unsupported(`${w.word} ${this.tok.value}`, this.at());
+    }
+    const r = right();
+    return { t: 'setop', op, word, left, right: r, clauses: [], span: { s: s0, e: this.prev.e }, opSpan: { s: w.tok.s, e: w.tok.e } };
+  }
+
+  private setExpr(): Query {
+    const s0 = this.tok.s;
+    let left = this.setOperand();
+    for (;;) {
+      const w = this.setWord('low');
+      if (!w) break;
+      left = this.joinTerms(left, w, s0, () => this.setOperand());
+    }
+    const last = this.lastTerm;
+    if (left.t === 'setop' && last && !last.paren && last.q.t === 'select' && (last.q.orderBy || last.q.limit)) {
+      // ORDER BY và LIMIT đứng sau khối cuối áp cho cả kết quả ghép.
+      const q = last.q;
+      const tail = q.clauses.filter((c) => c.kind === 'ORDER BY' || c.kind === 'LIMIT' || c.kind === 'FETCH');
+      left.orderBy = q.orderBy;
+      left.limit = q.limit;
+      left.clauses = tail;
+      q.orderBy = undefined;
+      q.limit = undefined;
+      q.clauses = q.clauses.filter((c) => !tail.includes(c));
+      q.span = { s: q.span.s, e: q.clauses.at(-1)?.span.e ?? q.span.e };
+    } else if ((left.t === 'setop' || last?.paren) && (this.isW('ORDER') || (this.isW('LIMIT') && this.d === 'mysql') || ((this.isW('OFFSET') || this.isW('FETCH')) && this.d === 'oracle')) && !left.orderBy && !left.limit) {
+      // Query trong ngoặc rồi tới ORDER BY: `(SELECT ...) ORDER BY ...`.
+      const clauses: SelectStmt['clauses'] = [];
+      const open = (kind: ClauseKind, s: number) => clauses.push({ kind, span: { s, e: s } });
+      const close = () => {
+        clauses[clauses.length - 1].span.e = this.prev.e;
+      };
+      this.orderLimit(left, open, close);
+      left.clauses = [...left.clauses, ...clauses];
+    }
+    if (left.t === 'setop') left.span = { s: s0, e: this.prev.e };
+    return left;
   }
 
   /* ---------- biểu thức ---------- */
@@ -484,6 +650,14 @@ class Parser {
       if (t.type === 'op' && COMPARE.has(t.value)) {
         this.i++;
         this.ctx = t.text;
+        if ((this.isW('ANY') || this.isW('SOME') || this.isW('ALL')) && this.isOp('(', this.peek()) && (this.isW('SELECT', this.peek(2)) || this.isW('WITH', this.peek(2)))) {
+          const w = this.tok;
+          this.i += 2;
+          const q = this.queryExpr();
+          if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+          l = { t: 'quant', op: t.value as CompareOp, quant: w.value === 'ALL' ? 'all' : 'any', word: w.value, e: l, q, span: { s: l.span.s, e: this.prev.e }, opSpan: { s: t.s, e: t.e } };
+          continue;
+        }
         l = this.bin(t.value as CompareOp, l, this.add(), t);
         continue;
       }
@@ -503,8 +677,8 @@ class Parser {
       }
       if (this.eatW('IN')) {
         if (!this.eatOp('(')) throw this.fail('00906', 'missing-keyword', { kw: '(' });
-        if (this.isW('SELECT')) {
-          const q = this.select();
+        if (this.isW('SELECT') || this.isW('WITH')) {
+          const q = this.queryExpr();
           if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
           l = { t: 'insub', e: l, q, not, span: { s: l.span.s, e: this.prev.e } };
           continue;
@@ -606,8 +780,8 @@ class Parser {
     }
     if (this.isOp('(')) {
       this.i++;
-      if (this.isW('SELECT')) {
-        const q = this.select();
+      if (this.isW('SELECT') || this.isW('WITH')) {
+        const q = this.queryExpr();
         if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
         return { t: 'sub', q, span: { s: t.s, e: this.prev.e } };
       }
@@ -631,7 +805,14 @@ class Parser {
         return { t: 'date', v: this.prev.value, span: { s: t.s, e: this.prev.e } };
       }
       if (w === 'CASE') return this.caseExpr();
-      if (w === 'EXISTS') throw unsupported('EXISTS', this.at());
+      if (w === 'EXISTS') {
+        this.i++;
+        if (!this.eatOp('(')) throw this.fail('00906', 'missing-keyword', { kw: '(' });
+        if (!this.isW('SELECT') && !this.isW('WITH')) throw this.fail('00936', 'missing-expression', { after: 'EXISTS (' });
+        const q = this.queryExpr();
+        if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+        return { t: 'exists', q, span: { s: t.s, e: this.prev.e } };
+      }
       if (!STOP.has(w) || (w === 'FULL' && this.d === 'mysql') || ((w === 'LEFT' || w === 'RIGHT' || w === 'MOD') && this.isOp('(', this.peek()))) {
         this.i++;
         if (this.isOp('(') && this.isOp('+', this.peek()) && this.isOp(')', this.peek(2))) return this.markOuter({ t: 'col', name: t.text, span });
@@ -741,14 +922,24 @@ class Parser {
     return col;
   }
 
-  /** Tên table, có thể kèm alias. Oracle không cho viết AS trước alias. */
-  private tableRef(alias = true): TableRef {
+  /** Tên table, có thể kèm alias. Oracle không cho viết AS trước alias. `sub`: cho phép subquery thay table (chỉ trong FROM). */
+  private tableRef(alias = true, sub = false): TableRef {
     const tt = this.tok;
-    if (this.isOp('(')) throw unsupported('subquery trong FROM', this.at());
-    if (!(tt.type === 'qident' || (tt.type === 'word' && !STOP.has(tt.value)))) throw this.fail('00903', 'no-table', {}, tt);
-    this.i++;
-    const ref: TableRef = { table: tt.type === 'word' ? tt.text : tt.value, quoted: tt.type === 'qident', span: { s: tt.s, e: tt.e } };
-    if (this.isOp('.')) throw unsupported('tên table có dấu chấm', this.at());
+    let ref: TableRef;
+    if (this.isOp('(')) {
+      if (!sub || !(this.isW('SELECT', this.peek()) || this.isW('WITH', this.peek()))) {
+        throw unsupported(sub ? 'ngoặc quanh JOIN trong FROM' : 'subquery thay cho table', this.at());
+      }
+      this.i++;
+      const q = this.queryExpr();
+      if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+      ref = { table: '', sub: q, span: { s: tt.s, e: this.prev.e } };
+    } else {
+      if (!(tt.type === 'qident' || (tt.type === 'word' && !STOP.has(tt.value)))) throw this.fail('00903', 'no-table', {}, tt);
+      this.i++;
+      ref = { table: tt.type === 'word' ? tt.text : tt.value, quoted: tt.type === 'qident', span: { s: tt.s, e: tt.e } };
+      if (this.isOp('.')) throw unsupported('tên table có dấu chấm', this.at());
+    }
     if (!alias) return ref;
     if (this.isW('AS')) {
       if (this.d === 'oracle') throw this.fail('00933', 'as-table-alias');
@@ -762,6 +953,12 @@ class Parser {
     } else if (this.tok.type === 'qident' || (this.tok.type === 'word' && !STOP.has(this.tok.value) && this.tok.value !== 'SET')) {
       ref.alias = this.tok.type === 'word' ? this.tok.text : this.tok.value;
       this.i++;
+    }
+    if (ref.sub) {
+      // MySQL bắt buộc subquery trong FROM có alias. Oracle không bắt buộc.
+      if (!ref.alias && this.d === 'mysql') throw new SqlError('name', '1248', 'ERROR 1248 (42000): Every derived table must have its own alias', 'derived-alias', friendly['derived-alias']({}), ref.span);
+      ref.table = ref.alias ?? '';
+      ref.span = { s: ref.span.s, e: this.prev.e };
     }
     return ref;
   }
@@ -834,8 +1031,8 @@ class Parser {
       }
       if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
     }
-    if (this.isW('SELECT')) {
-      const select = this.select();
+    if (this.isW('SELECT') || this.isW('WITH')) {
+      const select = this.queryExpr();
       return { t: 'insert', table, columns, rows: [], select, span: { s, e: this.prev.e } };
     }
     this.needW('VALUES', '00926');

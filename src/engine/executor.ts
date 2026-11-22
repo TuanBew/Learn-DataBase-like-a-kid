@@ -1,5 +1,5 @@
-import type { ColumnDef, Database, Dialect, RawValue, SqlDate, TableDef, Value } from './types';
-import { AGGREGATES, type Expr, type Join, RUN_ORDER, type SelectStmt, type TableRef } from './ast';
+import type { ColumnDef, ColumnType, Database, Dialect, RawValue, SqlDate, TableDef, Value } from './types';
+import { AGGREGATES, type ClauseKind, type CompareOp, type Cte, type Expr, type Join, type Query, RUN_ORDER, type SelectStmt, type SetStmt, type TableRef } from './ast';
 import {
   type MysqlWhere,
   type Span,
@@ -32,6 +32,21 @@ export interface ScopeCol {
   /** Column gộp của USING hay NATURAL: giá trị là giá trị khác NULL đầu tiên trong các ô `from`. Không thuộc table nào. */
   virtual?: boolean;
   from?: number[];
+  /** Column này thuộc query bên ngoài (subquery phụ thuộc). Giá trị đọc từ `outerEnv.cells`, không đọc từ row đang chạy. */
+  outerEnv?: OuterEnv;
+}
+
+/**
+ * Môi trường của query bên ngoài, đưa cho subquery. `cells` là row đang xét của query ngoài.
+ * `used` thành true khi subquery nhắc tới column của query ngoài (hay xa hơn): kết quả của nó khi đó phụ thuộc row, không nhớ lại được.
+ */
+export interface OuterEnv {
+  scope: ScopeCol[];
+  cells: Value[];
+  parent?: OuterEnv;
+  used: boolean;
+  /** Vị trí các column của `scope` mà subquery đã nhắc tới. Dùng làm khóa nhớ kết quả cho từng giá trị của row ngoài. */
+  hits?: Set<number>;
 }
 
 /** Thứ một biểu thức cần để tính: các ô của row, nhóm row (khi đã gom), và số thứ tự ROWNUM. */
@@ -51,7 +66,23 @@ const UNITS = new Set(['YEAR', 'MONTH', 'DAY', 'HOUR', 'MINUTE', 'SECOND']);
 const CONDITION = new Set(['=', '<>', '<', '<=', '>', '>=', 'AND', 'OR']);
 
 export const isCond = (e: Expr): boolean =>
-  (e.t === 'bin' && CONDITION.has(e.op)) || (e.t === 'unary' && e.op === 'NOT') || e.t === 'isnull' || e.t === 'in' || e.t === 'insub' || e.t === 'between' || e.t === 'like';
+  (e.t === 'bin' && CONDITION.has(e.op)) ||
+  (e.t === 'unary' && e.op === 'NOT') ||
+  e.t === 'isnull' ||
+  e.t === 'in' ||
+  e.t === 'insub' ||
+  e.t === 'exists' ||
+  e.t === 'quant' ||
+  e.t === 'between' ||
+  e.t === 'like';
+
+/** Khóa chính xác của một giá trị (không gộp hoa thường như collation), để nhớ kết quả subquery theo row ngoài. */
+const rawKey = (v: Value): string => (v === null ? '\u0000' : typeof v === 'object' ? `d${v.iso}` : `${typeof v}${String(v)}`);
+
+const cmpOp = (op: CompareOp, c: number): boolean => (op === '=' ? c === 0 : op === '<>' ? c !== 0 : op === '<' ? c < 0 : op === '<=' ? c <= 0 : op === '>' ? c > 0 : c >= 0);
+
+/** Tên column hiện ra: Oracle in hoa, trừ column của subquery đã giữ đúng chữ. */
+const hdr = (def: ColumnDef, d: Dialect): string => (d === 'oracle' && !def.exact ? def.name.toUpperCase() : def.name);
 
 const isAgg = (e: Expr): e is FnExpr => e.t === 'fn' && AGGREGATES.has(e.name);
 
@@ -65,6 +96,7 @@ function children(e: Expr): Expr[] {
     case 'in':
       return [e.e, ...e.list];
     case 'insub':
+    case 'quant':
       return [e.e];
     case 'between':
       return [e.e, e.lo, e.hi];
@@ -89,6 +121,7 @@ function load(v: RawValue, type: ColumnDef['type'], d: Dialect): Value {
 }
 
 export function loadRows(table: TableDef, d: Dialect): Value[][] {
+  if (table.loaded) return table.loaded.map((r) => [...r]);
   return table.rows.map((r) => r.map((v, i) => load(v, table.columns[i].type, d)));
 }
 
@@ -129,17 +162,56 @@ export interface Evaluator {
   same(a: Expr, b: Expr): boolean;
   /** Khóa của các column mà query nhắc tới. */
   focus(): string[];
-  /** Các subquery đã chạy, theo thứ tự gặp. */
-  subs: { q: SelectStmt; result: ResultSet; scalar: boolean }[];
+  /** Các subquery không phụ thuộc query ngoài đã chạy, theo thứ tự gặp. */
+  subs: { q: Query; result: ResultSet; scalar: boolean }[];
+  /** Có subquery phụ thuộc query ngoài (chạy lại cho từng row): Theater không diễn lại được từng bước. */
+  readonly correlated: boolean;
 }
 
-export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: string, env: FnEnv, tableName?: string, depth = 0): Evaluator {
+type SubKind = 'scalar' | 'list' | 'exists';
+
+export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: string, env: FnEnv, tableName?: string, depth = 0, outer?: OuterEnv): Evaluator {
   const src = (s: Span) => sql.slice(s.s, s.e);
   const colIdx = new Map<ColExpr, ScopeCol>();
-  const subCache = new Map<SelectStmt, ResultSet>();
+  const subCache = new Map<Query, ResultSet>();
+  /** Subquery phụ thuộc: column của row ngoài mà nó dùng, và kết quả đã chạy theo giá trị của các column đó. */
+  const corrHits = new Map<Query, Set<number>>();
+  const corrCache = new Map<Query, Map<string, ResultSet>>();
   const subs: Evaluator['subs'] = [];
+  let correlated = false;
 
-  const nameEq = (def: string, c: ColExpr) => (d === 'oracle' && c.quoted ? def.toUpperCase() === c.name : def.toLowerCase() === c.name.toLowerCase());
+  const nameEq = (def: ColumnDef, c: ColExpr) => {
+    if (d !== 'oracle') return def.name.toLowerCase() === c.name.toLowerCase();
+    if (def.exact) return c.quoted ? def.name === c.name : def.name.toUpperCase() === c.name.toUpperCase();
+    return c.quoted ? def.name.toUpperCase() === c.name : def.name.toLowerCase() === c.name.toLowerCase();
+  };
+
+  const ambiguous = (c: ColExpr, hits: ScopeCol[], where: MysqlWhere): SqlError => {
+    const named = [...new Set(hits.map((h) => h.qualifier))].filter((q) => q !== '');
+    const p = { name: c.name, tables: named.join(', ') };
+    // Subquery không alias (Oracle) không có tên để viết đứng trước.
+    const hint = named.length === 0 ? 'ambiguous-anon' : 'ambiguous';
+    const text = friendly[hint](p);
+    if (d === 'mysql') return new SqlError('name', '1052', `ERROR 1052 (23000): Column '${c.name}' in ${where} is ambiguous`, hint, text, c.span);
+    return new SqlError('name', 'ORA-00918', oraMessage('00918'), hint, text, c.span);
+  };
+
+  /** Tìm column trong query bên ngoài, từ gần ra xa. Thấy thì đánh dấu mọi tầng đã đi qua là phụ thuộc. */
+  const lookupOuter = (c: ColExpr, where: MysqlWhere): ScopeCol | undefined => {
+    const chain: OuterEnv[] = [];
+    for (let o = outer; o; o = o.parent) {
+      chain.push(o);
+      const cands = c.table ? o.scope.filter((s) => s.qualifier.toLowerCase() === c.table!.toLowerCase()) : o.scope.filter((s) => !s.named);
+      const hits = cands.filter((s) => nameEq(s.def, c));
+      if (hits.length > 1) throw ambiguous(c, hits, where);
+      if (hits.length === 1) {
+        chain.forEach((x) => (x.used = true));
+        (o.hits ??= new Set()).add(hits[0].idx);
+        return { ...hits[0], outerEnv: o };
+      }
+    }
+    return undefined;
+  };
 
   const resolve = (c: ColExpr, where: MysqlWhere): ScopeCol => {
     const hit0 = colIdx.get(c);
@@ -149,9 +221,16 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
     let cands = scope.filter((s) => !s.named);
     if (c.table) {
       cands = scope.filter((s) => s.qualifier.toLowerCase() === c.table!.toLowerCase());
-      if (cands.length === 0) throw unknownColumn(d, shown, oraIdent, where, c.span, 'unknown-qualifier', { name: c.table });
+      if (cands.length === 0) {
+        const o = lookupOuter(c, where);
+        if (o) {
+          colIdx.set(c, o);
+          return o;
+        }
+        throw unknownColumn(d, shown, oraIdent, where, c.span, 'unknown-qualifier', { name: c.table });
+      }
     }
-    const hits = cands.filter((s) => nameEq(s.def.name, c));
+    const hits = cands.filter((s) => nameEq(s.def, c));
     if (hits.length === 1) {
       const named = hits[0].named;
       if (named && c.table && d === 'oracle') {
@@ -162,10 +241,11 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
       colIdx.set(c, hits[0]);
       return hits[0];
     }
-    if (hits.length > 1) {
-      const p = { name: c.name, tables: [...new Set(hits.map((h) => h.qualifier))].join(', ') };
-      if (d === 'mysql') throw new SqlError('name', '1052', `ERROR 1052 (23000): Column '${c.name}' in ${where} is ambiguous`, 'ambiguous', friendly.ambiguous(p), c.span);
-      throw new SqlError('name', 'ORA-00918', oraMessage('00918'), 'ambiguous', friendly.ambiguous(p), c.span);
+    if (hits.length > 1) throw ambiguous(c, hits, where);
+    const o = lookupOuter(c, where);
+    if (o) {
+      colIdx.set(c, o);
+      return o;
     }
     if (d === 'oracle' && c.quoted) {
       const ci = cands.find((s) => s.def.name.toLowerCase() === c.name.toLowerCase());
@@ -176,32 +256,43 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
     throw unknownColumn(d, shown, oraIdent, where, c.span, 'unknown-column', { name: c.name, table: tableName }, near ? didYouMean(near) : undefined);
   };
 
-  /** Chạy một subquery không phụ thuộc vào query bên ngoài. Kết quả được nhớ lại. */
-  const runSub = (q: SelectStmt, scalar: boolean): ResultSet => {
+  /**
+   * Chạy một subquery. Không nhắc tới query ngoài thì kết quả được nhớ lại. Có nhắc thì chạy lại cho từng row của query ngoài (`cx`).
+   * Lúc kiểm (không có `cx`), row ngoài giả là toàn NULL: chỉ để bắt lỗi tên và lỗi cấu trúc, nên bỏ qua lỗi "nhiều row".
+   */
+  const runSub = (q: Query, kind: SubKind, cx?: Cx): ResultSet => {
     const hit = subCache.get(q);
     if (hit) return hit;
-    if (depth > 4) throw unsupported('subquery lồng quá sâu', q.span);
-    let result: ResultSet;
-    try {
-      result = execSelect(q, db, d, sql, env, depth + 1).result;
-    } catch (err) {
-      if (err instanceof SqlError && (err.hint === 'unknown-column' || err.hint === 'unknown-qualifier')) {
-        const parts = src(err.span).split('.');
-        const name = parts[parts.length - 1].toLowerCase();
-        if (scope.some((s) => s.def.name.toLowerCase() === name)) throw unsupported('subquery có nhắc tới table của query bên ngoài', err.span);
-      }
-      throw err;
-    }
-    if (result.columns.length !== 1) {
+    if (depth > 8) throw unsupported('subquery lồng quá sâu', q.span);
+    if (d === 'mysql' && kind === 'list' && q.limit) throw new SqlError('syntax', '1235', "ERROR 1235 (42000): This version of MySQL doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'", 'limit-in-sub', friendly['limit-in-sub']({}), q.limit.span);
+    const memo = (idx: Set<number> | undefined) => (cx && idx ? [...idx].sort((a, b) => a - b).map((i) => rawKey(cx.cells[i])).join('\u0001') : undefined);
+    const known = memo(corrHits.get(q));
+    const seen = known === undefined ? undefined : corrCache.get(q)?.get(known);
+    if (seen) return seen;
+    const here: OuterEnv = { scope, cells: cx?.cells ?? scope.map(() => null), parent: outer, used: false };
+    const result = execSelect(q, db, d, sql, env, depth + 1, here).result;
+    if (kind !== 'exists' && result.columns.length !== 1) {
       if (d === 'mysql') throw new SqlError('runtime', '1241', 'ERROR 1241 (21000): Operand should contain 1 column(s)', 'sub-one-column', friendly['sub-one-column']({}), q.span);
       throw new SqlError('runtime', 'ORA-00913', oraMessage('00913'), 'sub-one-column', friendly['sub-one-column']({}), q.span);
     }
-    if (scalar && result.rows.length > 1) {
+    if (kind === 'scalar' && result.rows.length > 1 && (cx || !here.used)) {
       if (d === 'mysql') throw new SqlError('runtime', '1242', 'ERROR 1242 (21000): Subquery returns more than 1 row', 'sub-one-row', friendly['sub-one-row']({ n: result.rows.length }), q.span);
       throw new SqlError('runtime', 'ORA-01427', oraMessage('01427'), 'sub-one-row', friendly['sub-one-row']({ n: result.rows.length }), q.span);
     }
-    subCache.set(q, result);
-    subs.push({ q, result, scalar });
+    if (here.used) {
+      correlated = true;
+      const idx = here.hits ?? new Set<number>();
+      corrHits.set(q, idx);
+      const k = memo(idx);
+      if (k !== undefined) {
+        const m = corrCache.get(q) ?? new Map<string, ResultSet>();
+        m.set(k, result);
+        corrCache.set(q, m);
+      }
+    } else {
+      subCache.set(q, result);
+      subs.push({ q, result, scalar: kind === 'scalar' });
+    }
     return result;
   };
 
@@ -222,14 +313,21 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
         check(e.r, where, agg);
         return;
       case 'sub':
-        runSub(e.q, true);
+        runSub(e.q, 'scalar');
+        return;
+      case 'exists':
+        runSub(e.q, 'exists');
+        return;
+      case 'quant':
+        check(e.e, where, agg);
+        runSub(e.q, 'list');
         return;
       case 'seq':
       case 'default':
         return;
       case 'insub':
         check(e.e, where, agg);
-        runSub(e.q, false);
+        runSub(e.q, 'list');
         return;
       case 'date':
         if (!parseIsoDate(e.v)) throw runtimeError(d, ['1525', 'HY000', `Incorrect DATE value: '${e.v}'`], '01861', e.span, 'date-literal-oracle', { text: e.v });
@@ -332,11 +430,34 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
         return e.v;
       case 'date':
         return parseIsoDate(e.v);
-      case 'col':
-        return cx.cells[resolve(e, 'field list').idx];
+      case 'col': {
+        const c = resolve(e, 'field list');
+        return c.outerEnv ? c.outerEnv.cells[c.idx] : cx.cells[c.idx];
+      }
       case 'sub': {
-        const r = runSub(e.q, true);
+        const r = runSub(e.q, 'scalar', cx);
         return r.rows.length === 0 ? null : r.rows[0][0];
+      }
+      case 'exists':
+        return runSub(e.q, 'exists', cx).rows.length > 0;
+      case 'quant': {
+        const rows = runSub(e.q, 'list', cx).rows;
+        const all = e.quant === 'all';
+        // Subquery không ra row nào: ANY sai, ALL đúng, dù vế trái là gì.
+        if (rows.length === 0) return all;
+        const v = ev(e.e, cx);
+        let unknown = false;
+        for (const r of rows) {
+          const c = compare(v, r[0], d, e.span);
+          if (c === null) {
+            unknown = true;
+            continue;
+          }
+          const t = cmpOp(e.op, c);
+          if (all && !t) return false;
+          if (!all && t) return true;
+        }
+        return unknown ? null : all;
       }
       case 'seq': {
         if (!env.seq) throw runtimeError(d, ['1064', '42000', ''], '02289', e.seqSpan, 'seq-missing', { name: e.seq });
@@ -346,10 +467,13 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
         // Từ khóa DEFAULT chỉ có nghĩa trong VALUES và SET: session xử lý trước khi tới đây.
         throw unsupported('DEFAULT ở chỗ này', e.span);
       case 'insub': {
+        const rows = runSub(e.q, 'list', cx).rows;
+        // Subquery không ra row nào: IN sai, NOT IN đúng, kể cả khi vế trái là NULL.
+        if (rows.length === 0) return e.not;
         const v = ev(e.e, cx);
         if (v === null) return null;
         let unknown = false;
-        for (const row of runSub(e.q, false).rows) {
+        for (const row of rows) {
           const c = compare(v, row[0], d, e.span);
           if (c === 0) return !e.not;
           if (c === null) unknown = true;
@@ -492,8 +616,16 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
       case 'insub': {
         const v = ev(e.e, cx);
         if (v === null) return reason.nullCompare(nameOf(e.e));
-        const found = e.t === 'in' ? e.list.some((x) => compare(v, ev(x, cx), d, e.span) === 0) : runSub(e.q, false).rows.some((r) => compare(v, r[0], d, e.span) === 0);
+        const found = e.t === 'in' ? e.list.some((x) => compare(v, ev(x, cx), d, e.span) === 0) : runSub(e.q, 'list', cx).rows.some((r) => compare(v, r[0], d, e.span) === 0);
         return found ? reason.inList(side(e.e, v)) : reason.notInList(side(e.e, v));
+      }
+      case 'exists':
+        return runSub(e.q, 'exists', cx).rows.length > 0 ? reason.exists() : reason.notExists();
+      case 'quant': {
+        const v = ev(e.e, cx);
+        if (v === null && runSub(e.q, 'list', cx).rows.length > 0) return reason.nullCompare(nameOf(e.e));
+        const ok = truth(ev(e, cx), e.span) === true;
+        return (ok ? reason.quantOk : reason.quantNo)(side(e.e, v), e.op, e.word);
       }
       case 'between': {
         const v = ev(e.e, cx);
@@ -519,7 +651,9 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
   const same = (a: Expr, b: Expr): boolean => {
     if (a.t === 'col' && b.t === 'col') {
       try {
-        return resolve(a, 'field list').idx === resolve(b, 'field list').idx;
+        const x = resolve(a, 'field list');
+        const y = resolve(b, 'field list');
+        return x.idx === y.idx && x.outerEnv === y.outerEnv;
       } catch {
         return false;
       }
@@ -527,11 +661,23 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
     return a.t === b.t && flat(a) === flat(b);
   };
 
-  return { resolve, check, ev, truth, why, same, subs, focus: () => [...new Set([...colIdx.values()].flatMap((c) => (c.virtual && c.from ? c.from.map((i) => `c${i}`) : [`c${c.idx}`])))] };
+  return {
+    resolve,
+    check,
+    ev,
+    truth,
+    why,
+    same,
+    subs,
+    get correlated() {
+      return correlated;
+    },
+    focus: () => [...new Set([...colIdx.values()].filter((c) => !c.outerEnv).flatMap((c) => (c.virtual && c.from ? c.from.map((i) => `c${i}`) : [`c${c.idx}`])))],
+  };
 }
 
 const traceCols = (scope: ScopeCol[], d: Dialect): TraceCol[] =>
-  scope.map((c) => ({ key: `c${c.idx}`, header: d === 'oracle' ? c.def.name.toUpperCase() : c.def.name, label: c.def.label, type: c.def.type }));
+  scope.map((c) => ({ key: `c${c.idx}`, header: hdr(c.def, d), label: c.def.label, type: c.def.type }));
 
 interface Unit {
   id: number;
@@ -567,14 +713,14 @@ function aliasTwice(d: Dialect, name: string, span: Span): SqlError {
  * Oracle: nối ngoài kiểu cũ. FROM ngăn bằng dấu phẩy, dấu (+) trong WHERE đánh dấu bên bị thiếu row.
  * Trả về thứ tự nối: table giữ đủ row đứng trước, table có (+) nối sau bằng LEFT JOIN. Không có (+) thì trả undefined.
  */
-function planOuter(stmt: SelectStmt, db: Database, d: Dialect, sql: string, env: FnEnv, depth: number): { from: TableRef; plan: JoinPlan[]; where?: Expr } | undefined {
+function planOuter(stmt: SelectStmt, db: Database, d: Dialect, sql: string, env: FnEnv, depth: number, outer?: OuterEnv): { from: TableRef; plan: JoinPlan[]; where?: Expr } | undefined {
   const src = (s: Span) => sql.slice(s.s, s.e);
   const all = outerMarks(stmt.where);
   if (all.length === 0 || !stmt.from || !stmt.where) return undefined;
   if (stmt.joins.some((j) => !j.comma)) throw oraError('syntax', '25156', 'outer-ansi', all[0].span);
 
   const refs = [stmt.from, ...stmt.joins.map((j) => j.ref)];
-  const tabs = refs.map((r) => findTable(db, r, d));
+  const tabs = refs.map((r) => resolveRef(r, { db, d, sql, env, depth, outer }));
   const quals = refs.map((r, i) => (r.alias ?? tabs[i].name).toLowerCase());
   quals.forEach((q, i) => {
     if (quals.indexOf(q) !== i) throw aliasTwice(d, refs[i].alias ?? tabs[i].name, refs[i].span);
@@ -585,7 +731,7 @@ function planOuter(stmt: SelectStmt, db: Database, d: Dialect, sql: string, env:
     off += sc.length;
     return sc;
   });
-  const E0 = makeEvaluator(full, db, d, sql, env, undefined, depth);
+  const E0 = makeEvaluator(full, db, d, sql, env, undefined, depth, outer);
 
   const compareOps = new Set(['=', '<>', '<', '<=', '>', '>=']);
   const badPlace = (e: Expr): void => {
@@ -644,11 +790,135 @@ function planOuter(stmt: SelectStmt, db: Database, d: Dialect, sql: string, env:
 /** MySQL đọc chữ FULL sau table như alias. Khi lỗi tên table nảy ra vì alias đó, giải thích rằng MySQL không có FULL JOIN. */
 const fullAliasUsed = (stmt: SelectStmt): boolean => !!stmt.from?.fullAlias || stmt.joins.some((j) => j.ref.fullAlias);
 
-export function execSelect(stmt: SelectStmt, db: Database, d: Dialect, sql: string, env: FnEnv = DEFAULT_ENV, depth = 0): Trace {
+interface RefCtx {
+  db: Database;
+  d: Dialect;
+  sql: string;
+  env: FnEnv;
+  depth: number;
+  outer?: OuterEnv;
+}
+
+/** Kiểu của column theo giá trị, khi query không nói rõ (biểu thức, hằng). */
+function typeOfValues(rows: Value[][], i: number): ColumnType {
+  for (const r of rows) {
+    const v = r[i];
+    if (v === null) continue;
+    if (typeof v === 'number') return Number.isInteger(v) ? 'int' : 'decimal';
+    if (typeof v === 'boolean') return 'int';
+    if (typeof v === 'string') return 'text';
+    return v.iso.length > 10 ? 'datetime' : 'date';
+  }
+  return 'text';
+}
+
+/** Kết quả của một query thành table tạm: dùng cho subquery trong FROM và khối WITH. */
+function derivedTable(name: string, result: ResultSet, d: Dialect, span: Span, names?: string[]): TableDef {
+  const heads = names ?? result.columns;
+  if (d === 'mysql') {
+    const seen = new Set<string>();
+    for (const h of heads) {
+      const k = h.toLowerCase();
+      if (seen.has(k)) throw new SqlError('name', '1060', `ERROR 1060 (42S21): Duplicate column name '${h}'`, 'derived-dup-column', friendly['derived-dup-column']({ name: h }), span);
+      seen.add(k);
+    }
+  }
+  return {
+    name,
+    columns: heads.map((h, i) => ({ name: h, type: result.types[i] === 'expr' ? typeOfValues(result.rows, i) : (result.types[i] as ColumnType), exact: d === 'oracle' ? true : undefined })),
+    rows: [],
+    loaded: result.rows,
+  };
+}
+
+/** Table trong FROM: table có thật, khối WITH, hoặc subquery (chạy ngay, kết quả thành table tạm). */
+function resolveRef(ref: TableRef, x: RefCtx): TableDef {
+  if (!ref.sub) return findTable(x.db, ref, x.d);
+  const tr = execSelect(ref.sub, x.db, x.d, x.sql, x.env, x.depth + 1, x.outer);
+  return derivedTable(ref.alias ?? '', tr.result, x.d, ref.span);
+}
+
+/** Gọi f cho mọi table thật mà query nhắc tới, kể cả trong subquery. `intoDerived` false thì bỏ qua subquery trong FROM. */
+function walkRefs(q: Query, f: (r: TableRef) => void, intoDerived = true): void {
+  q.with?.forEach((c) => walkRefs(c.q, f, intoDerived));
+  if (q.t === 'setop') {
+    walkRefs(q.left, f, intoDerived);
+    walkRefs(q.right, f, intoDerived);
+    q.orderBy?.forEach((o) => walkExprRefs(o.e, f, intoDerived));
+    return;
+  }
+  for (const r of [q.from, ...q.joins.map((j) => j.ref)]) {
+    if (!r) continue;
+    if (!r.sub) f(r);
+    else if (intoDerived) walkRefs(r.sub, f, intoDerived);
+  }
+  const exprs = [...q.items.map((i) => i.e), q.where, q.having, ...(q.groupBy ?? []), ...(q.orderBy ?? []).map((o) => o.e), ...q.joins.map((j) => j.on)];
+  for (const e of exprs) if (e) walkExprRefs(e, f, intoDerived);
+}
+
+function walkExprRefs(e: Expr, f: (r: TableRef) => void, intoDerived: boolean): void {
+  if (e.t === 'sub' || e.t === 'insub' || e.t === 'exists' || e.t === 'quant') walkRefs(e.q, f, intoDerived);
+  children(e).forEach((x) => walkExprRefs(x, f, intoDerived));
+}
+
+/**
+ * MySQL 1093: UPDATE hay DELETE không cho subquery đọc chính table đang sửa. Subquery bọc trong FROM của một subquery khác thì qua.
+ * Oracle không có luật này.
+ */
+export function checkTargetTable(exprs: (Expr | undefined)[], target: TableRef, d: Dialect): void {
+  if (d !== 'mysql') return;
+  for (const e of exprs) {
+    if (!e) continue;
+    walkExprRefs(e, (r) => {
+      if (r.table.toLowerCase() !== target.table.toLowerCase()) return;
+      const name = target.alias ?? target.table;
+      throw new SqlError('runtime', '1093', `ERROR 1093 (HY000): You can't specify target table '${name}' for update in FROM clause`, 'target-table', friendly['target-table']({ name }), r.span);
+    }, false);
+  }
+}
+
+/** Chạy các khối WITH theo thứ tự. Mỗi khối thành một table tạm, khối sau dùng được khối trước. */
+function withTables(ctes: Cte[], db: Database, d: Dialect, sql: string, env: FnEnv, depth: number, outer?: OuterEnv): Database {
+  let cur = db;
+  const seen = new Set<string>();
+  for (const c of ctes) {
+    const key = c.name.toLowerCase();
+    if (seen.has(key)) {
+      // CHỜ KIỂM TÀI LIỆU: mã Oracle khi hai khối WITH trùng tên (ở đây dùng ORA-00955).
+      if (d === 'mysql') throw new SqlError('name', '1066', `ERROR 1066 (42000): Not unique table/alias: '${c.name}'`, 'cte-twice', friendly['cte-twice']({ name: c.name }), c.nameSpan);
+      throw new SqlError('name', 'ORA-00955', oraMessage('00955'), 'cte-twice', friendly['cte-twice']({ name: c.name }), c.nameSpan);
+    }
+    seen.add(key);
+    if (d === 'oracle') {
+      let self = false;
+      walkRefs(c.q, (r) => {
+        if (r.table.toLowerCase() === key) self = true;
+      });
+      if (self) throw unsupported('WITH đệ quy (khối WITH gọi lại chính nó)', c.nameSpan);
+    }
+    const tr = execSelect(c.q, cur, d, sql, env, depth + 1, outer);
+    if (c.columns && c.columns.length !== tr.result.columns.length) {
+      const p = { name: c.name, listed: c.columns.length, got: tr.result.columns.length };
+      if (d === 'mysql') throw new SqlError('runtime', '1353', 'ERROR 1353 (HY000): In definition of view, derived table or common table expression, SELECT list and column names list have different column counts', 'cte-columns', friendly['cte-columns'](p), c.span);
+      throw new SqlError('runtime', 'ORA-32038', oraMessage('32038'), 'cte-columns', friendly['cte-columns'](p), c.span);
+    }
+    const names = c.columns?.map((x) => (d === 'oracle' ? x.name.toUpperCase() : x.name));
+    const t = derivedTable(c.name, tr.result, d, c.span, names);
+    cur = { ...cur, tables: [t, ...cur.tables.filter((x) => x.name.toLowerCase() !== key)] };
+  }
+  return cur;
+}
+
+/** Chạy một query: SELECT, query ghép kết quả, có hay không có WITH. */
+export function execSelect(q: Query, db: Database, d: Dialect, sql: string, env: FnEnv = DEFAULT_ENV, depth = 0, outer?: OuterEnv): Trace {
   try {
-    return execSelectInner(stmt, db, d, sql, env, depth);
+    let base = db;
+    if (q.with?.length) base = withTables(q.with, db, d, sql, env, depth, outer);
+    const tr = q.t === 'select' ? execSelectInner(q, base, d, sql, env, depth, outer) : execSet(q, base, d, sql, env, depth, outer);
+    if (q.with?.length) tr.partial = true;
+    return tr;
   } catch (err) {
-    if (err instanceof SqlError && d === 'mysql' && err.hint === 'unknown-qualifier' && fullAliasUsed(stmt)) {
+    if (err instanceof SqlError && d === 'mysql' && err.hint === 'unknown-qualifier' && q.t === 'select' && fullAliasUsed(q)) {
       err.hint = 'full-join-mysql';
       err.friendly = friendly['full-join-mysql']({});
     }
@@ -656,7 +926,161 @@ export function execSelect(stmt: SelectStmt, db: Database, d: Dialect, sql: stri
   }
 }
 
-function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string, env: FnEnv, depth: number): Trace {
+const GROUP_NAME = { n: 'số', c: 'chữ', d: 'ngày' } as const;
+
+/** Nhóm data type của một column trong kết quả. Không biết (toàn NULL, hay biểu thức không có row) thì undefined. */
+function typeGroup(t: ResultSet['types'][number], rows: Value[][], i: number): 'n' | 'c' | 'd' | undefined {
+  if (t === 'int' || t === 'decimal') return 'n';
+  if (t === 'text') return 'c';
+  if (t === 'date' || t === 'datetime') return 'd';
+  for (const r of rows) {
+    const v = r[i];
+    if (v === null) continue;
+    return typeof v === 'number' || typeof v === 'boolean' ? 'n' : typeof v === 'string' ? 'c' : 'd';
+  }
+  return undefined;
+}
+
+/**
+ * UNION, UNION ALL, INTERSECT, EXCEPT, MINUS. Hai vế chạy riêng, rồi ghép. Tên column lấy từ query đầu.
+ * ORDER BY và LIMIT ở cuối áp cho cả kết quả. Trace chỉ có kết quả đã ghép (partial): từng vế không diễn lại từng bước.
+ */
+function execSet(stmt: SetStmt, db: Database, d: Dialect, sql: string, env: FnEnv, depth: number, outer?: OuterEnv): Trace {
+  const src = (s: Span) => sql.slice(s.s, s.e);
+  const L = execSelect(stmt.left, db, d, sql, env, depth, outer).result;
+  const R = execSelect(stmt.right, db, d, sql, env, depth, outer).result;
+  if (L.columns.length !== R.columns.length) {
+    const p = { left: L.columns.length, right: R.columns.length };
+    if (d === 'mysql') throw new SqlError('runtime', '1222', 'ERROR 1222 (21000): The used SELECT statements have a different number of columns', 'setop-columns', friendly['setop-columns'](p), stmt.right.span);
+    throw new SqlError('runtime', 'ORA-01789', oraMessage('01789'), 'setop-columns', friendly['setop-columns'](p), stmt.right.span);
+  }
+  const width = L.columns.length;
+  const types = [...L.types];
+  const lrows = L.rows.map((r) => [...r]);
+  const rrows = R.rows.map((r) => [...r]);
+  for (let i = 0; i < width; i++) {
+    const a = typeGroup(L.types[i], L.rows, i);
+    const b = typeGroup(R.types[i], R.rows, i);
+    if (!a || !b || a === b) continue;
+    // Oracle không tự đổi data type (ORA-01790, mã trong tài liệu). MySQL đổi cả hai vế sang chữ.
+    if (d === 'oracle') throw new SqlError('runtime', 'ORA-01790', oraMessage('01790'), 'setop-type', friendly['setop-type']({ n: i + 1, a: GROUP_NAME[a], b: GROUP_NAME[b] }), stmt.right.span);
+    for (const rows of [lrows, rrows]) for (const r of rows) r[i] = r[i] === null || typeof r[i] === 'string' ? r[i] : toText(r[i]);
+    types[i] = 'text';
+  }
+
+  const key = (r: Value[]) => r.map((v) => keyOf(v, d)).join('\u0001');
+  const distinct = (rows: Value[][]) => {
+    const seen = new Set<string>();
+    return rows.filter((r) => {
+      const k = key(r);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  };
+  const rightKeys = new Set(rrows.map(key));
+  let rows: Value[][];
+  switch (stmt.op) {
+    case 'union all':
+      rows = [...lrows, ...rrows];
+      break;
+    case 'union':
+      rows = distinct([...lrows, ...rrows]);
+      break;
+    case 'intersect':
+      rows = distinct(lrows.filter((r) => rightKeys.has(key(r))));
+      break;
+    default:
+      rows = distinct(lrows.filter((r) => !rightKeys.has(key(r))));
+  }
+
+  const cols: TraceCol[] = L.columns.map((h, i) => ({ key: `c${i}`, header: h, type: types[i] }));
+  let out: TraceRow[] = rows.map((cells, id) => ({ id, cells }));
+  const steps: TraceStep[] = [{ kind: 'from', table: 'kết quả ghép', columns: cols, rows: out.map((r) => ({ id: r.id, cells: r.cells })) }];
+
+  /* ORDER BY: theo tên hoặc alias column của query đầu, theo số thứ tự, hoặc biểu thức tính từ các column đó. */
+  if (stmt.orderBy) {
+    const scope: ScopeCol[] = L.columns.map((h, i) => ({
+      qualifier: '',
+      table: '',
+      def: { name: h, type: types[i] === 'expr' ? typeOfValues(rows, i) : (types[i] as ColumnType), exact: d === 'oracle' ? true : undefined },
+      idx: i,
+    }));
+    const E = makeEvaluator(scope, db, d, sql, env, undefined, depth);
+    type Key = { get: (r: Value[]) => Value; desc: boolean; nulls?: 'FIRST' | 'LAST'; text: string; col?: string; span: Span };
+    const keys: Key[] = stmt.orderBy.map((o) => {
+      const e = o.e;
+      const base = { desc: o.desc, nulls: o.nulls, text: src(e.span), span: e.span };
+      if (e.t === 'num' && Number.isInteger(e.v)) {
+        if (e.v < 1 || e.v > width) {
+          const p = { n: e.v, max: width };
+          if (d === 'mysql') throw new SqlError('name', '1054', `ERROR 1054 (42S22): Unknown column '${e.v}' in 'order clause'`, 'order-position', friendly['order-position'](p), e.span);
+          throw new SqlError('name', 'ORA-01785', oraMessage('01785'), 'order-position', friendly['order-position'](p), e.span);
+        }
+        const i = e.v - 1;
+        return { ...base, get: (r) => r[i], col: `c${i}` };
+      }
+      const qual = plainCols(e).find((c) => c.table);
+      if (qual) {
+        // CHỜ KIỂM TÀI LIỆU: Oracle báo ORA-00904 khi ORDER BY của câu ghép viết tên table đứng trước column.
+        if (d === 'mysql') throw new SqlError('name', '1250', `ERROR 1250 (42000): Table '${qual.table}' from one of the SELECTs cannot be used in global ORDER clause`, 'setop-order-qualified', friendly['setop-order-qualified']({ table: qual.table }), qual.span);
+        throw unknownColumn(d, `${qual.table}.${qual.name}`, `"${qual.table!.toUpperCase()}"."${qual.name.toUpperCase()}"`, 'order clause', qual.span, 'setop-order-qualified', { table: qual.table });
+      }
+      if (d === 'oracle' && e.t !== 'col') throw new SqlError('syntax', 'ORA-01785', oraMessage('01785'), 'setop-order-expr', friendly['setop-order-expr']({}), e.span);
+      E.check(e, 'order clause', 'no');
+      return { ...base, get: (r) => E.ev(e, { cells: r }), col: e.t === 'col' ? `c${E.resolve(e, 'order clause').idx}` : undefined };
+    });
+    const beforeIds = out.map((r) => r.id);
+    const vals = new Map(out.map((r) => [r.id, keys.map((k) => k.get(r.cells))]));
+    let nullsWhere: 'first' | 'last' | undefined;
+    out = [...out].sort((ra, rb) => {
+      const a = vals.get(ra.id)!;
+      const b = vals.get(rb.id)!;
+      for (let i = 0; i < keys.length; i++) {
+        const k = keys[i];
+        const x = a[i];
+        const y = b[i];
+        if (x === null || y === null) {
+          if (x === null && y === null) continue;
+          const first = k.nulls ? k.nulls === 'FIRST' : d === 'mysql' ? !k.desc : k.desc;
+          nullsWhere ??= first ? 'first' : 'last';
+          return (x === null) === first ? -1 : 1;
+        }
+        const c = compare(x, y, d, k.span)!;
+        if (c !== 0) return k.desc ? -c : c;
+      }
+      return 0;
+    });
+    const hiddenKeys = keys.map((k, i) => (k.col ? -1 : i)).filter((i) => i >= 0);
+    steps.push({
+      kind: 'order',
+      keys: keys.map((k) => ({ text: k.text, desc: k.desc, col: k.col })),
+      before: beforeIds,
+      after: out.map((r) => r.id),
+      hidden: hiddenKeys.length === 0 ? [] : out.map((r) => ({ id: r.id, text: hiddenKeys.map((i) => show(vals.get(r.id)![i])).join(', ') })),
+      nulls: nullsWhere,
+    });
+  }
+
+  if (stmt.limit) {
+    const { offset, count, style } = stmt.limit;
+    const ids = out.map((r) => r.id);
+    const end = count === null ? ids.length : offset + count;
+    steps.push({ kind: 'limit', style, offset, count, skipped: ids.slice(0, offset), kept: ids.slice(offset, end), cut: ids.slice(end) });
+    out = out.slice(offset, end);
+  }
+
+  const bodyEnd = stmt.clauses[0]?.span.s ?? stmt.span.e;
+  const all = [{ kind: 'FROM' as ClauseKind, span: { s: stmt.span.s, e: bodyEnd } }, ...stmt.clauses];
+  const order = (k: string) => RUN_ORDER.indexOf(k as (typeof RUN_ORDER)[number]);
+  const byRun = [...all].sort((a, b) => order(a.kind) - order(b.kind));
+  const clauses = all.map((c, written) => ({ kind: c.kind, text: src(c.span).replace(/\s+/g, ' ').trim(), written, run: byRun.indexOf(c) }));
+
+  const result: ResultSet = { columns: L.columns, types, rows: out.map((r) => r.cells), rowIds: out.map((r) => r.id) };
+  return { dialect: d, sql, clauses, focus: [], steps, result, partial: true };
+}
+
+function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string, env: FnEnv, depth: number, outer?: OuterEnv): Trace {
   const steps: TraceStep[] = [];
   const src = (s: Span) => sql.slice(s.s, s.e);
 
@@ -665,10 +1089,10 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     const m = outerMarks(e)[0];
     if (m) throw oraError('syntax', '30563', 'outer-select', m.span);
   }
-  const outer = planOuter(stmt, db, d, sql, env, depth);
-  const fromRef = outer?.from ?? stmt.from;
-  const plan: JoinPlan[] = outer ? outer.plan : stmt.joins.map((j) => ({ kind: j.kind, ref: j.ref, on: j.on, using: j.using, natural: j.natural, span: j.span }));
-  const whereExpr = outer ? outer.where : stmt.where;
+  const old = planOuter(stmt, db, d, sql, env, depth, outer);
+  const fromRef = old?.from ?? stmt.from;
+  const plan: JoinPlan[] = old ? old.plan : stmt.joins.map((j) => ({ kind: j.kind, ref: j.ref, on: j.on, using: j.using, natural: j.natural, span: j.span }));
+  const whereExpr = old ? old.where : stmt.where;
 
   /* ---------- FROM và JOIN ---------- */
   let scope: ScopeCol[] = [];
@@ -681,7 +1105,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
   if (stmt.from) [stmt.from, ...stmt.joins.map((j) => j.ref)].forEach((r, i) => written.set((r.alias ?? r.table).toLowerCase(), i));
 
   if (fromRef) {
-    const base = findTable(db, fromRef, d);
+    const base = resolveRef(fromRef, { db, d, sql, env, depth, outer });
     tableName = plan.length === 0 ? base.name : undefined;
     scope = scopeOf(base, fromRef);
     starCols = [...scope];
@@ -689,14 +1113,14 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     if (base !== DUAL) steps.push({ kind: 'from', table: base.name, alias: fromRef.alias, columns: traceCols(scope, d), rows: rows.map((r) => ({ id: r.id, cells: r.cells })) });
 
     plan.forEach((j, n) => {
-      const right = findTable(db, j.ref, d);
+      const right = resolveRef(j.ref, { db, d, sql, env, depth, outer });
       const rightScope = scopeOf(right, j.ref, scope.length);
-      const dup = scope.find((s) => !s.virtual && s.qualifier.toLowerCase() === rightScope[0].qualifier.toLowerCase());
+      const dup = rightScope[0].qualifier !== '' && scope.find((s) => !s.virtual && s.qualifier.toLowerCase() === rightScope[0].qualifier.toLowerCase());
       if (dup) throw aliasTwice(d, rightScope[0].qualifier, j.ref.span);
       const nL = scope.length;
       const nR = rightScope.length;
       const joined = [...scope, ...rightScope];
-      const J = makeEvaluator(joined, db, d, sql, env, undefined, depth);
+      const J = makeEvaluator(joined, db, d, sql, env, undefined, depth, outer);
 
       /* USING và NATURAL: tìm các cặp column cùng tên. */
       const pairs: { left: ScopeCol; right: ScopeCol }[] = [];
@@ -855,10 +1279,10 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
       rows = out;
     });
     // (+) có thể làm đổi thứ tự nối. SELECT * vẫn theo thứ tự table trong FROM.
-    if (outer) starCols = [...starCols].sort((a, b) => (written.get(a.qualifier.toLowerCase()) ?? 0) - (written.get(b.qualifier.toLowerCase()) ?? 0) || a.idx - b.idx);
+    if (old) starCols = [...starCols].sort((a, b) => (written.get(a.qualifier.toLowerCase()) ?? 0) - (written.get(b.qualifier.toLowerCase()) ?? 0) || a.idx - b.idx);
   }
 
-  const E = makeEvaluator(scope, db, d, sql, env, tableName, depth);
+  const E = makeEvaluator(scope, db, d, sql, env, tableName, depth, outer);
 
   /* ---------- kiểm trước khi chạy ---------- */
   const keyExprs = stmt.groupBy ?? [];
@@ -895,7 +1319,8 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     if (keyExprs.some((k) => E.same(k, e)) || isAgg(e)) return;
     if (e.t === 'col') {
       const c = E.resolve(e, where);
-      if (groupedTables.has(c.qualifier)) return;
+      // Column của query ngoài là một hằng với query này.
+      if (c.outerEnv || groupedTables.has(c.qualifier)) return;
       const hint = stmt.groupBy ? 'not-grouped' : 'agg-with-column';
       const p = { name: e.name };
       const origin = c.virtual && c.from ? (scope.find((x) => x.idx === c.from![0]) ?? c) : c;
@@ -982,7 +1407,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     const blank = scope.map(() => null);
     keyExprs.forEach((k, i) => {
       const c = k.t === 'col' ? E.resolve(k, 'group statement') : null;
-      groupCols.push({ key: `g${i}`, header: c ? (d === 'oracle' ? c.def.name.toUpperCase() : c.def.name) : src(k.span), label: c?.def.label, type: c ? c.def.type : 'expr' });
+      groupCols.push({ key: `g${i}`, header: c ? hdr(c.def, d) : src(k.span), label: c?.def.label, type: c ? c.def.type : 'expr' });
     });
     aggs.forEach((a, i) => groupCols.push({ key: `a${i}`, header: d === 'oracle' ? oracleHeader(src(a.span)) : src(a.span), type: 'expr' }));
 
@@ -1034,7 +1459,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
       for (const c of it.starTable ? scope.filter((x) => !x.virtual) : starCols) {
         if (it.starTable && c.qualifier.toLowerCase() !== it.starTable.toLowerCase()) continue;
         const gk = grouped ? keyExprs.findIndex((k) => k.t === 'col' && E.resolve(k, 'group statement').idx === c.idx) : -1;
-        outCols.push({ key: uniq(gk >= 0 ? `g${gk}` : `c${c.idx}`), header: d === 'oracle' ? c.def.name.toUpperCase() : c.def.name, label: c.def.label, type: c.def.type });
+        outCols.push({ key: uniq(gk >= 0 ? `g${gk}` : `c${c.idx}`), header: hdr(c.def, d), label: c.def.label, type: c.def.type });
         getters.push((cx) => cx.cells[c.idx]);
         aliases.push(undefined);
       }
@@ -1045,8 +1470,9 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     const text = src(e.span);
     const gk = grouped ? keyExprs.findIndex((k) => E.same(k, e)) : -1;
     const ak = grouped ? aggs.findIndex((a) => E.same(a, e)) : -1;
-    if (e.t === 'col') {
-      const c = E.resolve(e, 'field list');
+    const own = e.t === 'col' ? E.resolve(e, 'field list') : undefined;
+    if (e.t === 'col' && own && !own.outerEnv) {
+      const c = own;
       const header = alias ?? (d === 'oracle' ? (e.quoted ? e.name : e.name.toUpperCase()) : e.name);
       outCols.push({ key: uniq(gk >= 0 ? `g${gk}` : `c${c.idx}`), header, label: alias ? undefined : c.def.label, type: c.def.type });
       getters.push((cx) => cx.cells[c.idx]);
@@ -1110,7 +1536,8 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
       if (grouped) mustBeGrouped(e, 'order clause', n + 1, 'ORDER BY clause');
       const gk = grouped ? keyExprs.findIndex((k) => E.same(k, e)) : -1;
       const ak = grouped ? aggs.findIndex((a) => E.same(a, e)) : -1;
-      const want = gk >= 0 ? `g${gk}` : ak >= 0 ? `a${ak}` : e.t === 'col' ? `c${E.resolve(e, 'order clause').idx}` : undefined;
+      const oc = e.t === 'col' ? E.resolve(e, 'order clause') : undefined;
+      const want = gk >= 0 ? `g${gk}` : ak >= 0 ? `a${ak}` : oc && !oc.outerEnv ? `c${oc.idx}` : undefined;
       const visible = want ? outCols.find((c) => c.key === want)?.key : undefined;
       return { ...base, get: (r) => E.ev(e, unitById.get(r.id)!.cx), col: visible };
     });
@@ -1174,5 +1601,6 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     run: byRun.indexOf(c),
   }));
 
-  return { dialect: d, sql, clauses, focus: E.focus(), steps, result };
+  const derived = [fromRef, ...plan.map((j) => j.ref)].some((r) => r?.sub);
+  return { dialect: d, sql, clauses, focus: E.focus(), steps, result, ...(derived || E.correlated ? { partial: true } : {}) };
 }

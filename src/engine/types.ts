@@ -45,6 +45,8 @@ export interface ColumnDef {
   scale?: number;
   /** Giá trị mặc định, viết như trong SQL: "'x'", '5', 'CURRENT_TIMESTAMP'. */
   default?: string;
+  /** Chỉ engine dùng: tên column của subquery trong FROM hay khối WITH ở Oracle, giữ đúng chữ hoa chữ thường. */
+  exact?: boolean;
 }
 
 /** Luật của table. Mỗi luật có tên, và tên đó hiện trong thông báo lỗi. */
@@ -71,6 +73,8 @@ export interface TableDef {
   constraints?: ConstraintDef[];
   /** Số AUTO_INCREMENT hoặc identity sẽ cấp tiếp theo. Không có thì lấy số lớn nhất đang có cộng 1. */
   autoInc?: number;
+  /** Chỉ engine dùng: row đã nạp sẵn của subquery trong FROM hay khối WITH. Không có trong database của người học. */
+  loaded?: Value[][];
 }
 
 /** Sequence của Oracle. */

@@ -15,7 +15,7 @@ export type SelectResult = { ok: true; result: ResultSet; trace: Trace } | { ok:
 export function run(sql: string, db: Database, dialect: Dialect): SelectResult {
   try {
     const stmt = parse(sql, dialect);
-    if (stmt.t !== 'select') {
+    if (stmt.t !== 'select' && stmt.t !== 'setop') {
       const err = unsupported('', { s: 0, e: sql.length });
       err.hint = 'select-only';
       err.friendly = friendly['select-only']({});
@@ -43,6 +43,7 @@ export type { SchemaSpec, TableSpec, ColumnSpec, Probe, SchemaCheck, SchemaRepor
 export type { SchemaView, SchemaTable, SchemaColumn, SchemaSequence } from './schema-view';
 export { splitStatements } from './split';
 export type { Piece } from './split';
+export type { Query, SetStmt } from './ast';
 export type { ResultSet, Trace, TraceStep, TraceClause, TraceCol, TraceRow } from './trace';
 export type { Database, Dialect, Value, TableDef, ColumnDef, ColumnType, ConstraintDef, SequenceDef } from './types';
 export { show, showQuoted, toText } from './values';

@@ -16,14 +16,18 @@ export type Expr =
   | { t: 'bin'; op: BinOp; l: Expr; r: Expr; span: Span; opSpan: Span }
   | { t: 'isnull'; e: Expr; not: boolean; span: Span }
   | { t: 'in'; e: Expr; list: Expr[]; not: boolean; span: Span }
-  | { t: 'insub'; e: Expr; q: SelectStmt; not: boolean; span: Span }
+  | { t: 'insub'; e: Expr; q: Query; not: boolean; span: Span }
+  /** `EXISTS (subquery)`. NOT EXISTS là `unary NOT` bọc ngoài. */
+  | { t: 'exists'; q: Query; span: Span }
+  /** `e op ANY|SOME|ALL (subquery)`. `word` là chữ người học viết: ANY, SOME hoặc ALL. */
+  | { t: 'quant'; op: CompareOp; quant: 'any' | 'all'; word: string; e: Expr; q: Query; span: Span; opSpan: Span }
   | { t: 'between'; e: Expr; lo: Expr; hi: Expr; not: boolean; span: Span }
   | { t: 'like'; e: Expr; pat: Expr; not: boolean; span: Span }
   /** `star` là COUNT(*). `distinct` là COUNT(DISTINCT x). `unit` là EXTRACT(unit FROM x). */
   | { t: 'fn'; name: string; args: Expr[]; star?: boolean; distinct?: boolean; unit?: string; bare?: boolean; span: Span; nameSpan: Span }
   | { t: 'case'; operand?: Expr; whens: { when: Expr; then: Expr }[]; else?: Expr; span: Span }
   /** Scalar subquery: một query trong ngoặc trả về đúng một giá trị. */
-  | { t: 'sub'; q: SelectStmt; span: Span }
+  | { t: 'sub'; q: Query; span: Span }
   /** `seq.NEXTVAL`, `seq.CURRVAL` của Oracle. */
   | { t: 'seq'; seq: string; which: 'NEXTVAL' | 'CURRVAL'; span: Span; seqSpan: Span }
   /** Từ khóa DEFAULT đứng thay một giá trị trong INSERT hay UPDATE. */
@@ -47,7 +51,10 @@ export interface OrderItem {
 }
 
 export interface TableRef {
+  /** Với subquery trong FROM: bằng alias (rỗng nếu Oracle không có alias). */
   table: string;
+  /** Subquery trong FROM: `FROM (SELECT ...) alias`. */
+  sub?: Query;
   quoted?: boolean;
   alias?: string;
   /** MySQL: chữ FULL đứng ngay sau table, trước JOIN, bị đọc thành alias. */
@@ -70,8 +77,19 @@ export interface Join {
 
 export type ClauseKind = 'SELECT' | 'FROM' | 'WHERE' | 'GROUP BY' | 'HAVING' | 'ORDER BY' | 'LIMIT' | 'FETCH';
 
+/** Một khối của WITH: `ten [(column, ...)] AS (query)`. */
+export interface Cte {
+  name: string;
+  nameSpan: Span;
+  columns?: { name: string; span: Span }[];
+  q: Query;
+  span: Span;
+}
+
 export interface SelectStmt {
   t: 'select';
+  /** WITH đứng trước query này. */
+  with?: Cte[];
   distinct: boolean;
   items: SelectItem[];
   from?: TableRef;
@@ -86,13 +104,32 @@ export interface SelectStmt {
   span: Span;
 }
 
+/** Ghép kết quả hai query: UNION, UNION ALL, INTERSECT, EXCEPT (MySQL), MINUS (Oracle). ORDER BY và LIMIT ở đây áp cho cả kết quả. */
+export interface SetStmt {
+  t: 'setop';
+  with?: Cte[];
+  op: 'union' | 'union all' | 'intersect' | 'except';
+  /** Chữ người học viết: UNION, UNION ALL, INTERSECT, EXCEPT hoặc MINUS. */
+  word: string;
+  left: Query;
+  right: Query;
+  orderBy?: OrderItem[];
+  limit?: SelectStmt['limit'];
+  /** Chỉ gồm ORDER BY và LIMIT hoặc FETCH đứng cuối. */
+  clauses: SelectStmt['clauses'];
+  span: Span;
+  opSpan: Span;
+}
+
+export type Query = SelectStmt | SetStmt;
+
 export interface InsertStmt {
   t: 'insert';
   table: TableRef;
   columns?: { name: string; span: Span }[];
   rows: { values: Expr[]; span: Span }[];
   /** INSERT ... SELECT: lấy row từ một câu SELECT thay cho VALUES. */
-  select?: SelectStmt;
+  select?: Query;
   span: Span;
 }
 
@@ -220,6 +257,7 @@ export interface DropSequenceStmt {
 
 export type Statement =
   | SelectStmt
+  | SetStmt
   | InsertStmt
   | UpdateStmt
   | DeleteStmt

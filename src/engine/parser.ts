@@ -6,6 +6,7 @@ import {
   type BinOp,
   type ClauseKind,
   type ColumnSpec,
+  type CastType,
   type CompareOp,
   type ConstraintSpec,
   type Cte,
@@ -43,7 +44,12 @@ const STOP = new Set([
 const CLAUSE_WORDS = new Set(['SELECT', 'FROM', 'WHERE', 'GROUP', 'HAVING', 'ORDER', 'LIMIT', 'OFFSET', 'FETCH']);
 const JOIN_WORDS = new Set(['JOIN', 'INNER', 'LEFT', 'RIGHT', 'FULL', 'CROSS', 'NATURAL']);
 /** Chữ dùng được như một giá trị mà không cần ngoặc. */
-const BARE = new Set(['SYSDATE', 'CURRENT_DATE', 'CURRENT_TIMESTAMP', 'ROWNUM']);
+const BARE = new Set(['SYSDATE', 'SYSTIMESTAMP', 'CURRENT_DATE', 'CURRENT_TIMESTAMP', 'ROWNUM']);
+
+const INTERVAL_UNITS = new Set(['SECOND', 'MINUTE', 'HOUR', 'DAY', 'WEEK', 'MONTH', 'QUARTER', 'YEAR']);
+const INTERVAL_OTHER = new Set(['MICROSECOND', 'SECOND_MICROSECOND', 'MINUTE_MICROSECOND', 'MINUTE_SECOND', 'HOUR_MICROSECOND', 'HOUR_SECOND', 'HOUR_MINUTE', 'DAY_MICROSECOND', 'DAY_SECOND', 'DAY_MINUTE', 'DAY_HOUR', 'YEAR_MONTH']);
+/** Data type MySQL có thật nhưng khóa học chưa dạy trong CAST. */
+const CAST_OTHER = new Set(['TIME', 'JSON', 'BINARY', 'NCHAR', 'YEAR', 'REAL', 'POINT']);
 
 /** Data type trong CREATE TABLE: tên, loại của engine, và dialect nào có. */
 const TYPES: Record<string, { type: ColumnType; only?: Dialect; use?: string }> = {
@@ -306,12 +312,33 @@ class Parser {
       open('GROUP BY', g.s);
       this.ctx = 'GROUP BY';
       const list: Expr[] = [];
+      let rollup = 0;
       for (;;) {
+        if (this.isW('ROLLUP') && this.isOp('(', this.peek())) {
+          // Oracle: ROLLUP(a, b) đứng cuối GROUP BY. MySQL không có cách viết này.
+          if (this.d === 'mysql') throw this.fail('00933', 'rollup-in-mysql', {}, this.peek());
+          this.i += 2;
+          for (;;) {
+            list.push(this.expr());
+            rollup++;
+            this.ctx = ',';
+            if (!this.eatOp(',')) break;
+          }
+          if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+          if (this.isOp(',')) throw unsupported('ROLLUP đứng giữa GROUP BY', this.at());
+          break;
+        }
         list.push(this.expr());
         this.ctx = ',';
         if (!this.eatOp(',')) break;
       }
+      if (this.isW('WITH') && this.isW('ROLLUP', this.peek())) {
+        if (this.d === 'oracle') throw this.fail('00933', 'rollup-in-oracle');
+        this.i += 2;
+        rollup = list.length;
+      }
       stmt.groupBy = list;
+      if (rollup > 0) stmt.rollup = rollup;
       close();
     }
     if (this.isW('HAVING')) {
@@ -328,6 +355,30 @@ class Parser {
     return stmt;
   }
 
+  /** Các mục sau ORDER BY: `expr [ASC|DESC] [NULLS FIRST|LAST]`, cách nhau bằng dấu phẩy. */
+  private orderList(): OrderItem[] {
+    const list: OrderItem[] = [];
+    for (;;) {
+      const s = this.tok.s;
+      if (list.length > 0) this.ctx = ',';
+      const e = this.expr();
+      let desc = false;
+      if (this.eatW('DESC')) desc = true;
+      else this.eatW('ASC');
+      let nulls: OrderItem['nulls'];
+      if (this.isW('NULLS')) {
+        if (this.d === 'mysql') throw this.fail('00933', 'nulls-in-mysql');
+        this.i++;
+        if (this.eatW('FIRST')) nulls = 'FIRST';
+        else if (this.eatW('LAST')) nulls = 'LAST';
+        else throw this.fail('00905', 'missing-keyword', { kw: 'FIRST hoặc LAST' });
+      }
+      list.push({ e, desc, nulls, span: { s, e: this.prev.e } });
+      if (!this.eatOp(',')) break;
+    }
+    return list;
+  }
+
   /** ORDER BY, rồi LIMIT hoặc FETCH FIRST. Ghi vào `target`. */
   private orderLimit(
     target: { orderBy?: OrderItem[]; limit?: SelectStmt['limit'] },
@@ -340,25 +391,7 @@ class Parser {
       if (!this.eatW('BY')) throw this.fail('00924', 'missing-by', { kw: 'ORDER' });
       open('ORDER BY', o.s);
       this.ctx = 'ORDER BY';
-      const list: OrderItem[] = [];
-      for (;;) {
-        const s = this.tok.s;
-        if (list.length > 0) this.ctx = ',';
-        const e = this.expr();
-        let desc = false;
-        if (this.eatW('DESC')) desc = true;
-        else this.eatW('ASC');
-        let nulls: OrderItem['nulls'];
-        if (this.isW('NULLS')) {
-          if (this.d === 'mysql') throw this.fail('00933', 'nulls-in-mysql');
-          this.i++;
-          if (this.eatW('FIRST')) nulls = 'FIRST';
-          else if (this.eatW('LAST')) nulls = 'LAST';
-          else throw this.fail('00905', 'missing-keyword', { kw: 'FIRST hoặc LAST' });
-        }
-        list.push({ e, desc, nulls, span: { s, e: this.prev.e } });
-        if (!this.eatOp(',')) break;
-      }
+      const list = this.orderList();
       target.orderBy = list;
       close();
     }
@@ -715,13 +748,41 @@ class Parser {
     }
   }
 
+  /** Phần sau chữ INTERVAL: `số đơn_vị`. */
+  private interval(): { n: Expr; unit: string } {
+    const n = this.add();
+    const u = this.tok;
+    if (u.type !== 'word') throw this.fail('00907', 'bad-interval-unit', { name: u.text || 'đơn vị' }, u);
+    if (INTERVAL_OTHER.has(u.value)) throw unsupported(`đơn vị ${u.value} của INTERVAL`, this.at(u));
+    if (!INTERVAL_UNITS.has(u.value)) throw this.fail('00907', 'bad-interval-unit', { name: u.text }, u);
+    this.i++;
+    return { n, unit: u.value };
+  }
+
   private add(): Expr {
-    let l = this.mul();
+    let l: Expr;
+    if (this.d === 'mysql' && this.isW('INTERVAL') && !this.isOp('(', this.peek())) {
+      // INTERVAL n unit + ngày
+      const t = this.tok;
+      this.i++;
+      const iv = this.interval();
+      if (!this.isOp('+')) throw this.fail('00933', 'call-shape', { name: 'INTERVAL', shape: 'INTERVAL số đơn vị + ngày' });
+      this.i++;
+      this.ctx = '+';
+      const r = this.mul();
+      l = { t: 'fn', name: 'DATE_ADD', args: [r, iv.n], unit: iv.unit, span: { s: t.s, e: r.span.e }, nameSpan: { s: t.s, e: t.e } };
+    } else l = this.mul();
     for (;;) {
       const t = this.tok;
       if (this.isOp('+') || this.isOp('-') || (this.d === 'oracle' && this.isOp('||'))) {
         this.i++;
         this.ctx = t.text;
+        if (this.d === 'mysql' && this.isW('INTERVAL') && !this.isOp('(', this.peek())) {
+          this.i++;
+          const iv = this.interval();
+          l = { t: 'fn', name: t.value === '+' ? 'DATE_ADD' : 'DATE_SUB', args: [l, iv.n], unit: iv.unit, span: { s: l.span.s, e: this.prev.e }, nameSpan: { s: t.s, e: t.e } };
+          continue;
+        }
         l = this.bin(t.value as BinOp, l, this.mul(), t);
       } else return l;
     }
@@ -860,7 +921,45 @@ class Parser {
       if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
       return { t: 'fn', name, args: [arg], unit: u.value, span: { s: nameTok.s, e: this.prev.e }, nameSpan };
     }
-    if (name === 'CAST' || name === 'CONVERT') throw unsupported(name, nameSpan);
+    const done = (): { s: number; e: number } => ({ s: nameTok.s, e: this.prev.e });
+    const shape = (text: string) => this.fail('00907', 'call-shape', { name, shape: text });
+    if (name === 'CAST' || (name === 'CONVERT' && this.d === 'mysql')) {
+      this.ctx = `${name}(`;
+      const arg = this.expr();
+      if (name === 'CAST' ? !this.eatW('AS') : !this.eatOp(',')) throw shape(name === 'CAST' ? 'CAST(giá trị AS data type)' : 'CONVERT(giá trị, data type)');
+      const type = this.castType();
+      if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+      return { t: 'fn', name, args: [arg], cast: type, span: done(), nameSpan };
+    }
+    if (name === 'POSITION') {
+      const sub = this.add();
+      if (!this.eatW('IN')) throw shape('POSITION(chuỗi con IN chuỗi)');
+      const str = this.expr();
+      if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+      return { t: 'fn', name, args: [sub, str], span: done(), nameSpan };
+    }
+    if (name === 'DATE_ADD' || name === 'DATE_SUB') {
+      const form = `${name}(ngày, INTERVAL số đơn vị)`;
+      const date = this.expr();
+      if (!this.eatOp(',') || !this.eatW('INTERVAL')) throw shape(form);
+      const iv = this.interval();
+      if (!this.eatOp(')')) throw shape(form);
+      return { t: 'fn', name, args: [date, iv.n], unit: iv.unit, span: done(), nameSpan };
+    }
+    if (name === 'TIMESTAMPDIFF') {
+      const form = 'TIMESTAMPDIFF(đơn vị, ngày đầu, ngày cuối)';
+      const u = this.tok;
+      if (u.type !== 'word') throw shape(form);
+      if (INTERVAL_OTHER.has(u.value)) throw unsupported(`đơn vị ${u.value} của TIMESTAMPDIFF`, this.at(u));
+      if (!INTERVAL_UNITS.has(u.value)) throw this.fail('00907', 'bad-interval-unit', { name: u.text }, u);
+      this.i++;
+      if (!this.eatOp(',')) throw shape(form);
+      const a = this.expr();
+      if (!this.eatOp(',')) throw shape(form);
+      const b = this.expr();
+      if (!this.eatOp(')')) throw shape(form);
+      return { t: 'fn', name, args: [a, b], unit: u.value, span: done(), nameSpan };
+    }
     const args: Expr[] = [];
     let star = false;
     let distinct = false;
@@ -876,10 +975,87 @@ class Parser {
         this.ctx = ',';
         if (!this.eatOp(',')) break;
       }
+      let within: OrderItem[] | undefined;
+      let sep: string | undefined;
+      if (name === 'GROUP_CONCAT') {
+        if (this.eatW('ORDER')) {
+          this.needW('BY', '00924');
+          within = this.orderList();
+        }
+        if (this.eatW('SEPARATOR')) {
+          if (this.tok.type !== 'str') throw shape("GROUP_CONCAT(column SEPARATOR 'chuỗi nối')");
+          sep = this.tok.value;
+          this.i++;
+        }
+      }
+      if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+      if (within || sep !== undefined) return { t: 'fn', name, args, distinct: distinct || undefined, within, sep, span: done(), nameSpan };
+    }
+    // LISTAGG(x, ',') WITHIN GROUP (ORDER BY ...)
+    let within: OrderItem[] | undefined;
+    if (name === 'LISTAGG' && this.eatW('WITHIN')) {
+      this.needW('GROUP');
+      if (!this.eatOp('(')) throw this.fail('00906', 'missing-keyword', { kw: '(' });
+      this.needW('ORDER', '00924');
+      this.needW('BY', '00924');
+      within = this.orderList();
       if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
     }
     if (this.isW('OVER')) throw unsupported('window function', this.at());
-    return { t: 'fn', name, args, star: star || undefined, distinct: distinct || undefined, span: { s: nameTok.s, e: this.prev.e }, nameSpan };
+    return { t: 'fn', name, args, star: star || undefined, distinct: distinct || undefined, within, span: { s: nameTok.s, e: this.prev.e }, nameSpan };
+  }
+
+  /** Số trong ngoặc của data type: `(p)` hay `(p, s)`. */
+  private typeArgs(max: 1 | 2): number[] {
+    const out: number[] = [];
+    if (!this.eatOp('(')) return out;
+    for (;;) {
+      const t = this.tok;
+      if (t.type !== 'num' || !/^\d+$/.test(t.text)) throw this.fail('00907', 'missing-expression', { after: '(' });
+      this.i++;
+      out.push(Number(t.text));
+      if (out.length < max && this.eatOp(',')) continue;
+      break;
+    }
+    if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+    return out;
+  }
+
+  /** Data type đích của CAST, theo từng dialect. */
+  private castType(): CastType {
+    const t = this.tok;
+    const bad = (): SqlError => this.fail('00902', this.d === 'mysql' ? 'bad-cast-type-mysql' : 'bad-cast-type-oracle', { name: t.type === 'word' ? t.text : 'này' }, t);
+    if (t.type !== 'word') throw bad();
+    this.i++;
+    const w = t.value;
+    if (this.d === 'mysql') {
+      if (w === 'SIGNED' || w === 'UNSIGNED') {
+        if (!this.eatW('INTEGER')) this.eatW('INT');
+        return { kind: w === 'SIGNED' ? 'signed' : 'unsigned' };
+      }
+      if (w === 'DECIMAL') {
+        const [p, s] = this.typeArgs(2);
+        return { kind: 'decimal', p, s };
+      }
+      if (w === 'CHAR') return { kind: 'char', n: this.typeArgs(1)[0] };
+      if (w === 'DATE') return { kind: 'date' };
+      if (w === 'DATETIME') return { kind: 'datetime' };
+      if (w === 'DOUBLE' || w === 'FLOAT') return { kind: 'double' };
+      if (CAST_OTHER.has(w)) throw unsupported(`CAST sang ${w}`, this.at(t));
+      throw bad();
+    }
+    if (w === 'NUMBER' || w === 'DECIMAL' || w === 'NUMERIC') {
+      const [p, s] = this.typeArgs(2);
+      return { kind: 'number', p, s: s ?? (p === undefined ? undefined : 0) };
+    }
+    if (w === 'INTEGER' || w === 'INT') return { kind: 'number', p: 38, s: 0 };
+    if (w === 'VARCHAR2' || w === 'VARCHAR' || w === 'CHAR') {
+      if (!this.isOp('(')) throw this.fail('00906', 'missing-keyword', { kw: '(' });
+      const n = this.typeArgs(1)[0];
+      return { kind: 'text', n };
+    }
+    if (w === 'DATE' || w === 'TIMESTAMP') return { kind: 'date' };
+    throw bad();
   }
 
   /* ---------- table và các lệnh sửa dữ liệu ---------- */

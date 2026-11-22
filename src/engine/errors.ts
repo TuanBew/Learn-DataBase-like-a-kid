@@ -59,6 +59,7 @@ const ORA: Record<string, string> = {
   '00927': 'missing equal sign',
   '00928': 'missing SELECT keyword',
   '00933': 'SQL command not properly ended',
+  '00932': 'inconsistent datatypes',
   '00934': 'group function is not allowed here',
   '00936': 'missing expression',
   '00937': 'not a single-group group function',
@@ -67,6 +68,7 @@ const ORA: Record<string, string> = {
   '00955': 'name is already used by an existing object',
   '00957': 'duplicate column name',
   '00971': 'missing SET keyword',
+  '00975': 'date + date not allowed',
   '00979': 'not a GROUP BY expression',
   '01400': 'cannot insert NULL',
   '32795': 'cannot insert into a generated always identity column',
@@ -92,14 +94,19 @@ const ORA: Record<string, string> = {
   '01442': 'column to be modified to NOT NULL is already NOT NULL',
   '01449': 'column contains NULL values; cannot alter to NOT NULL',
   '01451': 'column to be modified to NULL cannot be modified to NULL',
+  '01426': 'numeric overflow',
   '01476': 'divisor is equal to zero',
+  '01481': 'invalid number format model',
+  '01489': 'result of string concatenation is too long',
   '01722': 'invalid number',
   '01727': 'numeric precision specifier is out of range (1 to 38)',
   '01728': 'numeric scale specifier is out of range (-84 to 127)',
   '01735': 'invalid ALTER TABLE option',
   '01756': 'quoted string not properly terminated',
   '01758': 'table must be empty to add mandatory (NOT NULL) column',
+  '01846': 'not a valid day of the week',
   '01861': 'literal does not match format string',
+  '01899': 'bad precision specifier',
   '02256': 'number of referencing columns must match referenced columns',
   '02260': 'table can have only one primary key',
   '02261': 'such unique or primary key already exists in the table',
@@ -205,6 +212,11 @@ export function runtimeError(
     return new SqlError('runtime', mysql[0], `ERROR ${mysql[0]} (${mysql[1]}): ${mysql[2]}`, hint, say(hint, p), span);
   }
   return new SqlError('runtime', `ORA-${ora}`, oraMessage(ora), hint, say(hint, p), span);
+}
+
+/** Lỗi lúc chạy của Oracle có phần chữ riêng, ví dụ ORA-01428 nhắc tới giá trị gây lỗi. */
+export function oraFail(code: string, text: string, hint: string, p: Params, span: Span): SqlError {
+  return new SqlError('runtime', `ORA-${code}`, `ORA-${code}: ${text}`, hint, say(hint, p), span);
 }
 
 /** Phần nằm ngoài khóa học. Không có mã lỗi thật vì DBMS thật vẫn chạy được. */

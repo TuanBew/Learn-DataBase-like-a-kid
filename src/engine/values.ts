@@ -22,16 +22,36 @@ export function parseIsoDate(s: string): SqlDate | null {
   return { kind: 'date', iso: h === undefined ? `${y}-${mo}-${d}` : `${y}-${mo}-${d} ${h}:${mi}:${se ?? '00'}` };
 }
 
-/** Đổi sang số theo luật của từng dialect. MySQL dễ tính, Oracle báo ORA-01722. */
+/** Cảnh báo của MySQL (SHOW WARNINGS). Gom trong lúc một query chạy, mỗi câu chỉ ghi một lần. */
+export interface Warning {
+  code: number;
+  message: string;
+}
+let pending: Warning[] = [];
+export const resetWarnings = (): void => {
+  pending = [];
+};
+export const warn = (code: number, message: string): void => {
+  if (pending.length < 20 && !pending.some((w) => w.code === code && w.message === message)) pending.push({ code, message });
+};
+export const peekWarnings = (): Warning[] => [...pending];
+
+const MYSQL_NUMBER = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?/;
+const ORACLE_NUMBER = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+
+/** Đổi sang số theo luật của từng dialect. MySQL dễ tính (kèm cảnh báo), Oracle báo ORA-01722. */
 export function toNumber(v: Value, d: Dialect, span: Span): number | null {
   if (v === null) return null;
   if (typeof v === 'number') return v;
   if (typeof v === 'boolean') return v ? 1 : 0;
   if (typeof v === 'string') {
     const t = v.trim();
-    if (/^[+-]?(\d+\.?\d*|\.\d+)$/.test(t)) return Number(t);
-    if (d === 'oracle') throw runtimeError(d, ['1292', '22007', ''], '01722', span, 'invalid-number', { text: v });
-    const m = /^[+-]?(\d+\.?\d*|\.\d+)/.exec(t);
+    if (d === 'oracle') {
+      if (ORACLE_NUMBER.test(t)) return Number(t);
+      throw runtimeError(d, ['1292', '22007', ''], '01722', span, 'invalid-number', { text: v });
+    }
+    const m = MYSQL_NUMBER.exec(t);
+    if (!m || m[0].length !== t.length) warn(1292, `Truncated incorrect DOUBLE value: '${v}'`);
     return m ? Number(m[0]) : 0;
   }
   if (d === 'oracle') throw runtimeError(d, ['1292', '22007', ''], '01722', span, 'invalid-number', { text: v.iso });

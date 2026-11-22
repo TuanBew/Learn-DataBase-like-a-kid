@@ -5,6 +5,7 @@ import {
   type Span,
   SqlError,
   nearest,
+  oraFail,
   oraMessage,
   runtimeError,
   syntaxError,
@@ -13,10 +14,10 @@ import {
   unknownTable,
   unsupported,
 } from './errors';
-import { FUNCTIONS, type FnEnv, addDays, diffDays, extract } from './functions';
+import { FUNCTIONS, type FnEnv, addDays, arityOf, castValue, diffDays, extract } from './functions';
 import { didYouMean, friendly, reason } from './messages.vi';
 import type { ResultSet, Trace, TraceCol, TraceRow, TraceStep } from './trace';
-import { arith, compare, isDate, keyOf, like, norm, parseIsoDate, show, showQuoted, toNumber, toText } from './values';
+import { arith, compare, isDate, keyOf, like, norm, parseIsoDate, peekWarnings, resetWarnings, show, showQuoted, toNumber, toText, warn } from './values';
 
 type ColExpr = Extract<Expr, { t: 'col' }>;
 type FnExpr = Extract<Expr, { t: 'fn' }>;
@@ -54,6 +55,8 @@ export interface Cx {
   cells: Value[];
   group?: Value[][];
   rownum?: number;
+  /** Dòng tổng của ROLLUP: các key này đã được cuộn lên, nên mang giá trị NULL. */
+  nullKeys?: Expr[];
 }
 
 export const DUAL: TableDef = { name: 'DUAL', columns: [{ name: 'DUMMY', type: 'text' }], rows: [['X']] };
@@ -333,17 +336,37 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
         if (!parseIsoDate(e.v)) throw runtimeError(d, ['1525', 'HY000', `Incorrect DATE value: '${e.v}'`], '01861', e.span, 'date-literal-oracle', { text: e.v });
         return;
       case 'fn': {
+        if (e.name === 'GROUPING') {
+          if (agg === 'no') {
+            const p = { name: e.name, where: where === 'where clause' ? 'WHERE' : where === 'on clause' ? 'ON' : 'chỗ này' };
+            if (d === 'mysql') throw new SqlError('syntax', '1111', 'ERROR 1111 (HY000): Invalid use of group function', 'agg-not-allowed', friendly['agg-not-allowed'](p), e.span);
+            throw new SqlError('syntax', 'ORA-00934', oraMessage('00934'), 'agg-not-allowed', friendly['agg-not-allowed'](p), e.span);
+          }
+          if (e.args.length < 1) throw syntaxError(d, sql, { s: e.span.e - 1, e: e.span.e }, '00909', 'arg-count', { name: e.name, need: '1 trở lên', got: 0 });
+          e.args.forEach((x) => check(x, where, 'inside'));
+          return;
+        }
         if (AGGREGATES.has(e.name)) {
+          const own = e.name === 'GROUP_CONCAT' ? 'mysql' : e.name === 'LISTAGG' ? 'oracle' : undefined;
+          if (own && own !== d) {
+            const use = own === 'mysql' ? 'LISTAGG(column, \'chuỗi nối\') WITHIN GROUP (ORDER BY ...)' : "GROUP_CONCAT(column SEPARATOR 'chuỗi nối')";
+            throw unknownFunction(d, db.name, e.name, e.nameSpan, 'function-other-dialect', { name: e.name, other: DIALECT_NAME[own], dialect: DIALECT_NAME[d], use });
+          }
           if (agg === 'inside') throw unsupported('function gom lồng trong function gom', e.span);
           if (agg === 'no') {
             const p = { name: e.name, where: where === 'where clause' ? 'WHERE' : where === 'on clause' ? 'ON' : 'chỗ này' };
             if (d === 'mysql') throw new SqlError('syntax', '1111', 'ERROR 1111 (HY000): Invalid use of group function', 'agg-not-allowed', friendly['agg-not-allowed'](p), e.span);
             throw new SqlError('syntax', 'ORA-00934', oraMessage('00934'), 'agg-not-allowed', friendly['agg-not-allowed'](p), e.span);
           }
-          if ((e.star && e.name !== 'COUNT') || (!e.star && e.args.length !== 1)) {
-            throw runtimeError(d, ['1064', '42000', 'You have an error in your SQL syntax'], '00909', e.span, 'arg-count', { name: e.name, need: '1', got: e.star ? '*' : e.args.length });
+          const [lo, hi] = e.name === 'GROUP_CONCAT' ? [1, 99] : e.name === 'LISTAGG' ? [1, 2] : [1, 1];
+          if ((e.star && e.name !== 'COUNT') || (!e.star && (e.args.length < lo || e.args.length > hi))) {
+            const need = lo === hi ? String(lo) : `${lo} tới ${hi}`;
+            if (d === 'mysql') throw syntaxError(d, sql, { s: e.span.e - 1, e: e.span.e }, '00909', 'arg-count', { name: e.name, need, got: e.star ? '*' : e.args.length });
+            throw runtimeError(d, ['1064', '42000', 'You have an error in your SQL syntax'], '00909', e.span, 'arg-count', { name: e.name, need, got: e.star ? '*' : e.args.length });
           }
+          if (e.name === 'LISTAGG' && !e.within) throw syntaxError(d, sql, { s: e.span.e - 1, e: e.span.e }, '00905', 'listagg-within');
           e.args.forEach((x) => check(x, where, 'inside'));
+          (e.within ?? []).forEach((o) => check(o.e, where, 'inside'));
           return;
         }
         if (e.name === 'EXTRACT') {
@@ -357,6 +380,10 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
         }
         const def = FUNCTIONS[e.name];
         if (!def) throw unknownFunction(d, db.name, e.name, e.nameSpan, 'unknown-function', { name: e.name, dialect: DIALECT_NAME[d] });
+        // Viết không ngoặc mà function của dialect kia: DBMS coi đó là tên column (MySQL 1054, Oracle ORA-00904).
+        if (e.bare && def.only && def.only !== d) {
+          throw unknownColumn(d, e.name, `"${e.name}"`, where, e.span, 'function-other-dialect', { name: e.name, other: DIALECT_NAME[def.only], dialect: DIALECT_NAME[d], use: def.use });
+        }
         if (def.only && def.only !== d) {
           throw unknownFunction(d, db.name, e.name, e.nameSpan, 'function-other-dialect', { name: e.name, other: DIALECT_NAME[def.only], dialect: DIALECT_NAME[d], use: def.use });
         }
@@ -364,12 +391,17 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
           throw unknownColumn(d, e.name, `"${e.name}"`, where, e.span, 'function-other-dialect', { name: e.name, other: 'Oracle', dialect: DIALECT_NAME[d], use: `${e.name}() hoặc NOW()` });
         }
         if (!e.bare && def.bareOnly?.includes(d)) throw syntaxError(d, sql, e.span, '00933', 'no-parens', { name: e.name });
-        const max = e.name === 'CONCAT' && d === 'oracle' ? 2 : def.max;
-        const min = e.name === 'CONCAT' && d === 'oracle' ? 2 : def.min;
+        const [min, max] = arityOf(def, d);
         if (e.args.length < min || e.args.length > max) {
           const hint = e.name === 'CONCAT' && d === 'oracle' ? 'concat-oracle' : 'arg-count';
-          const need = min === max ? String(min) : `${min} tới ${max}`;
-          throw runtimeError(d, ['1582', '42000', `Incorrect parameter count in the call to native function '${e.name}'`], '00909', e.span, hint, { name: e.name, need, got: e.args.length });
+          const need = min === max ? String(min) : max >= 99 ? `${min} trở lên` : `${min} tới ${max}`;
+          const p = { name: e.name, need, got: e.args.length };
+          if (d === 'mysql' && def.syntax) {
+            // Function nằm trong cú pháp của MySQL: sai số tham số là lỗi 1064, tại dấu phẩy thừa hoặc dấu ngoặc đóng.
+            const at = e.args.length > max ? sql.lastIndexOf(',', e.args[max].span.s) : e.span.e - 1;
+            throw syntaxError(d, sql, { s: at, e: at + 1 }, '00909', hint, p);
+          }
+          throw runtimeError(d, ['1582', '42000', `Incorrect parameter count in the call to native function '${e.name}'`], '00909', e.span, hint, p);
         }
         e.args.forEach((x) => check(x, where, agg));
         return;
@@ -387,7 +419,72 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
     return true;
   };
 
+  /** NULL xếp cuối khi giảm dần ở MySQL, và xếp đầu ở Oracle: như ORDER BY. */
+  const sortNull = (x: Value, y: Value, desc: boolean, nulls?: 'FIRST' | 'LAST'): number | undefined => {
+    if (x !== null && y !== null) return undefined;
+    if (x === null && y === null) return 0;
+    const first = nulls ? nulls === 'FIRST' : d === 'mysql' ? !desc : desc;
+    return (x === null) === first ? -1 : 1;
+  };
+
+  /** GROUP_CONCAT (MySQL) và LISTAGG (Oracle). Bỏ row có NULL. Không còn row nào thì ra NULL. */
+  const listAgg = (e: FnExpr, group: Value[][]): Value => {
+    const mysql = e.name === 'GROUP_CONCAT';
+    const parts = mysql ? e.args : e.args.slice(0, 1);
+    let rows = group.map((cells) => ({ cells, vals: parts.map((a) => ev(a, { cells })) })).filter((r) => r.vals.every((v) => v !== null));
+    if (e.distinct) {
+      const seen = new Set<string>();
+      rows = rows.filter((r) => {
+        const k = r.vals.map((v) => keyOf(v, d)).join('\u0001');
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+    }
+    if (e.within?.length) {
+      const keyed = rows.map((r) => ({ r, k: e.within!.map((o) => ev(o.e, { cells: r.cells })) }));
+      keyed.sort((a, b) => {
+        for (let i = 0; i < e.within!.length; i++) {
+          const o = e.within![i];
+          const nc = sortNull(a.k[i], b.k[i], o.desc, o.nulls);
+          if (nc !== undefined) {
+            if (nc !== 0) return nc;
+            continue;
+          }
+          const c = compare(a.k[i], b.k[i], d, e.span) ?? 0;
+          if (c !== 0) return o.desc ? -c : c;
+        }
+        return 0;
+      });
+      rows = keyed.map((x) => x.r);
+    }
+    if (rows.length === 0) return null;
+    const sepVal = mysql ? (e.sep ?? ',') : e.args[1] ? ev(e.args[1], { cells: [] }) : '';
+    const sep = sepVal === null ? '' : toText(sepVal);
+    const texts = rows.map((r) => r.vals.map(toText).join(''));
+    const enc = new TextEncoder();
+    const bytes = (t: string) => enc.encode(t).length;
+    if (mysql) {
+      // group_concat_max_len mặc định là 1024 byte: dài hơn thì cắt và báo cảnh báo 1260.
+      let out = '';
+      for (let i = 0; i < texts.length; i++) {
+        const next = (i === 0 ? '' : sep) + texts[i];
+        if (bytes(out + next) > 1024) {
+          const cut = new TextDecoder().decode(enc.encode(out + next).slice(0, 1024)).replace(/\uFFFD+$/, '');
+          warn(1260, `Row ${i + 1} was cut by GROUP_CONCAT()`);
+          return cut;
+        }
+        out += next;
+      }
+      return out;
+    }
+    const out = texts.join(sep);
+    if (bytes(out) > 4000) throw oraFail('01489', 'result of string concatenation is too long', 'listagg-too-long', {}, e.span);
+    return out;
+  };
+
   const aggregate = (e: FnExpr, group: Value[][]): Value => {
+    if (e.name === 'GROUP_CONCAT' || e.name === 'LISTAGG') return listAgg(e, group);
     if (e.star) return group.length;
     let vals = group.map((cells) => ev(e.args[0], { cells })).filter((v) => v !== null);
     if (e.distinct) {
@@ -419,6 +516,7 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
   };
 
   const ev = (e: Expr, cx: Cx): Value => {
+    if (cx.nullKeys && cx.nullKeys.some((k) => same(k, e))) return null;
     switch (e.t) {
       case 'num':
         return e.v;
@@ -504,7 +602,10 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
           // Oracle: ngày cộng trừ một số là cộng trừ số ngày, ngày trừ ngày ra số ngày.
           if (d === 'oracle' && (e.op === '+' || e.op === '-') && (isDate(a) || isDate(b))) {
             if (a === null || b === null) return null;
-            if (isDate(a) && isDate(b)) return e.op === '-' ? Math.round(diffDays(a, b) * 1e6) / 1e6 : null;
+            if (isDate(a) && isDate(b)) {
+              if (e.op === '+') throw oraFail('00975', 'date + date not allowed', 'date-plus-date', {}, e.span);
+              return Math.round(diffDays(a, b) * 1e6) / 1e6;
+            }
             const date = (isDate(a) ? a : b) as SqlDate;
             const n = toNumber(isDate(a) ? b : a, d, e.span)!;
             return addDays(date, e.op === '-' ? -n : n);
@@ -556,10 +657,13 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
         return r === null ? null : e.not ? !r : r;
       }
       case 'fn': {
+        // GROUPING(a, b): mỗi column đã cuộn lên thành NULL ở dòng tổng cho một bit 1, đọc từ trái sang phải.
+        if (e.name === 'GROUPING') return e.args.reduce<number>((n, a) => n * 2 + (cx.nullKeys?.some((k) => same(k, a)) ? 1 : 0), 0);
         if (AGGREGATES.has(e.name)) return aggregate(e, cx.group ?? []);
         if (e.name === 'ROWNUM') return cx.rownum ?? 1;
         if (e.name === 'EXTRACT') return extract(e.unit ?? '', ev(e.args[0], cx), d, e.span);
-        return norm(FUNCTIONS[e.name].run(e.args.map((a) => ev(a, cx)), d, e.span, env), d);
+        if (e.cast) return norm(castValue(ev(e.args[0], cx), e.cast, d, e.span), d);
+        return norm(FUNCTIONS[e.name].run(e.args.map((a) => ev(a, cx)), d, e.span, env, e.unit), d);
       }
       case 'case': {
         if (e.operand) {
@@ -912,10 +1016,16 @@ function withTables(ctes: Cte[], db: Database, d: Dialect, sql: string, env: FnE
 /** Chạy một query: SELECT, query ghép kết quả, có hay không có WITH. */
 export function execSelect(q: Query, db: Database, d: Dialect, sql: string, env: FnEnv = DEFAULT_ENV, depth = 0, outer?: OuterEnv): Trace {
   try {
+    if (depth === 0) resetWarnings();
     let base = db;
     if (q.with?.length) base = withTables(q.with, db, d, sql, env, depth, outer);
     const tr = q.t === 'select' ? execSelectInner(q, base, d, sql, env, depth, outer) : execSet(q, base, d, sql, env, depth, outer);
     if (q.with?.length) tr.partial = true;
+    // Cảnh báo của MySQL (SHOW WARNINGS) đi kèm kết quả.
+    if (depth === 0 && d === 'mysql') {
+      const w = peekWarnings();
+      if (w.length > 0) tr.result.warnings = w;
+    }
     return tr;
   } catch (err) {
     if (err instanceof SqlError && d === 'mysql' && err.hint === 'unknown-qualifier' && q.t === 'select' && fullAliasUsed(q)) {
@@ -1285,7 +1395,28 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
   const E = makeEvaluator(scope, db, d, sql, env, tableName, depth, outer);
 
   /* ---------- kiểm trước khi chạy ---------- */
-  const keyExprs = stmt.groupBy ?? [];
+  /** MySQL cho GROUP BY viết số thứ tự column trong SELECT, hoặc alias (khi alias không trùng tên column của table). Oracle thì không. */
+  const groupKey = (k: Expr): Expr => {
+    if (d !== 'mysql') return k;
+    if (k.t === 'num' && Number.isInteger(k.v)) {
+      const it = stmt.items[k.v - 1];
+      if (k.v < 1 || !it) throw unknownColumn(d, String(k.v), String(k.v), 'group statement', k.span, 'group-position', { n: k.v, max: stmt.items.length });
+      if (!it.e) throw unsupported('GROUP BY số thứ tự khi SELECT có dấu *', k.span);
+      if (hasAgg(it.e)) throw new SqlError('syntax', '1056', `ERROR 1056 (42000): Can't group on '${src(it.span)}'`, 'group-on-agg', friendly['group-on-agg']({ name: src(it.span) }), k.span);
+      return it.e;
+    }
+    if (k.t !== 'col' || k.table) return k;
+    try {
+      E.resolve(k, 'group statement');
+      return k;
+    } catch (err) {
+      const it = stmt.items.find((x) => x.e && x.alias !== undefined && x.alias.toLowerCase() === k.name.toLowerCase());
+      if (!it?.e) throw err;
+      if (hasAgg(it.e)) throw new SqlError('syntax', '1056', `ERROR 1056 (42000): Can't group on '${k.name}'`, 'group-on-agg', friendly['group-on-agg']({ name: k.name }), k.span);
+      return it.e;
+    }
+  };
+  const keyExprs = (stmt.groupBy ?? []).map(groupKey);
   const grouped = stmt.groupBy !== undefined || stmt.having !== undefined || stmt.items.some((it) => it.e && hasAgg(it.e)) || (stmt.orderBy ?? []).some((o) => hasAgg(o.e));
 
   for (const it of stmt.items) {
@@ -1301,6 +1432,23 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     E.check(whereExpr, 'where clause', 'no');
   }
   keyExprs.forEach((k) => E.check(k, 'group statement', 'no'));
+  // GROUPING(x) chỉ nhận key của GROUP BY, và chỉ có nghĩa khi có GROUP BY.
+  const checkGrouping = (e: Expr): void => {
+    if (e.t === 'fn' && e.name === 'GROUPING') {
+      if (!stmt.groupBy) {
+        if (d === 'mysql') throw new SqlError('syntax', '1111', 'ERROR 1111 (HY000): Invalid use of group function', 'grouping-no-group', friendly['grouping-no-group']({}), e.span);
+        throw new SqlError('name', 'ORA-00979', oraMessage('00979'), 'grouping-no-group', friendly['grouping-no-group']({}), e.span);
+      }
+      e.args.forEach((a, i) => {
+        if (keyExprs.some((k) => E.same(k, a))) return;
+        const p = { name: src(a.span) };
+        if (d === 'mysql') throw new SqlError('name', '3602', `ERROR 3602 (HY000): Argument #${i + 1} of GROUPING function is not in GROUP BY`, 'grouping-not-key', friendly['grouping-not-key'](p), a.span);
+        throw new SqlError('name', 'ORA-00979', oraMessage('00979'), 'grouping-not-key', friendly['grouping-not-key'](p), a.span);
+      });
+    }
+    children(e).forEach(checkGrouping);
+  };
+  [...stmt.items.map((it) => it.e), stmt.having, ...(stmt.orderBy ?? []).map((o) => o.e)].forEach((e) => e && checkGrouping(e));
   if (stmt.having) {
     if (d === 'oracle' && !isCond(stmt.having)) throw syntaxError(d, sql, stmt.having.span, '00920', 'need-condition');
     E.check(stmt.having, 'having clause', 'yes');
@@ -1405,6 +1553,47 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
       }
     }
     const blank = scope.map(() => null);
+    type GroupEntry = { rows: typeof rows; nullKeys: Expr[] };
+    let entries: GroupEntry[] = [...groups.values()].map((g) => ({ rows: g.rows, nullKeys: [] }));
+    const R = stmt.rollup ?? 0;
+    if (R > 0 && stmt.groupBy) {
+      // Dòng tổng: cuộn lần lượt 1, 2, ... R key cuối thành NULL, gộp các nhóm có cùng phần key còn lại.
+      const n = keyExprs.length;
+      const base = entries;
+      const keyOfRow = (r: (typeof rows)[number], upto: number) => keyExprs.slice(0, upto).map((e) => keyOf(E.ev(e, { cells: r.cells }), d)).join('\u0001');
+      for (let j = 1; j <= R; j++) {
+        const merged = new Map<string, GroupEntry>();
+        for (const g of base) {
+          const k = keyOfRow(g.rows[0], n - j);
+          const hit = merged.get(k);
+          if (hit) hit.rows = [...hit.rows, ...g.rows];
+          else merged.set(k, { rows: [...g.rows], nullKeys: keyExprs.slice(n - j) });
+        }
+        entries = [...entries, ...merged.values()];
+      }
+      // Sắp theo key từ trái sang phải. Key đã cuộn lên xếp sau mọi giá trị, nên dòng tổng đứng sau các dòng chi tiết của nó.
+      const sortKey = entries.map((g) => keyExprs.map((e, i) => (i >= n - g.nullKeys.length ? undefined : E.ev(e, { cells: g.rows[0].cells }))));
+      const sortNullKeys = (x: Value, y: Value): number | undefined => (x !== null && y !== null ? undefined : x === null && y === null ? 0 : (x === null) === (d === 'mysql') ? -1 : 1);
+      const order = entries.map((_g, i) => i).sort((a, b) => {
+        for (let i = 0; i < n; i++) {
+          const x = sortKey[a][i];
+          const y = sortKey[b][i];
+          if (x === undefined || y === undefined) {
+            if (x === y) continue;
+            return x === undefined ? 1 : -1;
+          }
+          const nc = sortNullKeys(x, y);
+          if (nc !== undefined) {
+            if (nc !== 0) return nc;
+            continue;
+          }
+          const c = compare(x, y, d, stmt.span) ?? 0;
+          if (c !== 0) return c;
+        }
+        return a - b;
+      });
+      entries = order.map((i) => entries[i]);
+    }
     keyExprs.forEach((k, i) => {
       const c = k.t === 'col' ? E.resolve(k, 'group statement') : null;
       groupCols.push({ key: `g${i}`, header: c ? hdr(c.def, d) : src(k.span), label: c?.def.label, type: c ? c.def.type : 'expr' });
@@ -1412,9 +1601,9 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     aggs.forEach((a, i) => groupCols.push({ key: `a${i}`, header: d === 'oracle' ? oracleHeader(src(a.span)) : src(a.span), type: 'expr' }));
 
     let gi = 0;
-    const traceGroups = [...groups.values()].map((g) => {
+    const traceGroups = entries.map((g) => {
       const cells = g.rows[0]?.cells ?? blank;
-      const cx: Cx = { cells, group: g.rows.map((r) => r.cells) };
+      const cx: Cx = { cells, group: g.rows.map((r) => r.cells), ...(g.nullKeys.length > 0 ? { nullKeys: g.nullKeys } : {}) };
       const keyValues = keyExprs.map((e) => E.ev(e, cx));
       const aggValues = aggs.map((a) => E.ev(a, cx));
       const id = 900000 + gi++;
@@ -1424,6 +1613,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     steps.push({
       kind: 'group',
       implicit: !stmt.groupBy,
+      ...(R > 0 ? { rollup: R } : {}),
       keys: keyExprs.map((k) => src(k.span)),
       aggs: aggs.map((a) => src(a.span)),
       columns: groupCols,
@@ -1475,7 +1665,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
       const c = own;
       const header = alias ?? (d === 'oracle' ? (e.quoted ? e.name : e.name.toUpperCase()) : e.name);
       outCols.push({ key: uniq(gk >= 0 ? `g${gk}` : `c${c.idx}`), header, label: alias ? undefined : c.def.label, type: c.def.type });
-      getters.push((cx) => cx.cells[c.idx]);
+      getters.push((cx) => (cx.nullKeys?.some((k) => E.same(k, e)) ? null : cx.cells[c.idx]));
     } else {
       const key = uniq(gk >= 0 ? `g${gk}` : ak >= 0 ? `a${ak}` : `x${xn++}`);
       // MySQL đặt tiêu đề của một chuỗi đứng riêng bằng chính nội dung chuỗi, không kèm dấu nháy.

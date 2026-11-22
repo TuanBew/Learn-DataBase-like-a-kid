@@ -45,7 +45,7 @@ Mỗi column gõ đúng thì mục tương ứng ở tờ ghi chép sáng xanh. 
 
 Bước 4. Người học gõ nốt hai column còn lại và đóng ngoặc.
 Bi nói: "Column cuối không có dấu phẩy. Gõ xong thì đóng ngoặc và bấm Chạy."
-Vùng phải hiện một thẻ table tên departments. Thẻ có ba tên column và dòng chữ "0 row". Bi nói: "Table có rồi. Chưa có row nào, giống cuốn sổ mới mua."
+Vùng phải hiện một thẻ table tên departments. Thẻ có ba tên column và nhãn "0 row". Bi nói: "Table có rồi. Chưa có row nào, giống cuốn sổ mới mua."
 
 Bước 5. Người học bấm nút "Xem table". Nút này chạy `SELECT * FROM departments`.
 Kết quả hiện ba tên column và không có row nào. Bi nói: "Table rỗng vẫn có tên column. Row sẽ đến ở bài 8."
@@ -140,7 +140,7 @@ CREATE TABLE departments (
 );
 ```
 
-3. Viết cả câu trên một line. DBMS không quan tâm xuống dòng.
+3. Viết cả câu liền nhau, không bấm Enter. DBMS không quan tâm chỗ ngắt.
 
 ```sql
 CREATE TABLE departments (department_id INT, name VARCHAR(50), location VARCHAR(50));
@@ -152,13 +152,13 @@ CREATE TABLE departments (department_id INT, name VARCHAR(50), location VARCHAR(
 create table departments (department_id int, name varchar(50), location varchar(50));
 ```
 
-Bi nói: "Table nào hiện ra cũng rỗng, vì mình chưa nhận row nào. Xuống dòng và chữ hoa chữ thường chỉ để bạn đọc cho dễ."
+Bi nói: "Table nào hiện ra cũng rỗng, vì mình chưa nhận row nào. Chỗ ngắt và chữ hoa chữ thường chỉ để bạn đọc cho dễ."
 
 ## Oracle viết thế này
 
 Oracle khác MySQL ở ba chỗ.
 
-Data type: Oracle dùng NUMBER cho số và VARCHAR2 cho chữ. DATE dùng giống MySQL. Oracle nhận `INT` và `VARCHAR`, nhưng Oracle khuyên viết NUMBER và VARCHAR2. Khóa học dùng NUMBER và VARCHAR2 cho Oracle.
+Data type: Oracle dùng NUMBER cho số và VARCHAR2 cho chữ. DATE dùng giống MySQL. Oracle nhận cả `INT` và `VARCHAR`, nhưng code Oracle ở công ty viết NUMBER và VARCHAR2. Khóa học dùng hai chữ này cho Oracle.
 
 Lưu lệnh: CREATE TABLE ở Oracle tự COMMIT. Bạn không cần gõ thêm COMMIT, và không ROLLBACK lại được.
 
@@ -189,20 +189,20 @@ Mã lỗi: table đã tồn tại thì Oracle báo ORA-00955. Data type sai thì
 **Câu 1.** Câu CREATE TABLE có hai column mà thiếu dấu phẩy giữa chúng. Chuyện gì xảy ra?
 
 - A. Database tạo table với column đầu rồi bỏ qua column sau. Phản hồi: "Không có table nào hiện ra. Câu viết sai thì database không chạy gì cả."
-- B. Database báo lỗi và không tạo table. Đúng. Phản hồi: "Đúng. MySQL báo 1064 và chỉ vào chữ sau chỗ sai."
+- B. Database báo lỗi và không tạo table. [đúng] Phản hồi: "Đúng. MySQL báo 1064 và chỉ vào chữ sau chỗ sai."
 - C. Database tự thêm dấu phẩy. Phản hồi: "Database không đoán ý bạn. Câu sai thì database dừng lại và báo lỗi."
 
 **Câu 2.** Bạn chạy một câu CREATE TABLE departments hai lần liên tiếp. Lần hai ra sao?
 
 - A. Table có hai bản và mỗi bản một nửa dữ liệu. Phản hồi: "Table chưa có row nào, và database không tạo hai table cùng tên."
 - B. Lần hai ghi đè table cũ thành table mới. Phản hồi: "Database không ghi đè. Muốn xóa table cũ, bạn phải có lệnh riêng ở bài 10."
-- C. Lần hai báo lỗi 1050 trên MySQL hoặc ORA-00955 trên Oracle. Đúng. Phản hồi: "Đúng. Table departments đã có từ lần một, nên tên này bị chiếm."
+- C. Lần hai báo lỗi 1050 trên MySQL hoặc ORA-00955 trên Oracle. [đúng] Phản hồi: "Đúng. Table departments đã có từ lần một, nên tên này bị chiếm."
 - D. Lần hai chạy thành công và không đổi gì. Phản hồi: "Lần hai báo lỗi, không im lặng. Database nói rõ tên đã có."
 
 **Câu 3.** Bạn viết `name VARCHR(50)`. Bạn thấy gì?
 
 - A. Database hiểu là VARCHAR và tạo table. Phản hồi: "Database không đoán chữ gõ sai. Data type phải đúng từng chữ."
-- B. Database báo lỗi. MySQL chỉ vào VARCHR, Oracle báo ORA-00902. Đúng. Phản hồi: "Đúng. Đọc lỗi, sửa data type, rồi bấm Chạy lại."
+- B. Database báo lỗi. MySQL chỉ vào VARCHR, Oracle báo ORA-00902. [đúng] Phản hồi: "Đúng. Đọc lỗi, sửa data type, rồi bấm Chạy lại."
 - C. Table hiện ra nhưng column name để trống. Phản hồi: "Câu sai thì không có table nào hiện ra."
 
 ## Bài tập của bài

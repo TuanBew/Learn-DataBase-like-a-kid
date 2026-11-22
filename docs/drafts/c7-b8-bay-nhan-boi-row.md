@@ -2,7 +2,7 @@
 
 Bản nháp chờ duyệt. Chương 7 "Nối table", bài 8. Khoảng 18 phút. Database: `teashop`. Dạy MySQL trước, Oracle ở thẻ riêng. Mọi con số trong bài lấy từ lần chạy thật trên engine của repo.
 
-Lead: Nối một table với hai table khác có thể làm tổng tiền phình to, mà query không báo lỗi nào.
+Lead: Nối một table với hai table khác làm tổng tiền phình to, mà query không báo lỗi.
 
 ## Bạn sẽ học
 
@@ -83,7 +83,7 @@ Gom trước cần một subquery nằm trong FROM. Engine của khóa học s�
 
 Cách sửa thứ hai: tách thành hai query. Một query tính lương, một query đếm đơn. Bạn đặt hai kết quả cạnh nhau. Cách này đơn giản và ít sai nhất.
 
-Quy tắc thực tế: khi một table "một" nối với từ hai table "nhiều" trở lên, hãy tự hỏi row có bị nhân không.
+Quy tắc thực tế: một table "một" nối với hai table "nhiều" thì hỏi ngay xem row có bị nhân không.
 
 ## Thử tay ngay
 
@@ -106,7 +106,7 @@ Kết quả thật: Cầu Giấy 18 row, 165.000.000. Hoàn Kiếm 8 row, 82.000
 
 Thử đổi:
 
-1. Thay hai cột đếm bằng COUNT(DISTINCT). Kết quả: so_row 18, 8, 18, 8; so_nhan_vien 3, 2, 3, 2; so_don 6, 4, 6, 4.
+1. Thêm hai phép đếm COUNT(DISTINCT) cạnh COUNT(*). Kết quả: so_row 18, 8, 18, 8; so_nhan_vien 3, 2, 3, 2; so_don 6, 4, 6, 4.
 
 ```sql
 SELECT st.store_id, st.name,
@@ -158,7 +158,7 @@ Bi nói: "Hai query riêng cho số đúng, vì mỗi query chỉ nối một ph
 
 ## Cách sửa thứ nhất: gom trước rồi nối (engine sẽ thêm)
 
-Query dưới đây là cách sửa chính thức. Query này cần subquery trong FROM, nên engine chưa chạy được.
+Query sau là cách sửa chính thức. Query này cần subquery trong FROM, nên engine chưa chạy được.
 
 ```sql
 SELECT st.store_id, st.name, l.tong_luong, d.so_don
@@ -223,13 +223,13 @@ ORDER BY st.store_id
 **Câu 1.** Tiệm 1 (Cầu Giấy) có 3 nhân viên và 6 đơn. Bạn nối stores với staff và orders, chỉ lấy tiệm 1. Có bao nhiêu row?
 
 - A. 9. Phản hồi: "9 là 3 cộng 6. Nối là ghép từng cặp, nên phải nhân, không cộng."
-- B. 18. [đúng] Phản hồi: "Đúng. Mỗi trong 3 nhân viên ghép với từng trong 6 đơn, nên ra 3 × 6 = 18."
+- B. 18. [đúng] Phản hồi: "Đúng. Mỗi nhân viên ghép với cả 6 đơn, nên ra 3 × 6 = 18."
 - C. 6. Phản hồi: "6 là số đơn. Nhưng mỗi đơn ghép với cả 3 nhân viên, nên row nhiều hơn 6."
 - D. 3. Phản hồi: "3 là số nhân viên. Nối thêm orders làm mỗi nhân viên bị chép thêm."
 
 **Câu 2.** Bạn nối orders với order_items, rồi COUNT(*) ra 48. COUNT(DISTINCT o.order_id) ra 20. Số đơn thật là bao nhiêu?
 
-- A. 48. Phản hồi: "48 là số dòng món. Mỗi đơn có nhiều món nên đơn bị đếm nhiều lần."
+- A. 48. Phản hồi: "48 là số món đã gọi. Mỗi đơn có nhiều món nên đơn bị đếm nhiều lần."
 - B. 20. [đúng] Phản hồi: "Đúng. COUNT(DISTINCT) đếm mỗi đơn một lần, và table orders có 20 row."
 - C. 68. Phản hồi: "Không cộng hai số này. 48 đếm cả các bản bị chép, 20 đếm đơn khác nhau."
 
@@ -241,13 +241,13 @@ ORDER BY st.store_id
 
 ## Bài tập của bài
 
-1. Query dưới đây ra tổng lương mỗi tiệm quá lớn. Sửa cho ra 27.500.000, 20.500.000, 29.000.000, 20.500.000. (Dạng sửa query lỗi. Query gốc là query chính của bài. Lời giải: bỏ JOIN orders.)
-2. Nối orders với order_items, rồi đếm số đơn mỗi tiệm bằng COUNT(DISTINCT). Kết quả phải là 6, 4, 6, 4. (Query nối stores, orders, order_items, GROUP BY tiệm. Nếu viết COUNT(*) thì ra 12, 8, 18, 10, là số dòng món.)
+1. Query chính của bài ra tổng lương mỗi tiệm quá lớn. Sửa cho ra 27.500.000, 20.500.000, 29.000.000, 20.500.000. (Dạng sửa query lỗi. Lời giải: bỏ JOIN orders.)
+2. Nối orders với order_items, rồi đếm số đơn mỗi tiệm bằng COUNT(DISTINCT). Kết quả phải là 6, 4, 6, 4. (Query nối stores, orders, order_items, GROUP BY tiệm. Nếu viết COUNT(*) thì ra 12, 8, 18, 10, là số món đã gọi.)
 3. Viết hai query riêng: tổng lương mỗi tiệm, và số đơn mỗi tiệm. Viết cho cả MySQL và Oracle. Máy chấm chạy từng query và so với kết quả đúng.
 
 ## Ngoài đời
 
-Một bạn phân tích dữ liệu nối table khách hàng với table đơn và table phiếu hỗ trợ. Bạn cộng doanh thu mỗi khách.
+Một bạn phân tích dữ liệu nối table khách với table đơn và table phiếu hỗ trợ. Bạn cộng doanh thu mỗi khách.
 
 Doanh thu cả công ty ra gấp ba lần số của phòng kế toán. Khách nào có nhiều phiếu hỗ trợ thì doanh thu bị cộng nhiều lần.
 
@@ -255,7 +255,7 @@ Bạn đếm row trước và sau mỗi lần nối, rồi thấy chỗ row phì
 
 ## Ý chính
 
-- Nối một table "một" với hai table "nhiều" thì mỗi row bị ghép chéo với nhau và nhân lên.
+- Nối một table "một" với hai table "nhiều" thì row ghép chéo nhau và bị nhân lên.
 - SUM và COUNT(*) cộng cả các bản bị chép nên ra số quá lớn.
 - Phát hiện: đếm row trước và sau khi nối, so với COUNT(DISTINCT) và với tổng trên table gốc.
 - Sửa: gom trước rồi mới nối, hoặc tách thành hai query. SUM(DISTINCT) không sửa được.

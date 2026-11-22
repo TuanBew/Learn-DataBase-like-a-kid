@@ -88,9 +88,15 @@ export const chapters: Chapter[] = [
     title: 'Nối table',
     about: 'Lấy dữ liệu từ nhiều table trong cùng một query.',
     lessons: [
+      { id: 'c7-b1', title: 'Đọc một database lạ: tìm đường nối giữa hai table', minutes: 16 },
       { id: 'c7-b2', title: 'INNER JOIN', minutes: 16 },
       { id: 'c7-b3', title: 'LEFT JOIN', minutes: 16 },
-      { id: 'c7-b5', title: 'Nối ba table', minutes: 18 },
+      { id: 'c7-b4', title: 'RIGHT JOIN và FULL OUTER JOIN', minutes: 16 },
+      { id: 'c7-b5', title: 'Nối ba, bốn, năm table', minutes: 22 },
+      { id: 'c7-b6', title: 'Self join: nhân viên và người quản lý', minutes: 16 },
+      { id: 'c7-b7', title: 'Nối theo nhiều điều kiện, nối theo khoảng, CROSS JOIN', minutes: 18 },
+      { id: 'c7-b8', title: 'Bẫy nhân bội row: nối xong SUM ra số quá lớn', minutes: 18 },
+      { id: 'c7-b9', title: 'Đọc code Oracle cũ: dấu phẩy, dấu (+), USING, NATURAL JOIN', minutes: 18 },
     ],
   },
   {

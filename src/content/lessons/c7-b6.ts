@@ -183,7 +183,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Hệ thống duyệt chi phí cần biết sếp của người gửi đơn. Table nhân viên có column mã quản lý.',
         'Hệ thống dùng self join để lấy tên và email của người duyệt. Cần duyệt thêm một cấp thì nối thêm một lần nữa.',
-        'Nhân viên cấp cao nhất không có sếp, nên query dùng LEFT JOIN để đơn của họ không biến mất.',
+        'Nhân viên cấp cao nhất không có sếp. Query dùng LEFT JOIN để đơn của họ không biến mất.',
       ],
     },
     {

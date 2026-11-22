@@ -81,7 +81,7 @@ export const lesson: Lesson = {
       title: 'FULL OUTER JOIN: giữ cả hai bên',
       paragraphs: [
         '**[[full-outer-join]]** giữ mọi row của cả hai table. Row nào không ghép được thì column của bên kia là NULL.',
-        'Số row của FULL OUTER JOIN bằng số row ghép được, cộng row lẻ bên trái, cộng row lẻ bên phải: 38 + 2 + 1 = 41.',
+        'Số row của FULL OUTER JOIN gồm ba phần: row ghép được, row lẻ bên trái, row lẻ bên phải. Ở đây là 38 + 2 + 1 = 41.',
         'Một query FULL OUTER JOIN trả lời cả hai câu hỏi của chị Hạnh. Lọc các row có NULL ở một trong hai bên là ra các điểm không khớp.',
         'Cách làm này gọi là đối soát. Bạn đặt hai danh sách cạnh nhau, rồi tìm chỗ lệch.',
         'FULL OUTER JOIN chỉ chạy ở Oracle. Khối bên dưới chỉ có Oracle.',
@@ -135,7 +135,7 @@ export const lesson: Lesson = {
       body: [
         'Oracle viết `FULL OUTER JOIN`, hoặc ngắn hơn là `FULL JOIN`. Hai cách cho cùng kết quả.',
         'MySQL không có FULL OUTER JOIN. Bạn viết nó ra thì MySQL báo lỗi 1064.',
-        'Ở MySQL, bạn ghép LEFT JOIN và RIGHT JOIN bằng **[[union]]**. LEFT JOIN lấy các row bên trái, RIGHT JOIN lấy các row bên phải, và UNION gộp hai kết quả rồi bỏ row trùng.',
+        'Ở MySQL, bạn ghép LEFT JOIN và RIGHT JOIN bằng **[[union]]**. LEFT JOIN giữ row bên trái. RIGHT JOIN giữ row bên phải. UNION gộp hai kết quả rồi bỏ row trùng.',
         'Kết quả giống FULL OUTER JOIN của Oracle. Chương 8 dạy UNION, nên bài này chỉ cho bạn xem câu mẫu.',
         'RIGHT JOIN và LEFT JOIN thì chạy giống nhau ở cả hai dialect, như khối đầu bài.',
       ],
@@ -185,9 +185,9 @@ export const lesson: Lesson = {
       type: 'realworld',
       title: 'Đối soát hai nguồn số liệu',
       paragraphs: [
-        'Bộ phận kế toán có danh sách hóa đơn đã thu tiền. Bộ phận bán hàng có danh sách đơn đã giao. Cuối tháng hai danh sách phải khớp nhau.',
+        'Bộ phận kế toán có danh sách hóa đơn đã thu tiền. Phòng kinh doanh có danh sách đơn đã giao. Cuối tháng hai danh sách phải khớp nhau.',
         'Người làm báo cáo nối hai danh sách bằng FULL OUTER JOIN theo mã đơn. Đơn nào chỉ có ở một bên thì có NULL ở bên kia.',
-        'Nhìn vào các row có NULL, họ biết đơn nào đã giao mà chưa thu tiền, và hóa đơn nào chưa có đơn.',
+        'Các row có NULL cho họ biết hai điều. Đơn nào đã giao mà chưa thu tiền. Hóa đơn nào chưa có đơn.',
       ],
     },
     {

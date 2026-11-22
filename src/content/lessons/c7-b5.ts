@@ -1,17 +1,20 @@
 import type { Lesson } from '../types';
 
+/** Cùng một query cho hai dialect: MySQL có dấu chấm phẩy cuối, Oracle thì không. */
+const both = (q: string) => ({ mysql: `${q};`, oracle: q });
+
 export const lesson: Lesson = {
   id: 'c7-b5',
   chapter: 7,
   order: 5,
-  title: 'Nối ba table',
-  lead: 'Bạn nối orders, order_items và products, rồi gom nhóm trên kết quả đã nối.',
-  minutes: 18,
+  title: 'Nối ba, bốn, năm table',
+  lead: 'Bạn nối từ ba tới năm table, thêm từng JOIN một, rồi gom nhóm trên kết quả đã nối.',
+  minutes: 22,
   goals: [
-    'Nối ba table bằng hai JOIN',
+    'Nối ba table bằng hai JOIN, rồi nối tiếp tới bốn và năm table',
     'Đọc hai điều kiện ON, mỗi cái nối một cặp table',
-    'Nối xong mới gom nhóm',
-    'Tính số ly bán được của từng món',
+    'Thêm từng JOIN một và đếm row sau mỗi lần chạy',
+    'Nối xong mới gom nhóm, rồi tính số ly bán được của từng món',
   ],
   blocks: [
     {
@@ -135,6 +138,56 @@ export const lesson: Lesson = {
       say: 'Mục cuối đếm số lần món xuất hiện trong đơn, không đếm số ly. Hai số khác nhau khi một đơn gọi nhiều ly cùng món.',
     },
     {
+      type: 'text',
+      title: 'Thêm từng JOIN một, chạy lại sau mỗi lần',
+      paragraphs: [
+        'Query viết một lần cho năm table hay sai ở đâu đó. Bạn tránh điều này bằng cách thêm từng JOIN một.',
+        'Bắt đầu với một table. Thêm JOIN đầu tiên, chạy, và nhìn kết quả. Rồi thêm JOIN kế tiếp và chạy lại.',
+        'Sau mỗi lần chạy, đếm row. Row không đổi nghĩa là không row nào rơi ra hay bị nhân lên.',
+        'Thử với database công ty. Table order_items có 190 row. Nối thêm orders, customers, countries rồi regions, số row vẫn là 190 sau mỗi lần.',
+        'Số row giảm nghĩa là một JOIN làm rơi row. Số row tăng nghĩa là một JOIN nhân row lên. Cả hai trường hợp đều cần xem lại.',
+        'Đường nối này là đường bạn tìm ở đầu chương: order_items, orders, customers, countries, regions. Năm table cần bốn JOIN, mỗi JOIN một ON.',
+      ],
+    },
+    {
+      type: 'playground',
+      title: 'Thử tay ngay: nối bốn rồi năm table',
+      intro: 'Bấm Chạy. Query nối bốn table để xem một đơn nằm ở nước nào. Rồi thêm JOIN thứ năm bằng các mục bên dưới.',
+      database: 'company',
+      tables: ['order_items', 'orders', 'customers', 'countries', 'regions'],
+      dialects: ['mysql', 'oracle'],
+      sql: both(
+        'SELECT oi.order_id, oi.line_no, c.customer_name, co.country_name\nFROM order_items oi\nJOIN orders o\n  ON oi.order_id = o.order_id\nJOIN customers c\n  ON o.customer_id = c.customer_id\nJOIN countries co\n  ON c.country_id = co.country_id\nWHERE oi.order_id = 5001\nORDER BY oi.line_no',
+      ),
+      tries: [
+        {
+          label: 'Thêm JOIN thứ năm: regions, kèm region_name',
+          sql: both(
+            'SELECT oi.order_id, oi.line_no, c.customer_name, co.country_name, r.region_name\nFROM order_items oi\nJOIN orders o\n  ON oi.order_id = o.order_id\nJOIN customers c\n  ON o.customer_id = c.customer_id\nJOIN countries co\n  ON c.country_id = co.country_id\nJOIN regions r\n  ON co.region_id = r.region_id\nWHERE oi.order_id = 5001\nORDER BY oi.line_no',
+          ),
+        },
+        {
+          label: 'Đếm row sau khi nối bốn table',
+          sql: both(
+            'SELECT COUNT(*) AS so_row\nFROM order_items oi\nJOIN orders o\n  ON oi.order_id = o.order_id\nJOIN customers c\n  ON o.customer_id = c.customer_id\nJOIN countries co\n  ON c.country_id = co.country_id',
+          ),
+        },
+        {
+          label: 'Đếm row sau khi nối năm table',
+          sql: both(
+            'SELECT COUNT(*) AS so_row\nFROM order_items oi\nJOIN orders o\n  ON oi.order_id = o.order_id\nJOIN customers c\n  ON o.customer_id = c.customer_id\nJOIN countries co\n  ON c.country_id = co.country_id\nJOIN regions r\n  ON co.region_id = r.region_id',
+          ),
+        },
+        {
+          label: 'Doanh thu theo khu vực: nối năm table rồi GROUP BY',
+          sql: both(
+            'SELECT r.region_name, SUM(oi.quantity * oi.unit_price) AS doanh_thu\nFROM order_items oi\nJOIN orders o\n  ON oi.order_id = o.order_id\nJOIN customers c\n  ON o.customer_id = c.customer_id\nJOIN countries co\n  ON c.country_id = co.country_id\nJOIN regions r\n  ON co.region_id = r.region_id\nGROUP BY r.region_id, r.region_name\nORDER BY doanh_thu DESC',
+          ),
+        },
+      ],
+      say: 'Cả 190 row của order_items đều qua được năm table. Doanh thu ba khu vực cộng lại là 536.375.000, đúng bằng tổng của order_items.',
+    },
+    {
       type: 'oracle',
       body: [
         'Hai dialect nối ba table giống nhau. Chỉ có hai chỗ khác ở query trên.',
@@ -168,6 +221,25 @@ export const lesson: Lesson = {
             { text: 'Hai bước chạy cùng lúc', feedback: 'Hai bước chạy lần lượt. Nối xong mới tới gom nhóm.' },
           ],
         },
+        {
+          kind: 'choice',
+          question: 'Bạn thêm một JOIN vào query và số row sau đó lớn hơn số row trước. Có thể chuyện gì xảy ra?',
+          options: [
+            {
+              text: 'JOIN mới nhân row lên, vì một row ghép với nhiều row',
+              correct: true,
+              feedback: 'Đúng. Table mới ở phía "nhiều" chép row cũ ra nhiều bản. Hãy dừng lại và xem lại JOIN đó.',
+            },
+            {
+              text: 'JOIN mới làm rơi row',
+              feedback: 'Rơi row làm số row giảm, không làm số row tăng.',
+            },
+            {
+              text: 'Database lỗi nhưng không báo',
+              feedback: 'Database không lỗi. Số row tăng là kết quả hợp lệ của JOIN một với nhiều.',
+            },
+          ],
+        },
       ],
     },
     {
@@ -181,9 +253,9 @@ export const lesson: Lesson = {
     {
       type: 'keypoints',
       items: [
-        'Nối ba table cần hai JOIN, mỗi JOIN có một ON.',
-        'order_items là table cầu nối giữa orders và products.',
-        'Database nối table xong mới gom nhóm.',
+        'Nối n table cần n − 1 JOIN, mỗi JOIN có một ON. Ba table cần hai JOIN, năm table cần bốn.',
+        'Thêm từng JOIN một và đếm row sau mỗi lần chạy. Row đổi bất ngờ nghĩa là một JOIN làm rơi hoặc nhân row.',
+        'order_items là table cầu nối giữa orders và products. Database nối table xong mới gom nhóm.',
         'Mọi column trong SELECT phải nằm trong GROUP BY hoặc trong function gom.',
       ],
     },
@@ -193,6 +265,8 @@ export const lesson: Lesson = {
         { name: 'Harvard CS50 SQL, Lecture 1', url: 'https://cs50.harvard.edu/sql/notes/1/', note: 'CC BY-NC-SA 4.0' },
         { name: 'SQLBolt, bài 6: Multi-table queries with JOINs', url: 'https://sqlbolt.com/lesson/select_queries_with_joins' },
         { name: 'SQLBolt, bài 7: OUTER JOINs', url: 'https://sqlbolt.com/lesson/select_queries_with_outer_joins' },
+        { name: 'MySQL 8.0 Reference Manual: JOIN Clause', url: 'https://dev.mysql.com/doc/refman/8.0/en/join.html' },
+        { name: 'Oracle Database 19c SQL Language Reference: Joins', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Joins.html' },
       ],
     },
   ],

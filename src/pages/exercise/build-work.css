@@ -1,0 +1,66 @@
+.bw-asks {
+  padding: var(--s4);
+  display: grid;
+  gap: var(--s3);
+}
+.bw-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.bw-ask {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 1rem;
+  min-width: 0;
+}
+.bw-box {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  border: var(--line);
+  border-radius: 5px;
+  background: var(--sheet);
+  color: var(--ink);
+}
+.bw-ask.is-ok .bw-box {
+  background: var(--matcha);
+  border-color: var(--matcha-ink);
+  color: var(--matcha-ink);
+}
+.bw-ask.is-no .bw-box {
+  background: var(--red-soft);
+  border-color: var(--red-ink);
+  color: var(--red-ink);
+}
+.bw-ask__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.bw-ask__note {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-sm);
+  color: var(--red-ink);
+}
+.bw-progress {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+  border-top: 2px dashed var(--ink-line);
+  padding-top: var(--s2);
+}
+.bw-saved {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+.bw-before {
+  justify-self: start;
+}

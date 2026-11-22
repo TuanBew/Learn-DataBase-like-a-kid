@@ -94,6 +94,7 @@ export const uiApp = {
       predict: 'Đọc query. Bấm chọn các row bạn nghĩ sẽ còn lại, rồi bấm Chạy để kiểm.',
       rehearsal: 'Bạn đang làm trên một bản sao của dữ liệu. Sai cũng không mất gì.',
       quiz: '',
+      build: 'Gõ lệnh vào editor rồi bấm Chạy. Mỗi yêu cầu bên dưới tự được tích khi table đã đúng.',
     },
     fromLabel: 'Query viết cho MySQL',
     queryLabel: 'Query sẽ chạy',

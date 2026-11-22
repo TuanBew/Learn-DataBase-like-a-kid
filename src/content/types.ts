@@ -8,6 +8,7 @@
  *   [[id-thuật-ngữ]] hoặc [[id-thuật-ngữ|chữ hiện ra]]  -> mở glossary popover
  * Lần đầu một thuật ngữ xuất hiện trong bài thì viết **[[database]]**.
  */
+import type { SchemaSpec } from '../engine/schema-spec';
 import type { Dialect } from '../engine/types';
 
 export type Rich = string;
@@ -182,8 +183,9 @@ export interface Chapter {
  * - predict: đoán row nào còn lại sau khi chạy `solution`, rồi xem Theater để kiểm.
  * - rehearsal: diễn tập UPDATE hoặc DELETE trên bản sao của `target`.
  * - quiz: một nhóm câu hỏi nhanh trong `items`, không cần engine.
+ * - build: người học tự dựng table, máy chấm so cấu trúc với `spec` (xem `BuildExercise`).
  */
-export type ExerciseKind = 'write' | 'fill' | 'order' | 'predict' | 'debug' | 'translate' | 'rehearsal' | 'quiz';
+export type ExerciseKind = 'write' | 'fill' | 'order' | 'predict' | 'debug' | 'translate' | 'rehearsal' | 'quiz' | 'build';
 
 interface ExerciseBase {
   /** Ví dụ 'c4-e4'. Bài boss của chương có đuôi '-boss'. */
@@ -198,7 +200,7 @@ interface ExerciseBase {
 
 /** Bài tập chạy trên SQL engine. */
 export interface SqlExercise extends ExerciseBase {
-  kind: Exclude<ExerciseKind, 'quiz'>;
+  kind: Exclude<ExerciseKind, 'quiz' | 'build'>;
   database: 'teashop' | 'teashop-big' | 'hr';
   /** Các table hiện trong ô "Dữ liệu của bài". */
   tables: string[];
@@ -243,4 +245,26 @@ export interface QuizExercise extends ExerciseBase {
   why: Rich;
 }
 
-export type Exercise = SqlExercise | QuizExercise;
+/** Bài tập dựng table: người học viết lệnh tạo table, máy chấm `gradeSchema` so cấu trúc với `spec`. */
+export interface BuildExercise extends ExerciseBase {
+  kind: 'build';
+  /** Database lúc mở bài: 'empty' là trống, 'mine' là database người học đã dựng ở các bài trước. */
+  start: 'empty' | 'mine';
+  /** Các table phải có sẵn trước khi làm bài này (do các bài trước tạo). */
+  needs?: string[];
+  /** Các lệnh dựng lại phần của những bài trước: dùng cho nút "Dựng theo mẫu" khi database của người học thiếu table trong `needs`, và để test chạy lời giải. */
+  base?: Partial<Record<Dialect, string>>;
+  dialects: Dialect[];
+  starter: Partial<Record<Dialect, string>>;
+  solution: Partial<Record<Dialect, string>>;
+  /** Database sau khi chạy xong phải trông thế nào. Máy chấm là `gradeSchema`. */
+  spec: SchemaSpec;
+  /** Làm đúng thì lưu database này thành "Database của bạn". */
+  save: boolean;
+  why: Rich;
+  hints: { light: Rich; specific: Rich; skeleton: Partial<Record<Dialect, string>> };
+  /** Lỗi sai hay gặp: khi check có id này không đạt, Bi nói `hint`. */
+  wrong: { failed: string; hint: Rich }[];
+}
+
+export type Exercise = SqlExercise | QuizExercise | BuildExercise;

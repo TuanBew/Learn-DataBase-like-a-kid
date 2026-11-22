@@ -44,7 +44,7 @@ const CertificatePage = page(() => import('./pages/CertificatePage').then((m) =>
 export function preloadRoute(path: string): Promise<unknown> {
   const [, kind, id] = path.split('/');
   if (kind === 'bai') return Promise.all([LessonPage.preload(), preload(lessons[id])]);
-  if (kind === 'tap') return Promise.all([ExercisePage.preload(), preload(exercises[id]).then((ex) => (!ex || ex.kind === 'quiz' ? undefined : preload(databases[ex.database])))]);
+  if (kind === 'tap') return Promise.all([ExercisePage.preload(), preload(exercises[id]).then((ex) => (!ex || ex.kind === 'quiz' || ex.kind === 'build' ? undefined : preload(databases[ex.database])))]);
   if (kind === 'hoc-tiep') return NextStepsPage.preload();
   if (kind === 'nguon') return SourcesPage.preload();
   if (kind === 'tien-trinh') return ProgressPage.preload();

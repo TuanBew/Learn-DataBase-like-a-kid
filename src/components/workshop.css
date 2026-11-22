@@ -1,0 +1,17 @@
+.ws {
+  display: grid;
+  gap: var(--s4);
+  min-width: 0;
+}
+.ws__main {
+  display: grid;
+  gap: var(--s4);
+  min-width: 0;
+  align-content: start;
+}
+@media (min-width: 900px) {
+  .ws {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+    align-items: start;
+  }
+}

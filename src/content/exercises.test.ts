@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { databases } from '../data';
-import { type ResultSet, createSession, grade, run } from '../engine';
+import { type ResultSet, createSession, grade, gradeSchema, run } from '../engine';
 import type { Database, Dialect, Value } from '../engine/types';
 import { show } from '../engine/values';
 import { exercises } from './exercises';
 import { glossary } from './glossary';
-import type { Exercise, Quiz, SqlExercise } from './types';
+import type { BuildExercise, Exercise, Quiz, SqlExercise } from './types';
 
 /**
  * Mọi bài tập phải giữ đúng lời hứa của nó:
@@ -114,6 +114,41 @@ async function checkSql(ex: SqlExercise) {
   }
 }
 
+/** Dựng database từ trống: chạy `base` rồi `script`. */
+function build(ex: BuildExercise, d: Dialect, script: string, strict = true) {
+  const s = createSession({ name: 'saomai', tables: [] }, d);
+  const parts = [ex.base?.[d], script].filter((x): x is string => !!x);
+  for (const p of parts) {
+    const r = s.runScript(p);
+    if (r.failedAt !== undefined && strict) {
+      const bad = r.results[r.failedAt];
+      throw new Error(`${d}: lệnh thứ ${r.failedAt + 1} lỗi: ${bad.ok ? '' : `${bad.error.code} ${bad.error.friendly}`}`);
+    }
+  }
+  return gradeSchema(s.db(), ex.spec, d);
+}
+
+function checkBuild(ex: BuildExercise) {
+  expect(ex.dialects.length).toBeGreaterThan(0);
+  expect(ex.hints.light.length).toBeGreaterThan(0);
+  expect(ex.hints.specific.length).toBeGreaterThan(0);
+  expect(ex.why.length).toBeGreaterThan(0);
+  expect(ex.spec.tables.length).toBeGreaterThan(0);
+  if (ex.start === 'mine') expect(ex.needs?.length, 'start mine cần needs').toBeGreaterThan(0);
+  if (ex.needs?.length) expect(ex.base, 'needs cần base để dựng theo mẫu').toBeDefined();
+  for (const d of ex.dialects) {
+    expect(ex.hints.skeleton[d], `khung cho ${d}`).toBeTruthy();
+    const good = build(ex, d, ex.solution[d] ?? '');
+    const failing = good.checks.filter((c) => !c.ok).map((c) => `${c.id}: ${c.note ?? ''}`);
+    expect(failing, `lời giải ${d} phải đạt hết`).toEqual([]);
+    expect(good.ok).toBe(true);
+    const bare = build(ex, d, ex.starter[d] ?? '', false);
+    expect(bare.ok, `starter ${d} chưa được đạt`).toBe(false);
+    const ids = new Set(good.checks.map((c) => c.id));
+    for (const w of ex.wrong) expect(ids.has(w.failed), `wrong.failed "${w.failed}" không phải id của check nào`).toBe(true);
+  }
+}
+
 describe('bài tập', () => {
   it('có ít nhất một bài', () => {
     expect(ids.length).toBeGreaterThan(0);
@@ -129,6 +164,7 @@ describe('bài tập', () => {
       const text = JSON.stringify(ex);
       for (const m of text.matchAll(/\[\[([^\]|]+)(?:\|[^\]]*)?\]\]/g)) expect(glossary[m[1]], `thuật ngữ [[${m[1]}]]`).toBeDefined();
       if (ex.kind === 'quiz') checkQuiz(ex.items);
+      else if (ex.kind === 'build') checkBuild(ex);
       else await checkSql(ex);
     });
   }

@@ -57,6 +57,15 @@ async function doSql(page, ex, d) {
   await page.waitForSelector(OK, { timeout: 20000 });
 }
 
+async function doBuild(page, ex, d) {
+  await typeSql(page, ex.solution[d]);
+  await page.locator('.ex-run').click();
+  await page.waitForSelector(OK, { timeout: 20000 });
+  const open = await page.locator('.bw-ask.is-ok').count();
+  const all = await page.locator('.bw-ask').count();
+  if (open !== all) throw new Error(`chỉ ${open}/${all} ô tích bật`);
+}
+
 async function doOrder(page, ex, d) {
   for (const p of ex.pieces[d]) {
     const pool = page.locator('.opieces__piece--pool');
@@ -141,6 +150,7 @@ async function main() {
         await page.waitForTimeout(400); // chờ editor lazy gắn xong, tránh đua với nút đổi dialect
         if (ex.kind !== 'quiz') await selectDialect(page, ex, d);
         if (ex.kind === 'quiz') await doQuiz(page, ex);
+        else if (ex.kind === 'build') await doBuild(page, ex, d);
         else if (ex.kind === 'order') await doOrder(page, ex, d);
         else if (ex.kind === 'predict') await doPredict(page, ex, d);
         else await doSql(page, ex, d);

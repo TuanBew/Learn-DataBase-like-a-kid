@@ -37,7 +37,7 @@ export function nextExerciseId(id: string): string | null {
 /** Thẻ đề bài: lời Bi, các yêu cầu, và dữ liệu của bài. */
 export function TaskCard({ exercise, db, dialect }: { exercise: Exercise; db?: Database; dialect?: Dialect }) {
   const note = U.kindNote[exercise.kind];
-  const tables = db && exercise.kind !== 'quiz' ? db.tables.filter((t) => exercise.tables.includes(t.name)) : [];
+  const tables = db && exercise.kind !== 'quiz' && exercise.kind !== 'build' ? db.tables.filter((t) => exercise.tables.includes(t.name)) : [];
   return (
     <section className="ex-task sheet" aria-labelledby="ex-task">
       <h2 id="ex-task" className="ex-h">

@@ -177,6 +177,7 @@ export const lesson: Lesson = {
         },
       ],
     },
+    { type: 'exercise', exerciseIds: ['c3-e1'] },
     {
       type: 'realworld',
       title: 'Ba chỗ cùng ghi vào một table',

@@ -64,6 +64,12 @@ const PATHS = {
       <circle cx="12" cy="12" r="2.8" />
     </>
   ),
+  key: (
+    <>
+      <circle cx="8" cy="12" r="3.6" />
+      <path d="M11.6 12H21M17.5 12v3.5M20.8 12v2.4" />
+    </>
+  ),
 } as const;
 
 export type IconName = keyof typeof PATHS;

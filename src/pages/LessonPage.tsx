@@ -24,6 +24,7 @@ import './lesson.css';
 const U = uiApp.lesson;
 
 const Playground = lazy(() => import('../components/Playground'));
+const Workshop = lazy(() => import('../components/Workshop'));
 
 export default function LessonPage({ id }: { id: string }) {
   const lesson = useLoad(lessons[id], `lesson:${id}`);
@@ -77,13 +78,15 @@ function Block({ block }: { block: LessonBlock }) {
         </section>
       );
     case 'workshop':
-      // Tạm thời: chỉ hiện tiêu đề và lời dẫn. Component xưởng dựng table sẽ thay chỗ này.
       return (
         <section className="scene sheet" aria-label={uiApp.scenes.sceneLabel}>
           <h2 className="scene__title">{block.title}</h2>
           <p className="scene__intro">
             <Rich text={block.intro} />
           </p>
+          <Suspense fallback={<div className="scene__wait" />}>
+            <Workshop block={block} />
+          </Suspense>
         </section>
       );
     case 'code':

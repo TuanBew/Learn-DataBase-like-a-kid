@@ -1,0 +1,40 @@
+.so {
+  display: grid;
+  gap: var(--s3);
+  min-width: 0;
+}
+.so__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--s2);
+  min-width: 0;
+}
+.so__item {
+  min-width: 0;
+}
+.so__line {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--matcha-soft);
+  border: 2px solid var(--matcha-deep);
+  border-radius: var(--r-md);
+  color: var(--ink);
+}
+.so__line svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--matcha-ink);
+}
+.so__no {
+  font-weight: 700;
+}
+.so__fail {
+  margin: 0;
+  font-weight: 700;
+  color: var(--red-ink);
+}

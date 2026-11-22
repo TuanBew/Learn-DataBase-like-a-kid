@@ -161,7 +161,7 @@ export const uiApp = {
     legendFk: 'foreign key',
     tableLabel: (name: string, cols: number) => `Table ${name}, ${cols} column`,
     selfFk: 'trỏ về chính table này',
-    jumpTo: (t: string, c: string) => `Nhảy tới table ${t}, column ${c}`,
+    jumpTo: (t: string, c: string) => `${t}.${c}, nhảy tới table ${t}`,
   },
   playground: {
     tries: 'Bấm một mẩu để đổi query và chạy luôn',

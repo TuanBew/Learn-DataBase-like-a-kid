@@ -115,7 +115,7 @@ export interface PlaygroundBlock {
   type: 'playground';
   title: string;
   intro: Rich;
-  database: 'teashop' | 'teashop-big' | 'hr';
+  database: 'teashop' | 'teashop-big' | 'hr' | 'company' | 'saomai';
   /** Các table hiện tên column cho người học xem. */
   tables: string[];
   /** Dialect được chọn. Một dialect thì ẩn nút đổi. */
@@ -201,7 +201,7 @@ interface ExerciseBase {
 /** Bài tập chạy trên SQL engine. */
 export interface SqlExercise extends ExerciseBase {
   kind: Exclude<ExerciseKind, 'quiz' | 'build'>;
-  database: 'teashop' | 'teashop-big' | 'hr';
+  database: 'teashop' | 'teashop-big' | 'hr' | 'company' | 'saomai';
   /** Các table hiện trong ô "Dữ liệu của bài". */
   tables: string[];
   /** Các dialect bài này dùng. */

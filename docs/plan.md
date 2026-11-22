@@ -60,3 +60,24 @@ Kết quả kiểm cuối ngày 21/11/2026: 1099 test qua, lượt quét 164 tra
 7. Các điểm dialect của MySQL đã chạy trên MySQL 8.0.46 thật. Engine sửa ba chỗ lệch, rồi chạy lại lượt kiểm.
 
 Chưa kiểm được: nghe âm thanh bằng tai, và vài điểm dialect cần Oracle thật (ghi ở `README.md` và `docs/dialect-verification.md`). Trang bài tập mở thẳng tải 306 KB JS gzip, cao hơn mức 250 KB; trang chủ và bài học nằm dưới mức này.
+
+## Mốc 4: mở rộng theo dàn ý v2
+
+Dàn ý ở `docs/outline-v2.md`, chủ dự án duyệt ngày 22/11/2026. Làm bốn đợt, phần dựng giao subagent Sonnet.
+
+### Đợt 1 (đã xong): tạo table từ A đến Z
+
+- Đánh lại id theo 12 chương (`docs/id-map-v2.md`).
+- Engine: CREATE TABLE đủ data type và constraint, DEFAULT, primary key ghép, foreign key trỏ về chính table, ON DELETE, ALTER, DROP, TRUNCATE, sequence, chạy nhiều lệnh một lần, lệnh xem cấu trúc, data dictionary của Oracle, máy chấm dựng table.
+- Giao diện: xưởng dựng table, khung cấu trúc, "Database của bạn", dạng bài tập dựng table.
+- Nội dung: bài `c2-b4`, 10 bài Chương 3, 8 bài tập và một bài boss.
+- Kiểm: 1621 test qua, 204 lượt mở trang không lỗi, axe 0 vi phạm ở hai giao diện, 98 lượt giải bài tập đều qua, Lighthouse mobile bốn trang từ 97 tới 100 (trang chủ đo lại hai lần ra 99 và 100 sau một lần 86 lúc máy bận).
+
+### Đợt 2 (đang làm): nhiều table
+
+Engine cho các kiểu JOIN, subquery, UNION, WITH. Database công ty 11 table. Chương 7 và Chương 8.
+
+### Đợt 3: function, gom nhóm mở rộng, trang Tra cứu
+
+### Đợt 4: báo cáo nâng cao, sửa dữ liệu, Oracle ở công ty, dự án cuối
+

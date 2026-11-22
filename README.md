@@ -6,8 +6,9 @@ Website tĩnh dạy database và SQL cho người lớn chưa biết gì về IT
 
 ## Có gì trong site
 
-- 33 bài học xếp theo dàn ý 12 chương (`docs/outline-v2.md`). Hiện có bài ở 10 chương, Chương 3 và Chương 9 chưa có bài. Id bài cũ và mới nằm ở `docs/id-map-v2.md`.
-- 49 bài tập. Bài boss nằm ở Chương 1, 2, 4, 5, 6, 7 và 12.
+- 44 bài học xếp theo dàn ý 12 chương (`docs/outline-v2.md`). Hiện có bài ở 11 chương, Chương 9 chưa có bài. Id bài cũ và mới nằm ở `docs/id-map-v2.md`.
+- 58 bài tập. Bài boss nằm ở Chương 1, 2, 3, 4, 5, 6, 7 và 12.
+- Xưởng dựng table ở Chương 3: gõ lệnh CREATE TABLE hoặc ALTER, bấm Chạy, rồi xem cấu trúc table hiện ra. Các bài dựng table lưu kết quả thành "Database của bạn" trong trình duyệt, và bài sau làm tiếp trên đó. Làm lại một bài đã xong thì database được dựng lại về trạng thái trước bài, không ghi đè.
 - 17 cảnh motion minh họa từng khái niệm.
 - Query Theater diễn lại query từng bước, dựng từ trace của engine.
 - SQL engine tự viết bằng TypeScript, chạy ngay trong browser ở hai dialect (MySQL 8 và Oracle 19c), báo lỗi bằng mã lỗi thật.
@@ -107,19 +108,18 @@ Mọi script nhận địa chỉ gốc qua biến `BASE`, ví dụ `BASE=http://
 
 ## Trạng thái
 
-Cả ba mốc đã xong: đủ bảy chương của dàn ý đầu (nay đã đánh id lại theo dàn ý 12 chương), engine, Query Theater, toàn bộ bài tập, giao diện tối và lượt kiểm theo danh sách ở mục 13 của `docs/PROMPT.md`.
+Đang ở Mốc 4. Đợt 1 đã xong: Chương 3 "Tạo table từ A đến Z" với xưởng dựng table và "Database của bạn". Ba mốc đầu đã xong từ trước: engine, Query Theater, giao diện tối và lượt kiểm theo mục 13 của `docs/PROMPT.md`.
 
-Con số của lượt kiểm cuối, chạy ngày 21/11/2026:
+Con số của lượt kiểm sau Đợt 1, chạy ngày 22/11/2026:
 
-- Nội dung: 33 bài học, 49 bài tập, 17 cảnh motion.
-- `npm test`: 1099 test qua. `copy-scan.cjs`: 0 dòng nghi phạm trong 184 file.
-- `crawl.cjs` trên 164 trang: không lỗi console, không tràn ngang.
-- `axe.cjs` trên 87 trang ở hai chiều rộng, giao diện sáng và tối: 0 vi phạm.
-- `checks-4.cjs`: 15 PASS. `checks-5.cjs`: 132 PASS. `sfx-check.cjs`: 18 PASS.
-- `solve-all.cjs`: 81 lượt giải bài tập trong giao diện thật, tất cả PASS.
-- Lighthouse mobile trên 13 trang: Performance từ 94 tới 100, Accessibility 100.
-- JS tải ở lần vào đầu, tính theo gzip: trang chủ 138 KB, một bài học 159 KB.
-- Trang bài tập mở thẳng tải 306 KB JS gzip, cao hơn mức 250 KB của yêu cầu. Trong đó trình soạn SQL chiếm 118 KB và tải sau khi trang đã hiện.
+- Nội dung: 44 bài học, 58 bài tập, 17 cảnh motion.
+- `npm test`: 1621 test qua. `copy-scan.cjs`: 0 dòng nghi phạm trong 216 file.
+- `crawl.cjs` trên 204 lượt mở trang (102 trang, hai chiều rộng): không lỗi console, không tràn ngang.
+- `axe.cjs` trên 107 trang ở hai chiều rộng, giao diện sáng và tối: 0 vi phạm.
+- `checks-4.cjs`: 15 PASS. `checks-5.cjs`: 136 PASS. `sfx-check.cjs`: 18 PASS.
+- `solve-all.cjs`: 98 lượt giải bài tập trong giao diện thật, tất cả PASS.
+- Lighthouse mobile trên 4 trang (`/`, `/bai/c3-b6`, `/tap/c3-e3`, `/tap/c4-e6`): Performance từ 97 tới 100, Accessibility 100. Trang chủ có một lượt đo 86 khi máy đang bận, hai lượt đo lại cho 99 và 100.
+- Trang bài tập mở thẳng tải hơn 250 KB JS gzip vì trình soạn SQL (122 KB gzip), tải sau khi trang đã hiện.
 
 ## Những điểm chưa kiểm được
 

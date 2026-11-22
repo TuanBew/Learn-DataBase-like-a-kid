@@ -2,7 +2,7 @@
 
 Dùng file này khi viết query cho bài học và bài tập. Query nằm ngoài danh sách sẽ ra lỗi "khóa học chưa dạy tới".
 
-API: `run(sql, db, dialect)` cho SELECT. `createSession(db, dialect).run(sql)` cho mọi lệnh, giữ trạng thái giữa các lần chạy (xem `src/engine/session.ts`). `session.runScript(sql)` chạy nhiều lệnh ngăn cách bằng dấu `;`, dừng ở lệnh lỗi đầu tiên. `splitStatements(sql, dialect)` chỉ tách lệnh.
+API: `run(sql, db, dialect)` cho SELECT. `createSession(db, dialect).run(sql)` cho mọi lệnh, giữ trạng thái giữa các lần chạy (xem `src/engine/session.ts`). `session.runScript(sql)` chạy nhiều lệnh ngăn cách bằng dấu `;`, dừng ở lệnh lỗi đầu tiên. `splitStatements(sql, dialect)` chỉ tách lệnh. `session.schema()` trả cấu trúc database cho giao diện. `gradeSchema(db, spec, dialect)` chấm bài dựng table.
 
 ## SELECT
 
@@ -90,6 +90,53 @@ Kết quả là `{ ok: true, kind: 'ddl', op, object, table, columns }`. `op` l�
 - `s.NEXTVAL`, `s.CURRVAL` dùng được trong VALUES của INSERT, trong `SELECT ... FROM DUAL` và trong DEFAULT. NEXTVAL chỉ tăng một lần trong mỗi lệnh. Lỗi: ORA-02289 (không có sequence), ORA-08002 (CURRVAL trước NEXTVAL), ORA-04002 (INCREMENT BY 0), ORA-00955 (trùng tên).
 - MySQL không có sequence: `CREATE SEQUENCE` báo 1064.
 
-### Chú thích
+## Xem cấu trúc database
+
+Các lệnh này chạy qua `createSession` và trả `kind: 'select'`, nên giao diện hiện như kết quả SELECT thường.
+
+### MySQL
+
+- `SHOW TABLES` (một column `Tables_in_<tên database>`, xếp theo tên).
+- `DESCRIBE t`, `DESC t`, `SHOW COLUMNS FROM t` (cũng `FIELDS`, `IN`). Sáu column: `Field`, `Type`, `Null`, `Key`, `Default`, `Extra`. Data type viết thường: `int`, `varchar(50)`, `decimal(12,2)`. `Key` là `PRI`, `UNI` hoặc `MUL`. `Extra` là `auto_increment` hoặc `DEFAULT_GENERATED`. Column không có DEFAULT thì `Default` là NULL.
+- `SHOW CREATE TABLE t`: hai column `Table` và `Create Table`. Câu CREATE TABLE chạy lại được trên database trống. CHECK in trong hai cặp ngoặc, nhưng không có tiền tố `_utf8mb4` như MySQL thật.
+- Table không có: lỗi 1146. Chưa có: `SHOW COLUMNS ... LIKE`, `SHOW FULL COLUMNS`, `DESCRIBE t column`, `SHOW TABLES LIKE`, `tên_db.table`.
+
+### Oracle
+
+- `DESC t`, `DESCRIBE t`. Ba column: `Name`, `Null?`, `Type`. `Null?` là `NOT NULL` hoặc NULL (ô trống). Data type viết như Oracle: `NUMBER(38)` cho INTEGER, `VARCHAR2(50)`, `TIMESTAMP(6)`. Kết quả có cờ `tool: true`: DESC là lệnh của SQL*Plus, không phải SQL, để giao diện nói rõ điều đó. Table không có: ORA-04043. `DESC` đọc được cả các view bên dưới.
+- Data dictionary, đọc bằng SELECT thường (WHERE, ORDER BY, JOIN đều chạy). Tên view, tên column và dữ liệu trong view là chữ hoa.
+
+| View | Column |
+|---|---|
+| `USER_TABLES` | TABLE_NAME |
+| `USER_TAB_COLUMNS` | TABLE_NAME, COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_PRECISION, DATA_SCALE, NULLABLE, COLUMN_ID, DATA_DEFAULT |
+| `USER_CONSTRAINTS` | CONSTRAINT_NAME, CONSTRAINT_TYPE (P, U, R, C), TABLE_NAME, SEARCH_CONDITION, R_CONSTRAINT_NAME, DELETE_RULE |
+| `USER_CONS_COLUMNS` | CONSTRAINT_NAME, TABLE_NAME, COLUMN_NAME, POSITION |
+| `USER_SEQUENCES` | SEQUENCE_NAME, INCREMENT_BY, LAST_NUMBER |
+| `ALL_TABLES`, `ALL_TAB_COLUMNS` | như bản `USER_`, thêm OWNER ở đầu (tên database viết hoa) |
+
+- NOT NULL không hiện thành dòng `C` trong `USER_CONSTRAINTS` (Oracle thật có). Table của người học trùng tên view thì che view. LAST_NUMBER tính như sequence NOCACHE.
+- Ở MySQL, các tên này là table không có (1146).
+- `SHOW TABLES` ở Oracle báo ORA-00900, lời giải thích chỉ sang `USER_TABLES`.
+
+### `session.schema()`
+
+Trả `SchemaView` cho giao diện vẽ khung cấu trúc: `{ dialect, tables, sequences }`. Mỗi table có `name`, `rows` (số row), `columns` (`name`, `type`, `nullable`, `pk`, `unique`, `identity`, `default?`, `fk?`), `checks` (`name?`, `expr`) và `primaryKey?` (chỉ khi gồm từ hai column). `type` viết theo dialect của session: `VARCHAR(50)` ở MySQL, `VARCHAR2(50)` ở Oracle. Cùng một database nạp vào session khác dialect thì data type đổi cách viết.
+
+## Lưu và nạp database
+
+`session.db()` là JSON thuần, gồm cả thay đổi chưa COMMIT. Lưu bằng `JSON.stringify`, nạp lại bằng `createSession(JSON.parse(text), dialect)`. Table, row, constraint có tên, DEFAULT, bộ đếm AUTO_INCREMENT và identity, sequence, độ dài column đều giữ nguyên. Database tạo ở dialect này nạp vào session dialect kia vẫn chạy SELECT và INSERT, vì data type lưu theo nhóm chung (`int`, `decimal`, `text`, `date`, `datetime`). Tên constraint tự đặt giữ nguyên kiểu của dialect đã tạo ra nó. `db()` đổi theo từng lệnh, nên lưu ngay khi cần.
+
+## Chấm bài dựng table
+
+`gradeSchema(db, spec, dialect)` trả `{ ok, checks }`. Kiểu `SchemaSpec` nằm ở `src/engine/schema-spec.ts`.
+
+- Mỗi table trong spec sinh một check "có table". Mỗi column sinh một check dùng `label` của nó: đúng khi column có và khớp mọi điều spec ghi (nhóm data type, `minLength`, `pk`, `identity`, `notNull`, `unique`, `default`, `fk`). Điều spec không ghi thì không chấm. Primary key luôn kéo theo NOT NULL.
+- `primaryKey` ghép sinh một check, so không phân biệt thứ tự. Column thừa sinh một check riêng, trừ khi `allowExtra`.
+- `default` so theo giá trị: `0` khớp `0.0`, `'Hue'` khớp `'Hue'`, không so cách viết.
+- Mỗi `Probe` chạy `setup` rồi `sql` trên bản sao của database. Dialect không có `sql` thì probe bị bỏ qua. `setup` lỗi thì check sai, kèm lời "Chưa thử được".
+- Tên table và column không phân biệt hoa thường. Table thiếu thì mọi check của nó sai. `note` viết tiếng Việt ngắn.
+
+## Chú thích
 
 `-- ...`, `/* ... */` ở cả hai dialect. MySQL thêm `# ...`, và chỉ coi `--` là chú thích khi sau nó có dấu cách (`SELECT 4--5` ra 9).

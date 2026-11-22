@@ -1,12 +1,18 @@
 import type { Dialect } from './types';
 import {
   AGGREGATES,
+  type AlterAction,
+  type AlterTableStmt,
   type BinOp,
   type ClauseKind,
   type ColumnSpec,
   type CompareOp,
+  type ConstraintSpec,
+  type CreateSequenceStmt,
   type CreateTableStmt,
   type DeleteStmt,
+  type DropSequenceStmt,
+  type DropTableStmt,
   type Expr,
   type InsertStmt,
   type OrderItem,
@@ -14,6 +20,7 @@ import {
   type SelectStmt,
   type Statement,
   type TableRef,
+  type TruncateStmt,
   type UpdateStmt,
 } from './ast';
 import type { ColumnType } from './types';
@@ -57,7 +64,7 @@ const TYPES: Record<string, { type: ColumnType; only?: Dialect; use?: string }> 
   DATETIME: { type: 'datetime', only: 'mysql', use: 'DATE hoặc TIMESTAMP' },
   TIMESTAMP: { type: 'datetime' },
 };
-const OUTSIDE = new Set(['WITH', 'DROP', 'ALTER', 'TRUNCATE', 'GRANT', 'REVOKE', 'MERGE', 'EXPLAIN', 'SHOW', 'DESCRIBE', 'DESC', 'USE', 'SET', 'CALL']);
+const OUTSIDE = new Set(['WITH', 'GRANT', 'REVOKE', 'MERGE', 'EXPLAIN', 'SHOW', 'DESCRIBE', 'DESC', 'USE', 'SET', 'CALL']);
 const COMPARE = new Set(['=', '<>', '<', '<=', '>', '>=']);
 
 export function parse(sql: string, dialect: Dialect): Statement {
@@ -601,6 +608,10 @@ class Parser {
           const c = this.tok;
           if (c.type !== 'word' && c.type !== 'qident') throw this.fail('00936', 'missing-expression', { after: '.' });
           this.i++;
+          // seq.NEXTVAL và seq.CURRVAL chỉ có ở Oracle. Ở MySQL, đây là column của một table tên seq.
+          if (this.d === 'oracle' && c.type === 'word' && (c.value === 'NEXTVAL' || c.value === 'CURRVAL')) {
+            return { t: 'seq', seq: t.text, which: c.value, span: { s: t.s, e: c.e }, seqSpan: span };
+          }
           return { t: 'col', table: t.text, name: c.type === 'word' ? c.text : c.value, quoted: c.type === 'qident', span: { s: t.s, e: c.e } };
         }
         return { t: 'col', name: t.text, span };
@@ -698,9 +709,32 @@ class Parser {
         return this.update();
       case 'DELETE':
         return this.del();
-      case 'CREATE':
-        if (!this.isW('TABLE', this.peek())) throw unsupported(`CREATE ${this.peek().value}`, span);
-        return this.createTable();
+      case 'CREATE': {
+        const next = this.peek();
+        if (this.isW('TABLE', next)) return this.createTable();
+        // Sequence chỉ có ở Oracle. MySQL đọc tới chữ SEQUENCE thì báo lỗi cú pháp.
+        if (this.isW('SEQUENCE', next) && this.d === 'oracle') return this.createSequence();
+        if (this.isW('SEQUENCE', next)) {
+          this.i++;
+          throw this.fail('00900', 'sequence-mysql');
+        }
+        throw unsupported(`CREATE ${next.value}`, span);
+      }
+      case 'ALTER':
+        if (!this.isW('TABLE', this.peek())) throw unsupported(`ALTER ${this.peek().value}`, span);
+        return this.alterTable();
+      case 'DROP': {
+        const next = this.peek();
+        if (this.isW('TABLE', next)) return this.dropTable();
+        if (this.isW('SEQUENCE', next) && this.d === 'oracle') return this.dropSequence();
+        if (this.isW('SEQUENCE', next)) {
+          this.i++;
+          throw this.fail('00900', 'sequence-mysql');
+        }
+        throw unsupported(`DROP ${next.value}`, span);
+      }
+      case 'TRUNCATE':
+        return this.truncate();
       case 'COMMIT':
       case 'ROLLBACK':
         this.i++;
@@ -732,7 +766,10 @@ class Parser {
       }
       if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
     }
-    if (this.isW('SELECT')) throw unsupported('INSERT lấy dữ liệu từ SELECT', this.at());
+    if (this.isW('SELECT')) {
+      const select = this.select();
+      return { t: 'insert', table, columns, rows: [], select, span: { s, e: this.prev.e } };
+    }
     this.needW('VALUES', '00926');
     const rows: InsertStmt['rows'] = [];
     for (;;) {
@@ -741,7 +778,7 @@ class Parser {
       const values: Expr[] = [];
       this.ctx = 'VALUES (';
       for (;;) {
-        values.push(this.expr());
+        values.push(this.valueOrDefault());
         this.ctx = ',';
         if (!this.eatOp(',')) break;
       }
@@ -753,6 +790,16 @@ class Parser {
       this.i++;
     }
     return { t: 'insert', table, columns, rows, span: { s, e: this.prev.e } };
+  }
+
+  /** Một giá trị trong VALUES hoặc SET. Từ khóa DEFAULT đứng một mình nghĩa là lấy giá trị mặc định của column. */
+  private valueOrDefault(): Expr {
+    const t = this.tok;
+    if (this.isW('DEFAULT') && (this.isOp(',', this.peek()) || this.isOp(')', this.peek()) || this.peek().type === 'eof' || this.isOp(';', this.peek()) || this.isW('WHERE', this.peek()))) {
+      this.i++;
+      return { t: 'default', span: { s: t.s, e: t.e } };
+    }
+    return this.expr();
   }
 
   private update(): UpdateStmt {
@@ -771,7 +818,7 @@ class Parser {
       }
       if (!this.eatOp('=')) throw this.fail('00927', 'missing-keyword', { kw: '=' });
       this.ctx = '=';
-      sets.push({ name: n.text, span: n.span, e: this.expr() });
+      sets.push({ name: n.text, span: n.span, e: this.valueOrDefault() });
       if (!this.eatOp(',')) break;
     }
     const stmt: UpdateStmt = { t: 'update', table, sets, span: { s, e: this.prev.e } };
@@ -798,92 +845,225 @@ class Parser {
     return stmt;
   }
 
+  /* ---------- DDL ---------- */
+
   /** Lấy nguyên văn một biểu thức trong ngoặc, dùng cho CHECK. */
-  private parenText(): string {
+  private parenText(): { text: string; span: Span } {
     if (!this.eatOp('(')) throw this.fail('00906', 'missing-keyword', { kw: '(' });
     const s = this.tok.s;
     this.ctx = 'CHECK (';
     this.expr();
     const e = this.prev.e;
     if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
-    return this.sql.slice(s, e);
+    return { text: this.sql.slice(s, e), span: { s, e } };
   }
 
+  /** Danh sách tên column trong ngoặc. */
+  private columnList(): { name: string; span: Span }[] {
+    if (!this.eatOp('(')) throw this.fail('00906', 'missing-keyword', { kw: '(' });
+    const names = [this.name('(')];
+    while (this.eatOp(',')) names.push(this.name(','));
+    if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+    return names.map((n) => ({ name: n.text, span: n.span }));
+  }
+
+  /** `REFERENCES t (c)` rồi tới ON DELETE. Oracle cho bỏ phần (c): khi đó lấy primary key của table kia. */
+  private references(columns: { name: string; span: Span }[], inline: boolean, name: { text: string; span: Span } | undefined, s: number): ConstraintSpec {
+    const t = this.name('REFERENCES');
+    const refCols = this.isOp('(') ? this.columnList() : [];
+    if (refCols.length === 0 && this.d === 'mysql') throw this.fail('00906', 'missing-keyword', { kw: '(' });
+    const ref: NonNullable<ConstraintSpec['ref']> = { table: t.text, tableSpan: t.span, columns: refCols };
+    while (this.isW('ON')) {
+      this.i++;
+      if (this.eatW('DELETE')) {
+        if (this.eatW('CASCADE')) ref.onDelete = 'cascade';
+        else if (this.eatW('SET')) {
+          this.needW('NULL', '00908');
+          ref.onDelete = 'set null';
+        } else if (this.d === 'mysql' && this.eatW('RESTRICT')) ref.onDelete = undefined;
+        else if (this.d === 'mysql' && this.eatW('NO')) this.needW('ACTION');
+        else throw this.fail('00905', 'missing-keyword', { kw: 'CASCADE hoặc SET NULL' });
+      } else if (this.d === 'mysql' && this.isW('UPDATE')) {
+        this.i++;
+        if (this.eatW('RESTRICT')) continue;
+        if (this.eatW('NO')) {
+          this.needW('ACTION');
+          continue;
+        }
+        throw unsupported('ON UPDATE CASCADE và ON UPDATE SET NULL', this.at());
+      } else throw this.fail('00905', 'missing-keyword', { kw: 'DELETE' });
+    }
+    return { kind: 'fk', name: name?.text, nameSpan: name?.span, columns, ref, inline, span: { s, e: this.prev.e } };
+  }
+
+  /**
+   * Một luật viết ở cấp table hoặc trong ALTER TABLE ADD: `[CONSTRAINT tên] PRIMARY KEY (...)`, UNIQUE, FOREIGN KEY, CHECK.
+   * Trả về null với KEY và INDEX của MySQL: engine không có index riêng, nên đọc rồi bỏ qua.
+   */
+  private tableConstraint(): ConstraintSpec | null {
+    const s = this.tok.s;
+    let name: { text: string; span: Span } | undefined;
+    if (this.eatW('CONSTRAINT')) {
+      // MySQL cho bỏ tên sau chữ CONSTRAINT.
+      if (!(this.d === 'mysql' && (this.isW('PRIMARY') || this.isW('UNIQUE') || this.isW('FOREIGN') || this.isW('CHECK')))) name = this.name('CONSTRAINT');
+    }
+    if (this.eatW('PRIMARY')) {
+      this.needW('KEY');
+      return { kind: 'pk', name: name?.text, nameSpan: name?.span, columns: this.columnList(), inline: false, span: { s, e: this.prev.e } };
+    }
+    if (this.eatW('UNIQUE')) {
+      if (this.d === 'mysql') {
+        if (!this.eatW('KEY')) this.eatW('INDEX');
+        // Tên đặt sau UNIQUE KEY là tên của key, thắng tên đặt sau CONSTRAINT.
+        if (this.tok.type === 'word' && !this.isOp('(')) name = this.name('UNIQUE');
+      }
+      return { kind: 'unique', name: name?.text, nameSpan: name?.span, columns: this.columnList(), inline: false, span: { s, e: this.prev.e } };
+    }
+    if (this.eatW('FOREIGN')) {
+      this.needW('KEY');
+      if (this.d === 'mysql' && this.tok.type === 'word' && !this.isOp('(')) name = this.name('KEY');
+      const cols = this.columnList();
+      this.needW('REFERENCES');
+      return this.references(cols, false, name, s);
+    }
+    if (this.eatW('CHECK')) {
+      const { text, span } = this.parenText();
+      if (this.d === 'mysql') this.eatW('ENFORCED');
+      return { kind: 'check', name: name?.text, nameSpan: name?.span, columns: [], expr: text, exprSpan: span, inline: false, span: { s, e: this.prev.e } };
+    }
+    if (this.d === 'mysql' && !name && (this.isW('KEY') || this.isW('INDEX'))) {
+      this.i++;
+      if (this.tok.type === 'word') this.i++;
+      this.columnList();
+      return null;
+    }
+    throw this.fail('00900', 'unexpected', { tok: this.show() });
+  }
+
+  /** Tên table cho CREATE, ALTER, DROP: dùng lại `tableRef` nhưng không nhận alias. */
   private createTable(): CreateTableStmt {
     const s = this.tok.s;
     this.i += 2; // CREATE TABLE
-    if (this.isW('IF')) throw unsupported('IF NOT EXISTS', this.at());
+    let ifNotExists = false;
+    if (this.isW('IF') && this.isW('NOT', this.peek())) {
+      // Oracle 19c không có IF NOT EXISTS: nó đọc IF thành tên table rồi lạc ở chữ NOT.
+      if (this.d === 'oracle') {
+        this.i++;
+        throw this.fail('00906', 'if-exists-oracle', { stmt: 'CREATE TABLE' });
+      }
+      this.i += 2;
+      this.needW('EXISTS');
+      ifNotExists = true;
+    }
     const n = this.name('TABLE');
     if (!this.eatOp('(')) throw this.fail('00906', 'missing-keyword', { kw: '(' });
     const columns: ColumnSpec[] = [];
-    const checks: string[] = [];
-    const col = (name: string, span: Span) => {
-      const c = columns.find((x) => x.name.toLowerCase() === name.toLowerCase());
-      if (!c) throw syntaxError(this.d, this.sql, span, '00904', 'unknown-column', { name });
-      return c;
-    };
-    const inParens = () => {
-      if (!this.eatOp('(')) throw this.fail('00906', 'missing-keyword', { kw: '(' });
-      const names = [this.name('(')];
-      while (this.eatOp(',')) names.push(this.name(','));
-      if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
-      return names;
-    };
-    const references = () => {
-      const t = this.name('REFERENCES');
-      const [c] = inParens();
-      return { table: t.text, column: c.text };
-    };
+    const constraints: ConstraintSpec[] = [];
     for (;;) {
-      if (this.eatW('CONSTRAINT')) this.name('CONSTRAINT');
-      if (this.eatW('PRIMARY')) {
-        this.needW('KEY');
-        for (const c of inParens()) col(c.text, c.span).pk = true;
-      } else if (this.eatW('FOREIGN')) {
-        this.needW('KEY');
-        const [c] = inParens();
-        this.needW('REFERENCES');
-        col(c.text, c.span).fk = references();
-      } else if (this.eatW('UNIQUE')) {
-        for (const c of inParens()) col(c.text, c.span).unique = true;
-      } else if (this.eatW('CHECK')) {
-        checks.push(this.parenText());
-      } else {
-        columns.push(this.columnSpec(references));
-      }
+      const t = this.tok;
+      const isKey = t.type === 'word' && (t.value === 'CONSTRAINT' || t.value === 'PRIMARY' || t.value === 'UNIQUE' || t.value === 'FOREIGN' || t.value === 'CHECK');
+      const isIndex = this.d === 'mysql' && t.type === 'word' && (t.value === 'KEY' || t.value === 'INDEX') && (this.isOp('(', this.peek()) || (this.peek().type === 'word' && this.isOp('(', this.peek(2))));
+      if (isKey || isIndex) {
+        const c = this.tableConstraint();
+        if (c) constraints.push(c);
+      } else columns.push(this.columnSpec('create'));
       if (!this.eatOp(',')) break;
     }
     if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
-    return { t: 'create', name: n.text, nameSpan: n.span, columns, checks, span: { s, e: this.prev.e } };
+    const stmt: CreateTableStmt = { t: 'create', name: n.text, nameSpan: n.span, ifNotExists, columns, constraints, span: { s, e: this.prev.e } };
+    if (this.d === 'mysql') this.tableOptions(stmt);
+    return stmt;
   }
 
-  private columnSpec(references: () => { table: string; column: string }): ColumnSpec {
+  /** MySQL: ENGINE=InnoDB, AUTO_INCREMENT=5, DEFAULT CHARSET=utf8mb4... Đọc rồi bỏ qua, trừ AUTO_INCREMENT. */
+  private tableOptions(stmt: CreateTableStmt): void {
+    const WORDS = new Set(['ENGINE', 'AUTO_INCREMENT', 'DEFAULT', 'CHARSET', 'CHARACTER', 'COLLATE', 'COMMENT', 'ROW_FORMAT']);
+    while (this.tok.type === 'word' && WORDS.has(this.tok.value)) {
+      const w = this.tok.value;
+      this.i++;
+      if (w === 'DEFAULT') continue;
+      if (w === 'CHARACTER') this.needW('SET');
+      this.eatOp('=');
+      const v = this.tok;
+      if (v.type !== 'word' && v.type !== 'str' && v.type !== 'num') throw this.fail('00900', 'unexpected', { tok: this.show() });
+      this.i++;
+      if (w === 'AUTO_INCREMENT' && v.type === 'num') stmt.autoInc = Number(v.text);
+      this.eatOp(',');
+    }
+  }
+
+  private columnSpec(mode: 'create' | 'modify'): ColumnSpec {
     const n = this.name(',');
     const tt = this.tok;
-    const info = tt.type === 'word' ? TYPES[tt.value] : undefined;
-    if (!info) throw this.fail('00902', tt.type === 'eof' ? 'unexpected-end' : 'unknown-type', { name: this.show(), after: n.text });
-    if (info.only && info.only !== this.d) throw this.fail('00902', 'type-other-dialect', { name: tt.value, use: info.use, dialect: this.d === 'mysql' ? 'MySQL' : 'Oracle' });
-    this.i++;
-    const spec: ColumnSpec = { name: n.text, typeName: tt.value, type: info.type, span: { s: n.span.s, e: tt.e } };
-    if (this.eatOp('(')) {
-      this.int(`${tt.value}(`);
-      if (this.eatOp(',')) this.int(',');
-      else if (info.type === 'decimal' && this.prev.type === 'num') spec.type = 'int';
-      if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
-    } else if (tt.value === 'VARCHAR' || tt.value === 'VARCHAR2') {
-      throw this.fail('00906', 'varchar-length', { name: tt.value });
+    const spec: ColumnSpec = { name: n.text, typeName: '', type: 'text', constraints: [], span: { s: n.span.s, e: n.span.e } };
+    // Oracle MODIFY được bỏ data type: MODIFY (price NOT NULL).
+    const noType = mode === 'modify' && this.d === 'oracle' && !(tt.type === 'word' && TYPES[tt.value]);
+    if (!noType) {
+      const info = tt.type === 'word' ? TYPES[tt.value] : undefined;
+      if (!info) throw this.fail('00902', tt.type === 'eof' ? 'unexpected-end' : 'unknown-type', { name: this.show(), after: n.text });
+      if (info.only && info.only !== this.d) throw this.fail('00902', 'type-other-dialect', { name: tt.value, use: info.use, dialect: this.d === 'mysql' ? 'MySQL' : 'Oracle' });
+      this.i++;
+      spec.typeName = tt.value;
+      spec.type = info.type;
+      spec.span.e = tt.e;
+      const word = tt.value;
+      const textual = info.type === 'text' && word !== 'TEXT' && word !== 'CLOB';
+      // Chỉ DECIMAL, NUMERIC, NUMBER có độ chính xác. FLOAT(7,3) đọc rồi bỏ qua.
+      const numeric = word === 'DECIMAL' || word === 'NUMERIC' || word === 'NUMBER';
+      if (this.eatOp('(')) {
+        const negative = numeric && this.d === 'oracle';
+        const a = this.int(`${word}(`);
+        if (textual) {
+          spec.length = a;
+          if (this.d === 'oracle' && (this.isW('CHAR') || this.isW('BYTE'))) {
+            spec.charLength = this.tok.value === 'CHAR';
+            this.i++;
+          }
+        } else if (numeric) {
+          spec.precision = a;
+          spec.scale = 0;
+          if (this.eatOp(',')) {
+            const neg = negative && this.eatOp('-');
+            spec.scale = neg ? -this.int(',') : this.int(',');
+          }
+          if (spec.scale === 0 && (this.d === 'oracle' || word === 'DECIMAL' || word === 'NUMERIC')) spec.type = 'int';
+        } else if (this.eatOp(',')) this.int(',');
+        if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+      } else if (word === 'VARCHAR' || word === 'VARCHAR2') {
+        throw this.fail('00906', 'varchar-length', { name: word });
+      } else if (textual) spec.length = 1;
+      else if (this.d === 'mysql' && (word === 'DECIMAL' || word === 'NUMERIC')) {
+        spec.precision = 10;
+        spec.scale = 0;
+      }
     }
+    // Oracle: DEFAULT phải đứng trước NOT NULL và các luật khác.
+    let afterRule = false;
     for (;;) {
       const t = this.tok;
+      const s = t.s;
+      let cname: { text: string; span: Span } | undefined;
+      if (this.isW('CONSTRAINT')) {
+        this.i++;
+        cname = this.name('CONSTRAINT');
+      }
+      const rule = (c: Omit<ConstraintSpec, 'name' | 'nameSpan' | 'inline' | 'span'>) => {
+        spec.constraints.push({ ...c, name: cname?.text, nameSpan: cname?.span, inline: true, span: { s, e: this.prev.e } });
+        afterRule = true;
+      };
       if (this.eatW('NOT')) {
         this.needW('NULL', '00908');
-        spec.notNull = true;
+        spec.nullSpec = 'not null';
+        afterRule = true;
       } else if (this.eatW('NULL')) {
-        /* cho phép để trống: mặc định */
-      } else if (this.eatW('UNIQUE')) spec.unique = true;
-      else if (this.eatW('PRIMARY')) {
+        spec.nullSpec = 'null';
+        afterRule = true;
+      } else if (this.eatW('UNIQUE')) {
+        if (this.d === 'mysql') this.eatW('KEY');
+        rule({ kind: 'unique', columns: [{ name: n.text, span: n.span }] });
+      } else if (this.eatW('PRIMARY')) {
         this.needW('KEY');
-        spec.pk = true;
+        rule({ kind: 'pk', columns: [{ name: n.text, span: n.span }] });
       } else if (this.isW('AUTO_INCREMENT')) {
         if (this.d === 'oracle') throw this.fail('00907', 'identity-other-dialect', { name: 'AUTO_INCREMENT', use: 'GENERATED AS IDENTITY', dialect: 'Oracle' });
         this.i++;
@@ -898,18 +1078,239 @@ class Parser {
         this.needW('AS');
         this.needW('IDENTITY');
         spec.identity = true;
-      } else if (this.eatW('DEFAULT')) {
-        this.ctx = 'DEFAULT';
-        this.add();
-      } else if (this.eatW('CHECK')) spec.check = this.parenText();
-      else if (this.eatW('REFERENCES')) spec.fk = references();
-      else if (t.type === 'word' && t.value === 'CONSTRAINT') {
+        afterRule = true;
+      } else if (this.isW('DEFAULT')) {
+        if (this.d === 'oracle' && afterRule) throw this.fail('00907', 'default-order-oracle');
         this.i++;
-        this.name('CONSTRAINT');
+        this.ctx = 'DEFAULT';
+        const ds = this.tok.s;
+        // MySQL chỉ nhận một giá trị, hoặc biểu thức đặt trong ngoặc: DEFAULT (1 + 2).
+        if (this.d === 'mysql') this.unary();
+        else this.add();
+        spec.default = { text: this.sql.slice(ds, this.prev.e), span: { s: ds, e: this.prev.e } };
+      } else if (this.eatW('CHECK')) {
+        const { text, span } = this.parenText();
+        if (this.d === 'mysql') this.eatW('ENFORCED');
+        rule({ kind: 'check', columns: [{ name: n.text, span: n.span }], expr: text, exprSpan: span });
+      } else if (this.eatW('REFERENCES')) {
+        const c = this.references([{ name: n.text, span: n.span }], true, cname, s);
+        spec.constraints.push(c);
+        afterRule = true;
+      } else if (this.d === 'mysql' && this.isW('COMMENT') && this.peek().type === 'str') {
+        this.i += 2;
+      } else if (cname) {
+        throw this.fail('00900', 'unexpected', { tok: this.show() });
       } else break;
     }
     spec.span.e = this.prev.e;
     return spec;
+  }
+
+  /** Cặp ngoặc chứa nhiều column (hoặc luật) của ADD và MODIFY ở Oracle, và ADD ở MySQL. */
+  private columnItems(mode: 'create' | 'modify'): { cols: ColumnSpec[]; cons: ConstraintSpec[] } {
+    const cols: ColumnSpec[] = [];
+    const cons: ConstraintSpec[] = [];
+    if (this.eatOp('(')) {
+      for (;;) {
+        if (mode === 'create' && this.isConstraintStart()) {
+          const c = this.tableConstraint();
+          if (c) cons.push(c);
+        } else cols.push(this.columnSpec(mode));
+        if (!this.eatOp(',')) break;
+      }
+      if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+    } else cols.push(this.columnSpec(mode));
+    return { cols, cons };
+  }
+
+  private isConstraintStart(): boolean {
+    const t = this.tok;
+    return t.type === 'word' && (t.value === 'CONSTRAINT' || t.value === 'PRIMARY' || t.value === 'UNIQUE' || t.value === 'FOREIGN' || t.value === 'CHECK');
+  }
+
+  /** Oracle: COLUMN là từ dành riêng, nên ADD COLUMN và MODIFY COLUMN đều lỗi. */
+  private noColumnWordInOracle(): void {
+    if (this.d === 'oracle' && this.isW('COLUMN') && !this.isOp('(', this.peek())) {
+      const t = this.tok;
+      throw new SqlError('syntax', 'ORA-00904', 'ORA-00904: : invalid identifier', 'column-word-oracle', friendly['column-word-oracle']({}), { s: t.s, e: t.e });
+    }
+  }
+
+  private alterTable(): AlterTableStmt {
+    const s = this.tok.s;
+    this.i += 2; // ALTER TABLE
+    const table = this.tableRef(false);
+    const actions: AlterAction[] = [];
+    for (;;) {
+      actions.push(...this.alterAction());
+      if (!this.isOp(',')) break;
+      // Oracle không cho nối nhiều việc bằng dấu phẩy: viết ADD (a ..., b ...) hoặc chạy từng lệnh.
+      if (this.d === 'oracle') throw this.fail('00933', 'alter-comma-oracle');
+      this.i++;
+    }
+    return { t: 'alter', table, actions, span: { s, e: this.prev.e } };
+  }
+
+  private alterAction(): AlterAction[] {
+    const t = this.tok;
+    const s = t.s;
+    const done = (): { s: number; e: number } => ({ s, e: this.prev.e });
+    if (t.type === 'word') {
+      switch (t.value) {
+        case 'ADD': {
+          this.i++;
+          if (this.d === 'mysql') this.eatW('COLUMN');
+          else this.noColumnWordInOracle();
+          if (this.isConstraintStart()) {
+            const c = this.tableConstraint();
+            if (!c) throw unsupported('ADD KEY và ADD INDEX', this.at());
+            return [{ a: 'add-constraint', c, span: done() }];
+          }
+          if (this.d === 'mysql' && (this.isW('KEY') || this.isW('INDEX'))) throw unsupported('ADD KEY và ADD INDEX', this.at());
+          const { cols, cons } = this.columnItems('create');
+          if (this.isW('FIRST') || this.isW('AFTER')) throw unsupported('FIRST và AFTER trong ALTER TABLE', this.at());
+          return [{ a: 'add-column', cols, span: done() }, ...cons.map((c) => ({ a: 'add-constraint' as const, c, span: c.span }))];
+        }
+        case 'MODIFY': {
+          this.i++;
+          if (this.d === 'mysql') {
+            this.eatW('COLUMN');
+            // MySQL không nhận MODIFY (a ..., b ...) trong ngoặc, chỉ Oracle nhận.
+            if (this.isOp('(')) throw this.fail('00900', 'unexpected', { tok: '(' });
+          } else this.noColumnWordInOracle();
+          const { cols } = this.columnItems('modify');
+          if (this.isW('FIRST') || this.isW('AFTER')) throw unsupported('FIRST và AFTER trong ALTER TABLE', this.at());
+          return [{ a: 'modify', cols, span: done() }];
+        }
+        case 'DROP': {
+          this.i++;
+          if (this.eatW('PRIMARY')) {
+            this.needW('KEY');
+            return [{ a: 'drop-constraint', via: 'primary', span: done() }];
+          }
+          if (this.eatW('CONSTRAINT')) {
+            const n = this.name('CONSTRAINT');
+            return [{ a: 'drop-constraint', via: 'constraint', name: n.text, span: done() }];
+          }
+          if (this.isW('FOREIGN') || this.isW('CHECK')) {
+            if (this.d === 'oracle') throw this.fail('00905', 'missing-keyword', { kw: 'CONSTRAINT' });
+            const via = this.tok.value === 'FOREIGN' ? 'foreign' : 'check';
+            this.i++;
+            if (via === 'foreign') this.needW('KEY');
+            const n = this.name(via === 'foreign' ? 'KEY' : 'CHECK');
+            return [{ a: 'drop-constraint', via, name: n.text, span: done() }];
+          }
+          if (this.isW('INDEX') || this.isW('KEY') || this.isW('UNIQUE')) throw unsupported('DROP INDEX', this.at());
+          const hadColumn = this.eatW('COLUMN');
+          if (this.d === 'oracle' && !hadColumn && !this.isOp('(')) throw this.fail('00905', 'missing-keyword', { kw: 'COLUMN' });
+          let names: { name: string; span: Span }[];
+          if (this.d === 'oracle' && this.isOp('(')) names = this.columnList();
+          else {
+            const n = this.name('DROP');
+            names = [{ name: n.text, span: n.span }];
+          }
+          return [{ a: 'drop-column', names, span: done() }];
+        }
+        case 'RENAME': {
+          this.i++;
+          if (this.eatW('COLUMN')) {
+            const from = this.name('COLUMN');
+            this.needW('TO');
+            const to = this.name('TO');
+            return [{ a: 'rename-column', from: { name: from.text, span: from.span }, to: { name: to.text, span: to.span }, span: done() }];
+          }
+          if (this.isW('INDEX') || this.isW('KEY') || this.isW('CONSTRAINT')) throw unsupported(`RENAME ${this.tok.value}`, this.at());
+          if (!this.eatW('TO')) {
+            if (this.d === 'oracle') throw this.fail('00905', 'missing-keyword', { kw: 'TO' });
+            this.eatW('AS');
+          }
+          const to = this.name('TO');
+          return [{ a: 'rename-to', to: { name: to.text, span: to.span }, span: done() }];
+        }
+        case 'CHANGE':
+          if (this.d === 'mysql') throw unsupported('ALTER TABLE ... CHANGE', this.at());
+          break;
+        default:
+          break;
+      }
+    }
+    throw this.fail('01735', t.type === 'eof' ? 'unexpected-end' : 'alter-option', { after: 'tên table', tok: this.show() });
+  }
+
+  private dropTable(): DropTableStmt {
+    const s = this.tok.s;
+    this.i += 2; // DROP TABLE
+    let ifExists = false;
+    if (this.isW('IF') && this.isW('EXISTS', this.peek())) {
+      // Oracle 19c đọc IF thành tên table rồi lạc ở chữ EXISTS.
+      if (this.d === 'oracle') {
+        this.i++;
+        throw this.fail('00933', 'if-exists-oracle', { stmt: 'DROP TABLE' });
+      }
+      this.i += 2;
+      ifExists = true;
+    }
+    const table = this.tableRef(false);
+    let cascade = false;
+    if (this.d === 'mysql' && this.isOp(',')) throw unsupported('DROP TABLE nhiều table một lần', this.at());
+    if (this.eatW('CASCADE')) {
+      if (this.d === 'oracle') {
+        this.needW('CONSTRAINTS');
+        cascade = true;
+      }
+    } else if (this.d === 'mysql') this.eatW('RESTRICT');
+    else this.eatW('PURGE');
+    return { t: 'drop', table, ifExists, cascade, span: { s, e: this.prev.e } };
+  }
+
+  private truncate(): TruncateStmt {
+    const s = this.tok.s;
+    this.i++;
+    // Oracle bắt buộc có chữ TABLE. MySQL cho bỏ.
+    if (!this.eatW('TABLE') && this.d === 'oracle') throw this.fail('03290', 'truncate-table-oracle');
+    const table = this.tableRef(false);
+    return { t: 'truncate', table, span: { s, e: this.prev.e } };
+  }
+
+  private signedInt(after: string): { v: number; span: Span } {
+    const s = this.tok.s;
+    const neg = this.eatOp('-');
+    if (!neg) this.eatOp('+');
+    const v = this.int(after);
+    return { v: neg ? -v : v, span: { s, e: this.prev.e } };
+  }
+
+  private createSequence(): CreateSequenceStmt {
+    const s = this.tok.s;
+    this.i += 2; // CREATE SEQUENCE
+    const n = this.name('SEQUENCE');
+    const stmt: CreateSequenceStmt = { t: 'createseq', name: n.text, nameSpan: n.span, span: { s, e: this.prev.e } };
+    for (;;) {
+      if (this.eatW('START')) {
+        this.needW('WITH');
+        stmt.start = this.signedInt('START WITH').v;
+      } else if (this.eatW('INCREMENT')) {
+        this.needW('BY');
+        const inc = this.signedInt('INCREMENT BY');
+        stmt.increment = inc.v;
+        stmt.incrementSpan = inc.span;
+      } else if (this.eatW('CACHE')) {
+        this.int('CACHE');
+      } else if (this.eatW('NOCACHE') || this.eatW('NOCYCLE') || this.eatW('ORDER') || this.eatW('NOORDER')) {
+        /* không ảnh hưởng gì với engine */
+      } else if (this.isW('MINVALUE') || this.isW('MAXVALUE') || this.isW('NOMINVALUE') || this.isW('NOMAXVALUE') || this.isW('CYCLE')) {
+        throw unsupported(`${this.tok.value} của sequence`, this.at());
+      } else break;
+    }
+    stmt.span.e = this.prev.e;
+    return stmt;
+  }
+
+  private dropSequence(): DropSequenceStmt {
+    const s = this.tok.s;
+    this.i += 2;
+    const n = this.name('SEQUENCE');
+    return { t: 'dropseq', name: n.text, nameSpan: n.span, span: { s, e: this.prev.e } };
   }
 
   private caseExpr(): Expr {

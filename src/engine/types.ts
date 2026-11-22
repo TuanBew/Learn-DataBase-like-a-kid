@@ -31,7 +31,26 @@ export interface ColumnDef {
   unique?: boolean;
   /** Column tự sinh mã tăng dần: AUTO_INCREMENT ở MySQL, GENERATED AS IDENTITY ở Oracle. */
   identity?: boolean;
+  /** Tên data type như người học viết, in hoa: 'VARCHAR', 'NUMBER'... Table mẫu không có field này. */
+  sqlType?: string;
+  /** Độ dài tối đa của VARCHAR, VARCHAR2, CHAR. */
+  length?: number;
+  /** Oracle VARCHAR2(n CHAR): đếm ký tự. Không có thì Oracle đếm byte. */
+  charLength?: boolean;
+  /** Tổng số chữ số của DECIMAL(p,s) hoặc NUMBER(p,s). */
+  precision?: number;
+  /** Số chữ số sau dấu phẩy. */
+  scale?: number;
+  /** Giá trị mặc định, viết như trong SQL: "'x'", '5', 'CURRENT_TIMESTAMP'. */
+  default?: string;
 }
+
+/** Luật của table. Mỗi luật có tên, và tên đó hiện trong thông báo lỗi. */
+export type ConstraintDef =
+  | { kind: 'pk'; name: string; columns: string[] }
+  | { kind: 'unique'; name: string; columns: string[] }
+  | { kind: 'fk'; name: string; columns: string[]; refTable: string; refColumns: string[]; onDelete?: 'cascade' | 'set null' }
+  | { kind: 'check'; name: string; expr: string };
 
 export interface TableDef {
   /** Tên table, tiếng Anh, snake_case. */
@@ -43,10 +62,30 @@ export interface TableDef {
   checks?: string[];
   /** Mỗi row là một mảng giá trị, đúng thứ tự của `columns`. */
   rows: RawValue[][];
+  /**
+   * Mọi luật của table. Table mẫu không viết field này: session tự dựng từ `pk`, `unique`, `fk`, `checks`.
+   * Sau CREATE hay ALTER, các field kia được giữ khớp với danh sách này.
+   */
+  constraints?: ConstraintDef[];
+  /** Số AUTO_INCREMENT hoặc identity sẽ cấp tiếp theo. Không có thì lấy số lớn nhất đang có cộng 1. */
+  autoInc?: number;
+}
+
+/** Sequence của Oracle. */
+export interface SequenceDef {
+  name: string;
+  start: number;
+  increment: number;
+  /** Giá trị NEXTVAL vừa cấp. Chưa ai gọi NEXTVAL thì không có field này. */
+  last?: number;
 }
 
 export interface Database {
   /** Tên database, ví dụ 'trasua'. Hiện trong thông báo lỗi của MySQL. */
   name: string;
   tables: TableDef[];
+  /** Sequence (Oracle). */
+  sequences?: SequenceDef[];
+  /** Bộ đếm đặt tên SYS_C00... cho luật không có tên ở Oracle. */
+  sysName?: number;
 }

@@ -25,7 +25,7 @@ const steps = `CREATE TABLE staff_bak_hcm AS
 SELECT * FROM staff WHERE branch = 'HCM';
 DELETE FROM staff WHERE branch = 'HCM';`;
 
-const note = '\n-- Viết lệnh sao lưu và lệnh xóa của bạn ở dưới, bên dưới dòng này\n';
+const note = '\n-- Viết lệnh sao lưu và lệnh xóa của bạn bên dưới dòng này\n';
 
 export const exercise: BuildExercise = {
   id: 'c10-e7',
@@ -72,7 +72,7 @@ export const exercise: BuildExercise = {
       },
     ],
   },
-  why: 'CREATE TABLE AS SELECT chép đúng các row HCM sang table mới trước khi DELETE chạy. Giờ nếu xóa nhầm, bạn còn bản gốc để khôi phục.',
+  why: 'CREATE TABLE AS SELECT chép đúng các row HCM sang table mới trước khi DELETE chạy. Có bản sao lưu, nếu xóa nhầm bạn vẫn khôi phục được.',
   hints: {
     light: 'Có hai bước, và thứ tự quan trọng. Sao lưu trước, xóa sau.',
     specific: "Bước một: CREATE TABLE staff_bak_hcm AS SELECT ... với điều kiện branch bằng 'HCM'. Bước hai: DELETE FROM staff với cùng điều kiện đó.",

@@ -42,7 +42,7 @@ export const exercise: QuizExercise = {
     },
     {
       kind: 'choice',
-      question: 'Bạn bỏ hai dòng WHERE đi. Số nhân viên được đưa vào gom nhóm tăng hay giảm?',
+      question: 'Bạn bỏ hai điều kiện trong WHERE. Số nhân viên được đưa vào gom nhóm tăng hay giảm?',
       options: [
         { text: 'Tăng, vì mất điều kiện lọc', correct: true, feedback: 'Đúng. WHERE lọc row trước khi gom nhóm. Bỏ nó đi thì nhiều nhân viên hơn đi vào GROUP BY.' },
         { text: 'Giảm, vì query ngắn hơn', feedback: 'Chưa đúng. Query ngắn hơn không có nghĩa là ít row hơn. WHERE chỉ làm số row ít đi, nên bỏ nó thì số row tăng.' },
@@ -50,5 +50,5 @@ export const exercise: QuizExercise = {
       ],
     },
   ],
-  why: 'Bạn đọc từ trong ra ngoài: FROM và JOIN cho biết table, WHERE lọc row, GROUP BY gom, SELECT hiện. Mỗi khúc trả lời một câu hỏi nhỏ.',
+  why: 'Bạn đọc theo thứ tự database chạy: FROM và JOIN cho biết table, WHERE lọc row, GROUP BY gom, SELECT hiện. Mỗi khúc trả lời một câu hỏi nhỏ.',
 };

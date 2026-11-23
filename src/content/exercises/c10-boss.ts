@@ -42,7 +42,7 @@ export const exercise: QuizExercise = {
       options: [
         { text: 'ROLLBACK, rồi xem lại điều kiện', correct: true, feedback: 'Đúng. Chưa COMMIT nên ROLLBACK đưa mọi thứ về như cũ. Không nên COMMIT khi số row chưa khớp.' },
         { text: 'COMMIT trước, rồi tính tiếp', feedback: 'Chưa nên. COMMIT lưu luôn 3 thay đổi nhầm, và lấy lại sẽ khó hơn nhiều.' },
-        { text: 'Chạy thêm UPDATE để đổi 3 người về chỗ cũ', feedback: 'Chưa nên. Việc này dễ sai thêm. ROLLBACK gọn hơn, miễn là bạn chưa COMMIT.' },
+        { text: 'Chạy thêm UPDATE để đổi 3 người về chỗ cũ', feedback: 'Chưa nên. Cách này dễ sai thêm. ROLLBACK gọn hơn, miễn là bạn chưa COMMIT.' },
       ],
     },
   ],

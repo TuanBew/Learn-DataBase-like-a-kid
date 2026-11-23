@@ -5,7 +5,7 @@ export const exercise: QuizExercise = {
   id: 'c4-e9',
   kind: 'quiz',
   title: 'Query dễ đọc và comment',
-  prompt: 'Bi có ba câu hỏi nhanh về cách trình bày query và viết comment. Chọn đáp án bạn thấy đúng nhất.',
+  prompt: 'Mình có ba câu hỏi nhanh về cách trình bày query và viết comment. Chọn đáp án bạn thấy đúng nhất.',
   asks: [],
   items: [
     {
@@ -21,7 +21,7 @@ export const exercise: QuizExercise = {
       kind: 'choice',
       question: 'Cách nào viết comment ngắn chạy được ở cả MySQL và Oracle?',
       options: [
-        { text: '`-- Món Trà sữa dưới 40.000 đồng`', correct: true, feedback: 'Đúng. Hai dấu gạch kèm một dấu cách là comment tới cuối câu chữ, và chạy ở cả hai dialect.' },
+        { text: '`-- Món Trà sữa dưới 40.000 đồng`', correct: true, feedback: 'Đúng. Hai dấu gạch kèm một dấu cách là comment tới cuối dòng, và chạy ở cả hai dialect.' },
         { text: '`// Món Trà sữa dưới 40.000 đồng`', feedback: 'Chưa đúng. Hai dấu gạch chéo không phải comment trong SQL.' },
         { text: '`# Món Trà sữa dưới 40.000 đồng`', feedback: 'Gần đúng. MySQL nhận dấu `#`, nhưng Oracle báo lỗi. Dùng `--` để chạy được ở cả hai.' },
       ],

@@ -40,7 +40,7 @@ INSERT INTO members VALUES (7, 'Giang', 3);`;
 const del = `DELETE FROM members
 WHERE team_id IN (SELECT team_id FROM teams WHERE status = 'closed');`;
 
-const note = '\n-- Viết lệnh DELETE của bạn ở dưới, bên dưới dòng này\n';
+const note = '\n-- Viết lệnh DELETE của bạn bên dưới dòng này\n';
 
 export const exercise: BuildExercise = {
   id: 'c10-e5',

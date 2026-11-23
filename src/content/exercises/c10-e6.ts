@@ -5,7 +5,7 @@ export const exercise: QuizExercise = {
   chapter: 10,
   kind: 'quiz',
   title: 'Ba câu hỏi nhanh về lock',
-  prompt: 'Ba câu hỏi nhanh về lock. Bạn đọc tình huống hai người cùng sửa một row và chọn việc nên làm.',
+  prompt: 'Ba câu hỏi nhanh về lock. Bạn đọc tình huống hai người cùng sửa một row và chọn bước nên làm.',
   asks: [],
   items: [
     {
@@ -19,9 +19,9 @@ export const exercise: QuizExercise = {
     },
     {
       kind: 'choice',
-      question: 'Query của bạn treo đã năm phút vì một người khác giữ lock. Việc nào nên làm trước?',
+      question: 'Query của bạn treo đã năm phút vì một người khác giữ lock. Bước nào nên làm trước?',
       options: [
-        { text: 'Nhắn người đang giữ lock COMMIT hoặc ROLLBACK, nếu không biết là ai thì báo DBA', correct: true, feedback: 'Đúng. Chỉ người giữ lock hoặc DBA nhả được lock một cách an toàn.' },
+        { text: 'Nhắn người đang giữ lock COMMIT hoặc ROLLBACK, nếu không biết là ai thì báo DBA', correct: true, feedback: 'Đúng. Chỉ người giữ lock hoặc DBA nhả lock an toàn.' },
         { text: 'Chạy lại query liên tục cho tới khi qua', feedback: 'Chưa nên. Mỗi lần chạy lại thêm một query chờ cùng row, mà lock vẫn còn đó.' },
         { text: 'Tự tay xóa row đang bị khóa', feedback: 'Chưa nên. DELETE cũng phải chờ lock, và xóa row của người khác có thể làm mất dữ liệu.' },
       ],

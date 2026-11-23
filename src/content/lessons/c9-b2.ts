@@ -44,7 +44,7 @@ export const lesson: Lesson = {
       type: 'story',
       title: 'Hai người cùng lương, ai hạng mấy?',
       paragraphs: [
-        'Sếp nhờ Bi lập bảng xếp hạng lương của công ty. Bi sắp lương từ cao xuống thấp và đánh số 1, 2, 3.',
+        'Sếp nhờ Bi lập danh sách xếp hạng lương của công ty. Bi sắp lương từ cao xuống thấp và đánh số 1, 2, 3.',
         'Đến hạng 4 có chuyện: anh Hùng và anh Bảo cùng lương 38 triệu. Ai hạng 4, ai hạng 5?',
         'Có ba cách trả lời. Mỗi cách là một function: ROW_NUMBER, RANK và DENSE_RANK.',
       ],
@@ -97,7 +97,7 @@ export const lesson: Lesson = {
         'Thêm PARTITION BY trước ORDER BY thì mỗi nhóm đánh số lại từ 1. Ví dụ `RANK() OVER (PARTITION BY department_id ORDER BY salary DESC)`.',
         'Khi đó "hạng 1" nghĩa là người lương cao nhất của phòng mình, không phải của cả công ty.',
         'Window function chạy sau GROUP BY. Vì thế bạn xếp hạng được theo kết quả gom, như `RANK() OVER (ORDER BY SUM(salary) DESC)` ở mục thử cuối.',
-        'Chọn function theo báo cáo cần gì. Cần đúng N dòng, không hơn không kém: ROW_NUMBER. Cần đồng hạng thật và chấp nhận nhảy số, như giải thể thao: RANK. Cần danh sách hạng liền nhau: DENSE_RANK.',
+        'Chọn function theo báo cáo cần gì. Cần đúng N row, không hơn không kém: ROW_NUMBER. Cần đồng hạng thật và chấp nhận nhảy số, như giải thể thao: RANK. Cần danh sách hạng liền nhau: DENSE_RANK.',
       ],
     },
     {
@@ -143,11 +143,11 @@ export const lesson: Lesson = {
     },
     {
       type: 'realworld',
-      title: 'Bảng xếp hạng doanh số quý',
+      title: 'Xếp hạng doanh số quý',
       paragraphs: [
-        'Phòng kinh doanh công bố bảng xếp hạng doanh số cuối quý. Hai nhân viên bằng nhau thì cả hai cùng nhận hạng 2.',
+        'Phòng kinh doanh công bố danh sách xếp hạng doanh số cuối quý. Hai nhân viên bằng nhau thì cả hai cùng nhận hạng 2.',
         'Chị làm báo cáo chọn RANK vì giải thưởng chỉ trao cho hạng 1 đến 3. Nếu chọn ROW_NUMBER, một trong hai người bằng điểm sẽ mất hạng mà không ai giải thích được.',
-        'Với danh sách "20 khách hàng lớn nhất" cần đúng 20 dòng, chị dùng ROW_NUMBER.',
+        'Với danh sách "20 khách hàng lớn nhất" cần đúng 20 row, chị dùng ROW_NUMBER.',
       ],
     },
     {
@@ -156,7 +156,7 @@ export const lesson: Lesson = {
         'ROW_NUMBER đánh số liên tục. RANK cho đồng hạng rồi nhảy số. DENSE_RANK cho đồng hạng và không nhảy.',
         '`OVER (ORDER BY ...)` quyết định thứ tự xếp hạng. Thêm PARTITION BY thì mỗi nhóm đếm lại từ 1.',
         'ROW_NUMBER cần thêm column phụ vào ORDER BY để thứ tự cố định khi có giá trị bằng nhau.',
-        'Oracle bắt buộc ORDER BY trong OVER của hàm xếp hạng. MySQL 5.7 không có các function này.',
+        'Oracle bắt buộc ORDER BY trong OVER của function xếp hạng. MySQL 5.7 không có các function này.',
       ],
     },
     {

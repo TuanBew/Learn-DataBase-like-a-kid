@@ -78,7 +78,7 @@ export const exercise: BuildExercise = {
       },
       {
         id: 'keep-open',
-        label: 'Team đang mở vẫn còn member, nên database chặn việc xóa chúng',
+        label: 'Team đang mở vẫn còn member, nên database chặn lệnh xóa chúng',
         sql: {
           mysql: "DELETE FROM teams WHERE status = 'open'",
           oracle: "DELETE FROM teams WHERE status = 'open'",

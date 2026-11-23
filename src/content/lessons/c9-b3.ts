@@ -150,7 +150,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Bộ phận kinh doanh cần danh sách 5 khách mua nhiều nhất của mỗi vùng để gọi chăm sóc.',
         'Anh làm báo cáo viết đúng dạng này: tính hạng trong WITH, lọc `rn <= 5` ở query cuối. Anh thêm `customer_id` vào ORDER BY của OVER để danh sách không đổi giữa các lần chạy.',
-        'Dạng query này lặp lại ở nhiều báo cáo: sản phẩm bán chạy mỗi nhóm hàng, đơn lớn nhất mỗi tháng, người chấm công nhiều nhất mỗi phòng.',
+        'Dạng query này lặp lại ở nhiều báo cáo: sản phẩm bán chạy mỗi nhóm sản phẩm, đơn lớn nhất mỗi tháng, người chấm công nhiều nhất mỗi phòng.',
       ],
     },
     {

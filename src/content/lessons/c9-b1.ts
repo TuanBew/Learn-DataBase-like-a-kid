@@ -98,7 +98,7 @@ export const lesson: Lesson = {
       title: 'Cách viết',
       paragraphs: [
         'Window function nằm trong danh sách SELECT, như một column tính toán. Đặt tên cho nó bằng AS.',
-        'PARTITION BY chỉ chia nhóm để tính. Nó không gộp row, nên bạn không cần GROUP BY.',
+        'PARTITION BY chỉ chia nhóm để tính. Row không bị gộp, nên bạn không cần GROUP BY.',
         'Muốn thấy column nào cạnh con số của nhóm, viết column đó trong SELECT. Với GROUP BY, bạn không làm được vậy.',
         'Thiếu OVER thì database báo lỗi. Ví dụ `SELECT first_name, ROW_NUMBER() FROM employees` báo lỗi 1064 ở MySQL và ORA-30484 ở Oracle.',
       ],
@@ -117,7 +117,7 @@ export const lesson: Lesson = {
       items: [
         {
           kind: 'choice',
-          question: 'Bảng có 40 nhân viên. Bạn chạy `SELECT first_name, AVG(salary) OVER () FROM employees`. Kết quả có mấy row?',
+          question: 'Table employees có 40 nhân viên. Bạn chạy `SELECT first_name, AVG(salary) OVER () FROM employees`. Kết quả có mấy row?',
           options: [
             { text: '40 row, mỗi người một row', correct: true, feedback: 'Đúng. Window function giữ nguyên từng row.' },
             { text: '1 row', feedback: '1 row là kết quả của GROUP BY hoặc function gom không có OVER. Window function giữ từng row.' },
@@ -148,7 +148,7 @@ export const lesson: Lesson = {
       type: 'realworld',
       title: 'Báo cáo lương theo phòng',
       paragraphs: [
-        'Phòng nhân sự gửi sếp một bảng lương. Sếp muốn thấy từng người, kèm trung bình của phòng người đó.',
+        'Phòng nhân sự gửi sếp danh sách lương. Sếp muốn thấy từng người, kèm trung bình của phòng người đó.',
         'Chị làm báo cáo viết một query với `AVG(salary) OVER (PARTITION BY department_id)`. Query ngắn, mỗi người một dòng, không phải nối thêm table nào.',
         'Trước khi có window function, chị phải viết một query GROUP BY riêng rồi JOIN lại. Query dài gấp đôi và dễ sai.',
       ],

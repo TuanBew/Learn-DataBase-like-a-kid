@@ -57,7 +57,7 @@ export const lesson: Lesson = {
       paragraphs: [
         '**[[running-total]]** là số cộng dồn: mỗi row bằng tổng của row đó và mọi row trước nó.',
         'Bạn viết `SUM(revenue) OVER (ORDER BY order_month)`. Có ORDER BY trong OVER thì SUM cộng từ row đầu tới row hiện tại.',
-        'Không có ORDER BY thì SUM tính trên cả nhóm, và mọi row nhận cùng một tổng. Bạn đã thấy điều này ở bài đầu chương.',
+        'Không có ORDER BY thì SUM tính trên cả nhóm, và mọi row nhận cùng một tổng. Cách này giống `OVER ()` ở bài đầu chương.',
         'Bước đầu tiên là có một table doanh thu theo tháng. Query dưới đây gom đơn chưa hủy theo tháng trong WITH, rồi thêm các column window ở query cuối.',
       ],
     },
@@ -105,7 +105,7 @@ export const lesson: Lesson = {
   ) AS year_to_date`),
         },
       ],
-      say: 'Tháng đầu tiên có running_total bằng đúng doanh thu của tháng đó, và prev_revenue để trống. Mục cuối đổi cách chia nhóm: số cộng dồn về 0 khi sang năm mới.',
+      say: 'Tháng đầu tiên có running_total bằng đúng doanh thu của tháng đó, và prev_revenue để trống. Tháng 3 năm 2026 mới có 1.850.000 đồng vì dữ liệu chỉ tới ngày 8. Mục cuối đổi cách chia nhóm: số cộng dồn bắt đầu lại từ tháng 1 năm 2026.',
     },
     {
       type: 'text',
@@ -113,7 +113,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Quên ORDER BY thì LAG và LEAD không biết "trước" là row nào. Oracle báo ORA-30485. MySQL cho qua, và kết quả không đoán trước được.',
         'NULL ở tháng đầu là đúng, không phải lỗi. Phép trừ có NULL cho kết quả NULL, nên mức tăng của tháng đầu cũng là NULL.',
-        'Chia cho tháng trước bằng 0 thì database báo lỗi hoặc cho NULL tùy dialect. Với doanh thu thật, bạn kiểm trước xem có tháng nào bằng 0 không.',
+        'Chia cho tháng trước bằng 0 thì hai dialect khác nhau: MySQL cho NULL, Oracle báo ORA-01476. Hãy kiểm xem có tháng nào bằng 0 không.',
         'Cẩn thận khi ORDER BY là chữ: `2025-02` đứng trước `2025-10` nhờ định dạng năm-tháng có hai chữ số. Nếu viết `2025-2` thì thứ tự sai.',
       ],
     },
@@ -164,7 +164,7 @@ export const lesson: Lesson = {
       type: 'realworld',
       title: 'Báo cáo tăng trưởng hằng tháng',
       paragraphs: [
-        'Bộ phận tài chính gửi ban giám đốc một bảng: doanh thu từng tháng, số cộng dồn từ đầu năm và phần trăm tăng so với tháng trước.',
+        'Bộ phận tài chính gửi ban giám đốc một báo cáo: doanh thu từng tháng, số cộng dồn từ đầu năm và phần trăm tăng so với tháng trước.',
         'Chị làm báo cáo viết đủ ba column trong một query với SUM OVER và LAG. Trước đây phải xuất ra Excel rồi tự kéo công thức.',
         'Khi một tháng có số lạ, chị chạy riêng khối WITH để kiểm doanh thu gốc trước, rồi mới nhìn tới các column window.',
       ],

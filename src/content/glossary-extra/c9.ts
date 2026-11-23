@@ -30,7 +30,7 @@ export const entries: Record<string, GlossaryEntry> = {
   'dense-rank': {
     term: 'DENSE_RANK',
     short: 'Window function xếp hạng. Row bằng nhau cùng một hạng, và hạng kế tiếp không nhảy: 1, 2, 2, 3.',
-    example: 'Bảng xếp hạng có các mức liền nhau: nhất, nhì, ba, dù có người đồng hạng.',
+    example: 'Danh sách xếp hạng có các mức liền nhau: nhất, nhì, ba, dù có người đồng hạng.',
   },
   'top-n': {
     term: 'Top N của mỗi nhóm',
@@ -54,7 +54,7 @@ export const entries: Record<string, GlossaryEntry> = {
   },
   view: {
     term: 'view',
-    short: 'Câu SELECT được lưu dưới một cái tên. Bạn đọc nó như một table. Nó không chứa dữ liệu riêng và chạy lại câu SELECT mỗi lần đọc.',
-    example: 'Team dữ liệu lưu cách tính doanh thu thành view, các phòng khác chỉ việc SELECT từ nó.',
+    short: 'Câu SELECT được lưu dưới một cái tên. Bạn đọc view như một table. View không chứa dữ liệu riêng và chạy lại câu SELECT mỗi lần đọc.',
+    example: 'Team dữ liệu lưu cách tính doanh thu thành view, các phòng khác chỉ cần SELECT từ view đó.',
   },
 };

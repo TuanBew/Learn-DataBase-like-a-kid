@@ -6,7 +6,7 @@ export const exercise: SqlExercise = {
   kind: 'write',
   title: 'Các đơn đặt trong ngày 28 tháng 2',
   prompt:
-    'Chị bán hàng nhờ bạn lấy mọi đơn đặt trong ngày 2026-02-28. Cột `order_date` có cả giờ, nên so bằng dấu `=` sẽ sót đơn. Hãy viết điều kiện bằng một khoảng ngày.',
+    'Chị bán hàng nhờ bạn lấy mọi đơn đặt trong ngày 2026-02-28. Column `order_date` có cả giờ, nên so bằng dấu `=` sẽ sót đơn. Hãy viết điều kiện bằng một khoảng ngày.',
   asks: [
     'Hiện `order_id`, `order_date` và `status`.',
     'Giữ đơn có `order_date` từ đầu ngày 2026-02-28, và trước đầu ngày 2026-03-01.',

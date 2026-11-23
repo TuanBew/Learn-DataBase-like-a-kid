@@ -12,9 +12,9 @@ export const exercise: QuizExercise = {
       kind: 'choice',
       question: 'Bạn chạy `CREATE VIEW active_staff AS SELECT ... FROM employees WHERE ...`. VIEW này lưu gì?',
       options: [
-        { text: 'Câu SELECT, và chạy lại câu đó mỗi lần bạn đọc VIEW', correct: true, feedback: 'Đúng. VIEW giống một câu SELECT được đặt tên. Nó không giữ bản sao của các row.' },
+        { text: 'Câu SELECT, và chạy lại câu đó mỗi lần bạn đọc VIEW', correct: true, feedback: 'Đúng. VIEW giống một câu SELECT được đặt tên. VIEW không giữ bản sao của các row.' },
         { text: 'Một bản sao các row tại lúc tạo', feedback: 'Chưa đúng. VIEW không chép row. Nếu chép thì dữ liệu sẽ cũ dần, và VIEW không bị vậy.' },
-        { text: 'Một table mới có thể INSERT trực tiếp', feedback: 'Chưa đúng. VIEW không phải table mới. Nó chỉ là tên đặt cho một câu SELECT.' },
+        { text: 'Một table mới có thể INSERT trực tiếp', feedback: 'Chưa đúng. VIEW không phải table mới. VIEW chỉ là tên đặt cho một câu SELECT.' },
       ],
     },
     {
@@ -23,7 +23,7 @@ export const exercise: QuizExercise = {
       options: [
         { text: 'Thấy nhân viên mới ngay', correct: true, feedback: 'Đúng. VIEW chạy lại câu SELECT mỗi lần đọc, nên luôn thấy dữ liệu hiện tại của `employees`.' },
         { text: 'Chưa thấy, phải tạo lại VIEW', feedback: 'Chưa đúng. VIEW không giữ row cũ, nên bạn không cần tạo lại.' },
-        { text: 'Chưa thấy, phải COMMIT VIEW', feedback: 'Chưa đúng. VIEW không có COMMIT riêng. Nó đọc dữ liệu thật của table nền mỗi lần.' },
+        { text: 'Chưa thấy, phải COMMIT VIEW', feedback: 'Chưa đúng. VIEW không có COMMIT riêng. VIEW đọc dữ liệu thật của table nền mỗi lần.' },
       ],
     },
     {

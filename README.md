@@ -126,11 +126,11 @@ Con số của lượt kiểm cuối, chạy ngày 23/11/2026:
 
 - Nội dung: 83 bài học, 104 bài tập (11 bài boss), 18 cảnh motion, 127 mục Tra cứu.
 - `tsc --noEmit`: sạch. `npm test`: 3057 test qua, 2 bỏ qua. `copy-scan.cjs`: 0 dòng nghi phạm trong 322 file.
-- `crawl.cjs` trên @CRAWL@
-- `axe.cjs` trên 193 trang ở hai chiều rộng, giao diện sáng và tối: @AXE@
+- `crawl.cjs` trên 374 lượt mở trang (187 trang, hai chiều rộng): không lỗi console, không tràn ngang, 0 trang có vấn đề.
+- `axe.cjs` trên 193 trang ở hai chiều rộng, giao diện sáng và tối: 0 vi phạm.
 - `checks-4.cjs`: 15 PASS. `checks-5.cjs`: 168 PASS. `sfx-check.cjs`: 18 PASS.
 - `solve-all.cjs`: 182 lượt giải bài tập trong giao diện thật (kể cả bài dựng table), tất cả PASS.
-- Lighthouse mobile trên 6 trang (`/`, `/bai/c3-b8`, `/bai/c9-b3`, `/tap/c8-e5`, `/tap/c9-e4`, `/tra-cuu`): @LH@
+- Lighthouse mobile trên 6 trang (`/`, `/bai/c3-b8`, `/bai/c9-b3`, `/tap/c8-e5`, `/tap/c9-e4`, `/tra-cuu`): Performance từ 92 tới 99, Accessibility 100 ở cả sáu trang. Trang thấp nhất là `/tap/c9-e4` (92, TBT 351 ms), vì trình soạn SQL tải sau khi trang hiện. Một lượt đo trước đó ra 78 và 89 cho `/tap/c8-e5` và `/tap/c9-e4` khi máy đang chạy tiến trình khác; đo lại trên máy rảnh cho 96 và 92.
 - Kiểm tay bằng Playwright: Theater với INTERSECT (MySQL) và MINUS (Oracle), gõ nhiều dòng có thụt lề vào editor, định dạng số, hộp sơ đồ, khung "Database của bạn" cuộn bằng bàn phím, giao diện tối, Tra cứu, phát lại Theater ở 2x cho bài window function và WITH: tất cả PASS.
 
 Con số của lượt kiểm sau Đợt 1 (22/11/2026), để so:

@@ -41,13 +41,13 @@ export type { DmlTrace, RunResult, Session } from './session';
 export type { DdlResult } from './ddl';
 export { gradeSchema } from './grade-schema';
 export type { SchemaSpec, TableSpec, ColumnSpec, Probe, SchemaCheck, SchemaReport } from './schema-spec';
-export type { SchemaView, SchemaTable, SchemaColumn, SchemaSequence } from './schema-view';
+export type { SchemaView, SchemaTable, SchemaColumn, SchemaSequence, SchemaViewDef } from './schema-view';
 export { splitStatements } from './split';
 export type { Piece } from './split';
 export type { Query, SetStmt } from './ast';
 export type { Warning } from './values';
 export type { ResultSet, Trace, TraceStep, TraceClause, TraceCol, TraceRow } from './trace';
-export type { Database, Dialect, Value, TableDef, ColumnDef, ColumnType, ConstraintDef, SequenceDef } from './types';
+export type { Database, Dialect, Value, TableDef, ColumnDef, ColumnType, ConstraintDef, SequenceDef, ViewDef } from './types';
 export { show, showQuoted, toText } from './values';
 
 /** Một function mà engine chạy được. `max` null nghĩa là không giới hạn số tham số. */

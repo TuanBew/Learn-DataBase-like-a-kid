@@ -1,5 +1,5 @@
-import type { ColumnDef, ColumnType, Database, Dialect, RawValue, SqlDate, TableDef, Value } from './types';
-import { AGGREGATES, type ClauseKind, type CompareOp, type Cte, type Expr, type Join, type Query, RUN_ORDER, type SelectStmt, type SetStmt, type TableRef } from './ast';
+import type { ColumnDef, ColumnType, Database, Dialect, RawValue, SqlDate, TableDef, Value, ViewDef } from './types';
+import { AGGREGATES, RANKING, WINDOW_AGGS, type ClauseKind, type CompareOp, type Cte, type Expr, type Join, type Query, RUN_ORDER, type SelectStmt, type SetStmt, type TableRef } from './ast';
 import {
   type MysqlWhere,
   type Span,
@@ -17,6 +17,8 @@ import {
 import { FUNCTIONS, type FnEnv, addDays, arityOf, castValue, diffDays, extract } from './functions';
 import { didYouMean, friendly, reason } from './messages.vi';
 import type { ResultSet, Trace, TraceCol, TraceRow, TraceStep } from './trace';
+import { parse } from './parser';
+import { computeWindows, foldValues } from './window';
 import { arith, compare, isDate, keyOf, like, norm, parseIsoDate, peekWarnings, resetWarnings, show, showQuoted, toNumber, toText, warn } from './values';
 
 type ColExpr = Extract<Expr, { t: 'col' }>;
@@ -57,6 +59,8 @@ export interface Cx {
   rownum?: number;
   /** Dòng tổng của ROLLUP: các key này đã được cuộn lên, nên mang giá trị NULL. */
   nullKeys?: Expr[];
+  /** Giá trị đã tính của các window function trong query, theo từng node. */
+  win?: Map<Expr, Value>;
 }
 
 export const DUAL: TableDef = { name: 'DUAL', columns: [{ name: 'DUMMY', type: 'text' }], rows: [['X']] };
@@ -87,9 +91,9 @@ const cmpOp = (op: CompareOp, c: number): boolean => (op === '=' ? c === 0 : op 
 /** Tên column hiện ra: Oracle in hoa, trừ column của subquery đã giữ đúng chữ. */
 const hdr = (def: ColumnDef, d: Dialect): string => (d === 'oracle' && !def.exact ? def.name.toUpperCase() : def.name);
 
-const isAgg = (e: Expr): e is FnExpr => e.t === 'fn' && AGGREGATES.has(e.name);
+const isAgg = (e: Expr): e is FnExpr => e.t === 'fn' && AGGREGATES.has(e.name) && !e.over;
 
-function children(e: Expr): Expr[] {
+export function children(e: Expr): Expr[] {
   switch (e.t) {
     case 'unary':
     case 'isnull':
@@ -106,7 +110,7 @@ function children(e: Expr): Expr[] {
     case 'like':
       return [e.e, e.pat];
     case 'fn':
-      return e.args;
+      return e.over ? [...e.args, ...e.over.partition, ...e.over.orderBy.map((o) => o.e)] : e.args;
     case 'case':
       return [...(e.operand ? [e.operand] : []), ...e.whens.flatMap((w) => [w.when, w.then]), ...(e.else ? [e.else] : [])];
     default:
@@ -128,7 +132,30 @@ export function loadRows(table: TableDef, d: Dialect): Value[][] {
   return table.rows.map((r) => r.map((v, i) => load(v, table.columns[i].type, d)));
 }
 
+/** Tên schema viết trước dấu chấm có đúng là schema của database này không. MySQL phân biệt hoa thường, Oracle thì không (trừ khi nằm trong nháy kép). */
+export function schemaMatches(db: Database, d: Dialect, s: { name: string; quoted: boolean }): boolean {
+  if (d === 'mysql') return s.name === db.name;
+  return (s.quoted ? s.name : s.name.toUpperCase()) === db.name.toUpperCase();
+}
+
+/** Schema viết sai thì báo lỗi: MySQL 1049, Oracle ORA-00942. */
+export function checkSchema(db: Database, d: Dialect, schema: TableRef['schema'], table: string, span: Span): void {
+  if (!schema || schemaMatches(db, d, schema)) return;
+  const p = { name: schema.name, db: d === 'oracle' ? db.name.toUpperCase() : db.name, table };
+  if (d === 'mysql') throw new SqlError('name', '1049', `ERROR 1049 (42000): Unknown database '${schema.name}'`, 'unknown-schema', friendly['unknown-schema'](p), span);
+  throw new SqlError('name', 'ORA-00942', oraMessage('00942'), 'unknown-schema', friendly['unknown-schema'](p), span);
+}
+
+/** View mà `ref` trỏ tới. Table (kể cả khối WITH) cùng tên che view. */
+export function viewOf(db: Database, ref: TableRef, d: Dialect): ViewDef | undefined {
+  if (ref.sub || !db.views?.length) return undefined;
+  const same = (n: string) => (d === 'oracle' && ref.quoted ? n.toUpperCase() === ref.table : n.toLowerCase() === ref.table.toLowerCase());
+  if (db.tables.some((x) => same(x.name))) return undefined;
+  return db.views.find((v) => same(v.name));
+}
+
 export function findTable(db: Database, ref: TableRef, d: Dialect): TableDef {
+  checkSchema(db, d, ref.schema, ref.table, ref.span);
   if (ref.table.toUpperCase() === 'DUAL') return DUAL;
   const t = db.tables.find((x) => (d === 'oracle' && ref.quoted ? x.name.toUpperCase() === ref.table : x.name.toLowerCase() === ref.table.toLowerCase()));
   if (!t) {
@@ -336,6 +363,10 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
         if (!parseIsoDate(e.v)) throw runtimeError(d, ['1525', 'HY000', `Incorrect DATE value: '${e.v}'`], '01861', e.span, 'date-literal-oracle', { text: e.v });
         return;
       case 'fn': {
+        if (e.over) {
+          checkWindow(e, where, agg);
+          return;
+        }
         if (e.name === 'GROUPING') {
           if (agg === 'no') {
             const p = { name: e.name, where: where === 'where clause' ? 'WHERE' : where === 'on clause' ? 'ON' : 'chỗ này' };
@@ -358,7 +389,8 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
             if (d === 'mysql') throw new SqlError('syntax', '1111', 'ERROR 1111 (HY000): Invalid use of group function', 'agg-not-allowed', friendly['agg-not-allowed'](p), e.span);
             throw new SqlError('syntax', 'ORA-00934', oraMessage('00934'), 'agg-not-allowed', friendly['agg-not-allowed'](p), e.span);
           }
-          const [lo, hi] = e.name === 'GROUP_CONCAT' ? [1, 99] : e.name === 'LISTAGG' ? [1, 2] : [1, 1];
+          // COUNT(DISTINCT a, b) chỉ có ở MySQL. Oracle báo sai số tham số.
+          const [lo, hi] = e.name === 'GROUP_CONCAT' ? [1, 99] : e.name === 'LISTAGG' ? [1, 2] : e.name === 'COUNT' && e.distinct && d === 'mysql' ? [1, 99] : [1, 1];
           if ((e.star && e.name !== 'COUNT') || (!e.star && (e.args.length < lo || e.args.length > hi))) {
             const need = lo === hi ? String(lo) : `${lo} tới ${hi}`;
             if (d === 'mysql') throw syntaxError(d, sql, { s: e.span.e - 1, e: e.span.e }, '00909', 'arg-count', { name: e.name, need, got: e.star ? '*' : e.args.length });
@@ -372,6 +404,12 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
         if (e.name === 'EXTRACT') {
           if (!UNITS.has(e.unit ?? '')) throw unsupported(`EXTRACT(${e.unit ?? ''} ...)`, e.span);
           check(e.args[0], where, agg);
+          return;
+        }
+        if (e.name === 'VALUES' && d === 'mysql' && env.incoming) {
+          const a = e.args[0];
+          if (e.args.length !== 1 || a.t !== 'col') throw syntaxError(d, sql, e.span, '00909', 'call-shape', { name: 'VALUES', shape: 'VALUES(column)' });
+          if (!env.incoming.columns.some((c) => c.name.toLowerCase() === a.name.toLowerCase())) throw unknownColumn(d, a.name, `"${a.name.toUpperCase()}"`, where, a.span, 'unknown-column', { name: a.name });
           return;
         }
         if (e.name === 'ROWNUM') {
@@ -391,7 +429,9 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
           throw unknownColumn(d, e.name, `"${e.name}"`, where, e.span, 'function-other-dialect', { name: e.name, other: 'Oracle', dialect: DIALECT_NAME[d], use: `${e.name}() hoặc NOW()` });
         }
         if (!e.bare && def.bareOnly?.includes(d)) throw syntaxError(d, sql, e.span, '00933', 'no-parens', { name: e.name });
-        const [min, max] = arityOf(def, d);
+        const [min, maxDef] = arityOf(def, d);
+        // TRIM(a, b) không có dạng đó: chỉ TRIM(... FROM ...) mới có hai tham số.
+        const max = e.name === 'TRIM' && !e.unit ? 1 : maxDef;
         if (e.args.length < min || e.args.length > max) {
           const hint = e.name === 'CONCAT' && d === 'oracle' ? 'concat-oracle' : 'arg-count';
           const need = min === max ? String(min) : max >= 99 ? `${min} trở lên` : `${min} tới ${max}`;
@@ -408,6 +448,36 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
       }
       default:
         children(e).forEach((x) => check(x, where, agg));
+    }
+  };
+
+  /** Window function: chỗ đứng, tên function, số tham số, ORDER BY bắt buộc (Oracle). */
+  const checkWindow = (e: FnExpr, where: MysqlWhere, agg: 'no' | 'yes' | 'inside'): void => {
+    const over = e.over!;
+    if (where === 'where clause' || where === 'on clause' || where === 'group statement' || where === 'having clause') {
+      const p = { name: e.name, where: where === 'where clause' ? 'WHERE' : where === 'on clause' ? 'ON' : where === 'having clause' ? 'HAVING' : 'GROUP BY' };
+      if (d === 'mysql') throw new SqlError('syntax', '3593', `ERROR 3593 (HY000): You cannot use the window function '${e.name.toLowerCase()}' in this context.'`, 'window-not-allowed', friendly['window-not-allowed'](p), e.span);
+      throw new SqlError('syntax', 'ORA-30483', oraMessage('30483'), 'window-not-allowed', friendly['window-not-allowed'](p), e.span);
+    }
+    if (!RANKING.has(e.name) && !WINDOW_AGGS.has(e.name)) {
+      if (d === 'mysql') throw syntaxError(d, sql, over.span, '30484', 'over-not-allowed', { name: e.name });
+      throw new SqlError('syntax', 'ORA-30484', oraMessage('30484'), 'over-not-allowed', friendly['over-not-allowed']({ name: e.name }), over.span);
+    }
+    const [lo, hi] = e.name === 'LAG' || e.name === 'LEAD' ? [1, 3] : RANKING.has(e.name) ? [0, 0] : [1, 1];
+    if ((e.star && e.name !== 'COUNT') || (!e.star && (e.args.length < lo || e.args.length > hi))) {
+      const need = lo === hi ? String(lo) : `${lo} tới ${hi}`;
+      const p = { name: e.name, need, got: e.star ? '*' : e.args.length };
+      if (d === 'mysql') throw syntaxError(d, sql, { s: e.span.s, e: e.span.s + e.name.length }, '00909', 'arg-count', p);
+      throw runtimeError(d, ['1064', '42000', 'You have an error in your SQL syntax'], '00909', e.span, 'arg-count', p);
+    }
+    if (d === 'oracle' && RANKING.has(e.name) && over.orderBy.length === 0) {
+      throw new SqlError('syntax', 'ORA-30485', oraMessage('30485'), 'over-needs-order', friendly['over-needs-order']({ name: e.name }), over.span);
+    }
+    if (over.rows && RANKING.has(e.name)) throw unsupported(`khung ROWS với ${e.name}`, over.span);
+    const nested = (x: Expr): boolean => (x.t === 'fn' && !!x.over) || children(x).some(nested);
+    for (const x of [...e.args, ...over.partition, ...over.orderBy.map((o) => o.e)]) {
+      if (nested(x)) throw unsupported('window function lồng trong window function', x.span);
+      check(x, where, agg);
     }
   };
 
@@ -486,6 +556,15 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
   const aggregate = (e: FnExpr, group: Value[][]): Value => {
     if (e.name === 'GROUP_CONCAT' || e.name === 'LISTAGG') return listAgg(e, group);
     if (e.star) return group.length;
+    if (e.args.length > 1) {
+      // COUNT(DISTINCT a, b): đếm các cặp khác nhau, bỏ cặp có NULL.
+      const seen = new Set<string>();
+      for (const cells of group) {
+        const vs = e.args.map((a) => ev(a, { cells }));
+        if (vs.every((v) => v !== null)) seen.add(vs.map((v) => keyOf(v, d)).join('\u0001'));
+      }
+      return seen.size;
+    }
     let vals = group.map((cells) => ev(e.args[0], { cells })).filter((v) => v !== null);
     if (e.distinct) {
       const seen = new Set<string>();
@@ -496,23 +575,7 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
         return true;
       });
     }
-    switch (e.name) {
-      case 'COUNT':
-        return vals.length;
-      case 'SUM':
-      case 'AVG': {
-        if (vals.length === 0) return null;
-        const sum = vals.reduce<number>((a, v) => a + (toNumber(v, d, e.span) ?? 0), 0);
-        return Math.round((e.name === 'SUM' ? sum : sum / vals.length) * 1e10) / 1e10;
-      }
-      default: {
-        if (vals.length === 0) return null;
-        return vals.reduce((best, v) => {
-          const c = compare(v, best, d, e.span) ?? 0;
-          return (e.name === 'MIN' ? c < 0 : c > 0) ? v : best;
-        });
-      }
-    }
+    return foldValues(e.name, vals, d, e.span);
   };
 
   const ev = (e: Expr, cx: Cx): Value => {
@@ -657,9 +720,18 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
         return r === null ? null : e.not ? !r : r;
       }
       case 'fn': {
+        if (e.over) {
+          const v = cx.win?.get(e);
+          if (v === undefined) throw unsupported('window function ở chỗ này', e.span);
+          return v;
+        }
         // GROUPING(a, b): mỗi column đã cuộn lên thành NULL ở dòng tổng cho một bit 1, đọc từ trái sang phải.
         if (e.name === 'GROUPING') return e.args.reduce<number>((n, a) => n * 2 + (cx.nullKeys?.some((k) => same(k, a)) ? 1 : 0), 0);
         if (AGGREGATES.has(e.name)) return aggregate(e, cx.group ?? []);
+        if (e.name === 'VALUES' && env.incoming) {
+          const a = e.args[0] as ColExpr;
+          return env.incoming.cells[env.incoming.columns.findIndex((c) => c.name.toLowerCase() === a.name.toLowerCase())] ?? null;
+        }
         if (e.name === 'ROWNUM') return cx.rownum ?? 1;
         if (e.name === 'EXTRACT') return extract(e.unit ?? '', ev(e.args[0], cx), d, e.span);
         if (e.cast) return norm(castValue(ev(e.args[0], cx), e.cast, d, e.span), d);
@@ -894,7 +966,7 @@ function planOuter(stmt: SelectStmt, db: Database, d: Dialect, sql: string, env:
 /** MySQL đọc chữ FULL sau table như alias. Khi lỗi tên table nảy ra vì alias đó, giải thích rằng MySQL không có FULL JOIN. */
 const fullAliasUsed = (stmt: SelectStmt): boolean => !!stmt.from?.fullAlias || stmt.joins.some((j) => j.ref.fullAlias);
 
-interface RefCtx {
+export interface RefCtx {
   db: Database;
   d: Dialect;
   sql: string;
@@ -904,7 +976,7 @@ interface RefCtx {
 }
 
 /** Kiểu của column theo giá trị, khi query không nói rõ (biểu thức, hằng). */
-function typeOfValues(rows: Value[][], i: number): ColumnType {
+export function typeOfValues(rows: Value[][], i: number): ColumnType {
   for (const r of rows) {
     const v = r[i];
     if (v === null) continue;
@@ -917,7 +989,7 @@ function typeOfValues(rows: Value[][], i: number): ColumnType {
 }
 
 /** Kết quả của một query thành table tạm: dùng cho subquery trong FROM và khối WITH. */
-function derivedTable(name: string, result: ResultSet, d: Dialect, span: Span, names?: string[]): TableDef {
+export function derivedTable(name: string, result: ResultSet, d: Dialect, span: Span, names?: string[]): TableDef {
   const heads = names ?? result.columns;
   if (d === 'mysql') {
     const seen = new Set<string>();
@@ -935,9 +1007,30 @@ function derivedTable(name: string, result: ResultSet, d: Dialect, span: Span, n
   };
 }
 
+/** Chạy câu SELECT của view và dựng thành table tạm. View hỏng (table nó dùng đã mất) thì báo như DBMS. */
+export function viewTable(v: ViewDef, ref: TableRef, x: Pick<RefCtx, 'db' | 'd' | 'env' | 'depth'>): TableDef {
+  const q = parse(v.sql, x.d) as Query;
+  try {
+    const tr = execSelect(q, x.db, x.d, v.sql, x.env, x.depth + 1);
+    return derivedTable(v.name, tr.result, x.d, ref.span);
+  } catch (e) {
+    if (e instanceof SqlError && e.kind !== 'unsupported') {
+      const p = { name: v.name };
+      if (x.d === 'mysql') throw new SqlError('name', '1356', `ERROR 1356 (HY000): View '${x.db.name}.${v.name}' references invalid table(s) or column(s) or function(s) or definer/invoker of view lack rights to use them`, 'view-invalid', friendly['view-invalid'](p), ref.span);
+      throw new SqlError('name', 'ORA-04063', `ORA-04063: view "${x.db.name.toUpperCase()}.${v.name.toUpperCase()}" has errors`, 'view-invalid', friendly['view-invalid'](p), ref.span);
+    }
+    throw e;
+  }
+}
+
 /** Table trong FROM: table có thật, khối WITH, hoặc subquery (chạy ngay, kết quả thành table tạm). */
-function resolveRef(ref: TableRef, x: RefCtx): TableDef {
-  if (!ref.sub) return findTable(x.db, ref, x.d);
+export function resolveRef(ref: TableRef, x: RefCtx): TableDef {
+  if (!ref.sub) {
+    checkSchema(x.db, x.d, ref.schema, ref.table, ref.span);
+    const v = viewOf(x.db, ref, x.d);
+    if (v) return viewTable(v, ref, x);
+    return findTable(x.db, ref, x.d);
+  }
   const tr = execSelect(ref.sub, x.db, x.d, x.sql, x.env, x.depth + 1, x.outer);
   return derivedTable(ref.alias ?? '', tr.result, x.d, ref.span);
 }
@@ -1017,6 +1110,7 @@ function withTables(ctes: Cte[], db: Database, d: Dialect, sql: string, env: FnE
 export function execSelect(q: Query, db: Database, d: Dialect, sql: string, env: FnEnv = DEFAULT_ENV, depth = 0, outer?: OuterEnv): Trace {
   try {
     if (depth === 0) resetWarnings();
+    if (!env.user) env = { ...env, user: db.name.toUpperCase() };
     let base = db;
     if (q.with?.length) base = withTables(q.with, db, d, sql, env, depth, outer);
     const tr = q.t === 'select' ? execSelectInner(q, base, d, sql, env, depth, outer) : execSet(q, base, d, sql, env, depth, outer);
@@ -1035,6 +1129,9 @@ export function execSelect(q: Query, db: Database, d: Dialect, sql: string, env:
     throw err;
   }
 }
+
+/** Định nghĩa column gốc của từng column trong kết quả (undefined cho biểu thức). Dùng cho CREATE TABLE ... AS SELECT. */
+export const resultDefs = new WeakMap<ResultSet, (ColumnDef | undefined)[]>();
 
 const GROUP_NAME = { n: 'số', c: 'chữ', d: 'ngày' } as const;
 
@@ -1629,8 +1726,25 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     }
   }
 
+  /* ---------- window function: tính sau WHERE, GROUP BY, HAVING ---------- */
+  const winFns: FnExpr[] = [];
+  const findWin = (e: Expr): void => {
+    if (e.t === 'fn' && e.over) winFns.push(e);
+    else children(e).forEach(findWin);
+  };
+  stmt.items.forEach((it) => it.e && findWin(it.e));
+  (stmt.orderBy ?? []).forEach((o) => findWin(o.e));
+  if (winFns.length > 0) {
+    winFns.forEach((f) => E.check(f, 'field list', grouped ? 'yes' : 'no'));
+    const order = computeWindows(winFns, units, E.ev, d);
+    // Không có ORDER BY thì DBMS trả row theo thứ tự sắp của window cuối cùng.
+    // CHỜ KIỂM TÀI LIỆU: Oracle không hứa thứ tự này. Engine làm giống MySQL (đã kiểm trên MySQL 8.0.46).
+    if (order && !stmt.orderBy) units = order.map((i) => units[i]);
+  }
+
   /* ---------- SELECT ---------- */
   const outCols: TraceCol[] = [];
+  const outDefs: (ColumnDef | undefined)[] = [];
   const getters: ((cx: Cx) => Value)[] = [];
   const aliases: (string | undefined)[] = [];
   const computed: string[] = [];
@@ -1651,6 +1765,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
         const gk = grouped ? keyExprs.findIndex((k) => k.t === 'col' && E.resolve(k, 'group statement').idx === c.idx) : -1;
         outCols.push({ key: uniq(gk >= 0 ? `g${gk}` : `c${c.idx}`), header: hdr(c.def, d), label: c.def.label, type: c.def.type });
         getters.push((cx) => cx.cells[c.idx]);
+        outDefs.push(c.def);
         aliases.push(undefined);
       }
       continue;
@@ -1666,6 +1781,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
       const header = alias ?? (d === 'oracle' ? (e.quoted ? e.name : e.name.toUpperCase()) : e.name);
       outCols.push({ key: uniq(gk >= 0 ? `g${gk}` : `c${c.idx}`), header, label: alias ? undefined : c.def.label, type: c.def.type });
       getters.push((cx) => (cx.nullKeys?.some((k) => E.same(k, e)) ? null : cx.cells[c.idx]));
+      outDefs.push(c.def);
     } else {
       const key = uniq(gk >= 0 ? `g${gk}` : ak >= 0 ? `a${ak}` : `x${xn++}`);
       // MySQL đặt tiêu đề của một chuỗi đứng riêng bằng chính nội dung chuỗi, không kèm dấu nháy.
@@ -1678,6 +1794,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
         const v = E.ev(e, cx);
         return typeof v === 'boolean' ? (v ? 1 : 0) : v;
       });
+      outDefs.push(undefined);
     }
     aliases.push(alias);
   }
@@ -1791,6 +1908,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     run: byRun.indexOf(c),
   }));
 
-  const derived = [fromRef, ...plan.map((j) => j.ref)].some((r) => r?.sub);
-  return { dialect: d, sql, clauses, focus: E.focus(), steps, result, ...(derived || E.correlated ? { partial: true } : {}) };
+  resultDefs.set(result, outDefs);
+  const derived = [fromRef, ...plan.map((j) => j.ref)].some((r) => r?.sub || (r && viewOf(db, r, d)));
+  return { dialect: d, sql, clauses, focus: E.focus(), steps, result, ...(derived || E.correlated || winFns.length > 0 ? { partial: true } : {}) };
 }

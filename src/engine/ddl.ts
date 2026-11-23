@@ -1,4 +1,4 @@
-import type { ColumnDef, ConstraintDef, Database, Dialect, RawValue, TableDef, Value } from './types';
+import type { ColumnDef, ColumnType, ConstraintDef, Database, Dialect, RawValue, TableDef, Value } from './types';
 import type {
   AlterAction,
   AlterTableStmt,
@@ -6,13 +6,16 @@ import type {
   ConstraintSpec,
   CreateSequenceStmt,
   CreateTableStmt,
+  CreateViewStmt,
+  DropViewStmt,
+  Query,
   DropSequenceStmt,
   DropTableStmt,
   SelectStmt,
   TruncateStmt,
 } from './ast';
 import { type Span, SqlError, oraMessage, unknownTable } from './errors';
-import { findTable, loadRows, makeEvaluator, scopeOf } from './executor';
+import { derivedTable, execSelect, findTable, loadRows, makeEvaluator, resultDefs, schemaMatches, scopeOf, typeOfValues } from './executor';
 import type { FnEnv } from './functions';
 import { friendly } from './messages.vi';
 import { parse } from './parser';
@@ -41,12 +44,12 @@ import { toText } from './values';
 export type DdlResult = {
   ok: true;
   kind: 'ddl';
-  op: 'create' | 'alter' | 'drop' | 'truncate' | 'sequence';
+  op: 'create' | 'alter' | 'drop' | 'truncate' | 'sequence' | 'view';
   /** Tên table hoặc sequence vừa bị đụng tới (tên mới nếu vừa đổi tên). */
   object: string;
   /** Giống `object`. Giữ lại cho chỗ đã dùng từ trước. */
   table: string;
-  /** Với op 'sequence': tạo hay xóa. */
+  /** Với op 'sequence' và 'view': tạo hay xóa. */
   verb?: 'create' | 'drop';
   /** Các column hiện có của table. Rỗng với DROP TABLE và sequence. */
   columns: { name: string; typeName: string; declared: string }[];
@@ -96,7 +99,22 @@ export function makeDdl(ctx: DdlCtx) {
     columns: t ? t.columns.map((c) => ({ name: c.name, typeName: typeNameOf(c), declared: declaredType(c) })) : [],
   });
 
-  const nameTaken = (db: Database, name: string) => !!findTableIn(db, name) || (d === 'oracle' && !!db.sequences?.some((s) => sameName(s.name, name)));
+  const nameTaken = (db: Database, name: string) =>
+    !!findTableIn(db, name) || !!db.views?.some((v) => sameName(v.name, name)) || (d === 'oracle' && !!db.sequences?.some((s) => sameName(s.name, name)));
+
+  /** Schema viết trước tên khi tạo hay xóa. MySQL: 1049 (hoặc 1051 với DROP). Oracle: ORA-01918 khi tạo, ORA-00942 khi xóa. */
+  const checkSchemaOf = (schema: CreateTableStmt['schema'], table: string, drop = false) => {
+    if (!schema || schemaMatches(ctx.get(), d, schema)) return;
+    const db = ctx.get();
+    const p = { name: schema.name, db: my ? db.name : upper(db.name), table };
+    if (my) {
+      if (drop) throw new SqlError('name', '1051', `ERROR 1051 (42S02): Unknown table '${schema.name}.${table}'`, 'unknown-schema', friendly['unknown-schema'](p), schema.span);
+      throw new SqlError('name', '1049', `ERROR 1049 (42000): Unknown database '${schema.name}'`, 'unknown-schema', friendly['unknown-schema'](p), schema.span);
+    }
+    // CHỜ KIỂM TÀI LIỆU: CREATE TABLE trong schema không có thì Oracle báo ORA-01918 (user does not exist).
+    if (drop) throw new SqlError('name', 'ORA-00942', oraMessage('00942'), 'unknown-schema', friendly['unknown-schema'](p), schema.span);
+    throw new SqlError('name', 'ORA-01918', `ORA-01918: user '${upper(schema.name)}' does not exist`, 'unknown-schema', friendly['unknown-schema'](p), schema.span);
+  };
 
   /* ---------- data type ---------- */
 
@@ -310,12 +328,64 @@ export function makeDdl(ctx: DdlCtx) {
 
   /* ---------- CREATE TABLE ---------- */
 
-  const create = (stmt: CreateTableStmt): DdlResult => {
+  /** Oracle: biểu thức không phải column mà không có alias thì không đặt tên được cho column của table hay view (ORA-00998). */
+  const needAlias = (q: Query): Span | undefined => {
+    const first = q.t === 'setop' ? q.left : q;
+    if (first.t === 'setop') return needAlias(first);
+    return first.items.find((it) => it.e && !it.alias && it.e.t !== 'col')?.span;
+  };
+
+  /** CREATE TABLE t AS SELECT: chép column (data type, NOT NULL) và row. Không chép primary key, foreign key, UNIQUE, CHECK. */
+  const createAs = (stmt: CreateTableStmt, sql: string): DdlResult => {
+    const db0 = ctx.get();
+    const tr = execSelect(stmt.asSelect!, db0, d, sql, env);
+    const res = tr.result;
+    const bare = !my ? needAlias(stmt.asSelect!) : undefined;
+    if (bare) throw err(['1064', '42000', ''], '00998', 'alias-needed', {}, bare);
+    const defs = resultDefs.get(res) ?? [];
+    const seen = new Set<string>();
+    const columns: ColumnDef[] = res.columns.map((name, i) => {
+      const k = name.toLowerCase();
+      if (seen.has(k)) throw err(['1060', '42S21', `Duplicate column name '${name}'`], '00957', 'dup-column', { name }, stmt.nameSpan);
+      seen.add(k);
+      const src = defs[i];
+      let c: ColumnDef;
+      if (src) {
+        c = { name, type: src.type };
+        for (const key of ['sqlType', 'length', 'charLength', 'precision', 'scale', 'label'] as const) if (src[key] !== undefined) (c as unknown as Record<string, unknown>)[key] = src[key];
+        // NOT NULL đi theo, primary key kéo theo NOT NULL. Auto-increment, DEFAULT, key thì không đi theo.
+        // CHỜ KIỂM TÀI LIỆU: Oracle chép cả NOT NULL ngầm của primary key (suy từ DESC trên Oracle 19c).
+        if (src.notNull || src.pk) c.notNull = true;
+        // MySQL cho column số NOT NULL một DEFAULT 0 (đã kiểm trên MySQL 8.0.46).
+        if (my && c.notNull && (c.type === 'int' || c.type === 'decimal')) c.default = '0';
+      } else {
+        const t = res.types[i] === 'expr' ? typeOfValues(res.rows, i) : (res.types[i] as ColumnType);
+        const scale = Math.max(0, ...res.rows.map((r) => (typeof r[i] === 'number' ? (String(r[i]).split('.')[1] ?? '').length : 0)));
+        if (t === 'int') c = my ? { name, type: 'int', sqlType: 'INT' } : { name, type: 'decimal', sqlType: 'NUMBER' };
+        else if (t === 'decimal') c = my ? { name, type: 'decimal', sqlType: 'DECIMAL', precision: 20, scale } : { name, type: 'decimal', sqlType: 'NUMBER' };
+        else if (t === 'text') c = my ? { name, type: 'text', sqlType: 'VARCHAR', length: 255 } : { name, type: 'text', sqlType: 'VARCHAR2', length: 4000 };
+        else if (t === 'date' || !my) c = { name, type: 'date', sqlType: 'DATE' };
+        else c = { name, type: 'datetime', sqlType: 'DATETIME' };
+      }
+      if (!my) c.exact = true;
+      return c;
+    });
+    return atomic((db) => {
+      const t: TableDef = { name: stmt.name, columns, constraints: [], rows: [] };
+      db.tables.push(t);
+      t.rows = res.rows.map((cells, r) => cells.map((v, ci) => rules.store(v, columns[ci], stmt.nameSpan, t, r + 1)));
+      return result('create', t.name, t);
+    });
+  };
+
+  const create = (stmt: CreateTableStmt, sql = ''): DdlResult => {
+    checkSchemaOf(stmt.schema, stmt.name);
     const db0 = ctx.get();
     if (nameTaken(db0, stmt.name)) {
       if (my && stmt.ifNotExists) return result('create', findTableIn(db0, stmt.name)!.name, findTableIn(db0, stmt.name));
       throw err(['1050', '42S01', `Table '${stmt.name}' already exists`], '00955', findTableIn(db0, stmt.name) ? 'table-exists' : 'name-used', { name: stmt.name }, stmt.nameSpan);
     }
+    if (stmt.asSelect) return createAs(stmt, sql);
     return atomic((db) => {
       const seen = new Set<string>();
       for (const c of stmt.columns) {
@@ -596,6 +666,7 @@ export function makeDdl(ctx: DdlCtx) {
   /* ---------- DROP, TRUNCATE ---------- */
 
   const dropTable = (stmt: DropTableStmt): DdlResult => {
+    checkSchemaOf(stmt.table.schema, stmt.table.table, true);
     const db0 = ctx.get();
     const t = db0.tables.find((x) => (d === 'oracle' && stmt.table.quoted ? x.name.toUpperCase() === stmt.table.table : sameName(x.name, stmt.table.table)));
     if (!t) {
@@ -621,6 +692,9 @@ export function makeDdl(ctx: DdlCtx) {
 
   const truncate = (stmt: TruncateStmt): DdlResult => {
     const db0 = ctx.get();
+    // MySQL báo 1146 với TRUNCATE trong schema không có, không phải 1049 (đã kiểm trên MySQL 8.0.46).
+    const sch = stmt.table.schema;
+    if (my && sch && !schemaMatches(db0, d, sch)) throw unknownTable(d, sch.name, stmt.table.table, stmt.table.span);
     const t = findTable(db0, stmt.table, d);
     if (!findTableIn(db0, t.name)) throw unknownTable(d, db0.name, stmt.table.table, stmt.table.span);
     const refs = childrenOf(db0, t.name).filter((x) => x.child !== t);
@@ -634,6 +708,44 @@ export function makeDdl(ctx: DdlCtx) {
       // MySQL đặt lại bộ đếm AUTO_INCREMENT. Identity của Oracle thì đếm tiếp.
       if (my && x.autoInc !== undefined) x.autoInc = 1;
       return result('truncate', x.name, x);
+    });
+  };
+
+  /* ---------- view ---------- */
+
+  const createView = (stmt: CreateViewStmt, sql: string): DdlResult => {
+    checkSchemaOf(stmt.schema, stmt.name);
+    const db0 = ctx.get();
+    const old = db0.views?.findIndex((v) => sameName(v.name, stmt.name)) ?? -1;
+    if (findTableIn(db0, stmt.name) || (!my && db0.sequences?.some((x) => sameName(x.name, stmt.name))) || (old >= 0 && !stmt.orReplace)) {
+      throw err(['1050', '42S01', `Table '${stmt.name}' already exists`], '00955', old >= 0 ? 'view-exists' : 'name-used', { name: stmt.name }, stmt.nameSpan);
+    }
+    const tr = execSelect(stmt.query, db0, d, sql, env);
+    const bare = !my ? needAlias(stmt.query) : undefined;
+    if (bare) throw err(['1064', '42000', ''], '00998', 'alias-needed', {}, bare);
+    derivedTable(stmt.name, tr.result, d, stmt.nameSpan);
+    return atomic((db) => {
+      const views = (db.views ??= []);
+      const v = { name: stmt.name, sql: stmt.select };
+      if (old >= 0) views[old] = v;
+      else views.push(v);
+      return result('view', stmt.name, undefined, 'create');
+    });
+  };
+
+  const dropView = (stmt: DropViewStmt): DdlResult => {
+    checkSchemaOf(stmt.schema, stmt.name, true);
+    const db0 = ctx.get();
+    const v = db0.views?.find((x) => sameName(x.name, stmt.name));
+    if (!v) {
+      if (my && stmt.ifExists) return result('view', stmt.name, undefined, 'drop');
+      const t = findTableIn(db0, stmt.name);
+      if (t && my) throw err(['1347', 'HY000', `'${db0.name}.${t.name}' is not VIEW`], '00942', 'not-a-view', { name: t.name }, stmt.nameSpan);
+      throw err(['1051', '42S02', `Unknown table '${db0.name}.${stmt.name}'`], '00942', 'unknown-table', { name: stmt.name }, stmt.nameSpan);
+    }
+    return atomic((db) => {
+      db.views = (db.views ?? []).filter((x) => x !== v && !sameName(x.name, v.name));
+      return result('view', v.name, undefined, 'drop');
     });
   };
 
@@ -659,5 +771,5 @@ export function makeDdl(ctx: DdlCtx) {
     });
   };
 
-  return { create, alter, dropTable, truncate, createSequence, dropSequence };
+  return { create, alter, dropTable, truncate, createSequence, dropSequence, createView, dropView };
 }

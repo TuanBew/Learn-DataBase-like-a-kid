@@ -105,6 +105,7 @@ const SAMPLES: Record<Dialect, Record<string, string>> = {
     TO_DATE: "TO_DATE('09/03/2026', 'DD/MM/YYYY')",
     TO_NUMBER: "TO_NUMBER('12')",
     TRUNC: "TRUNC(d, 'MM')",
+    USER: 'USER',
   },
 };
 

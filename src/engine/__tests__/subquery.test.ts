@@ -577,9 +577,16 @@ describe('trace và Query Theater', () => {
       expect(new Set(r.result.rowIds).size).toBe(r.result.rows.length);
     });
   }
-  each('query có ghép, subquery trong FROM, WITH, subquery phụ thuộc đều mang partial', (d) => {
-    for (const name of ['union', 'unionLimit', 'intersect', 'derived', 'derivedJoin', 'with', 'withMany', 'correlated', 'correlatedSelect', 'exists', 'notExists'] as const) {
+  each('chỉ subquery phụ thuộc query ngoài mới mang partial', (d) => {
+    for (const name of ['correlated', 'correlatedSelect', 'exists', 'notExists'] as const) {
       expect(ok(q[name], d).trace.partial, name).toBe(true);
+    }
+  });
+  each('query ghép, subquery trong FROM, WITH diễn trọn vẹn: không partial, có acts', (d) => {
+    for (const name of ['union', 'unionLimit', 'intersect', 'derived', 'derivedJoin', 'with', 'withMany'] as const) {
+      const t = ok(q[name], d).trace;
+      expect(t.partial, name).toBeUndefined();
+      expect(t.acts?.length, name).toBeGreaterThan(0);
     }
   });
   each('query diễn được trọn vẹn không mang partial', (d) => {
@@ -591,11 +598,11 @@ describe('trace và Query Theater', () => {
     expect(ok(q.all, d).trace.steps.some((s) => s.kind === 'subquery')).toBe(true);
     expect(ok(q.correlated, d).trace.steps.some((s) => s.kind === 'subquery')).toBe(false);
   });
-  each('trace của query ghép: một bước from với row đã ghép, rồi order và limit', (d) => {
+  each('trace của query ghép: một bước setop với row đã ghép, rồi order và limit', (d) => {
     const t = ok(`SELECT department_id FROM departments UNION SELECT department_id FROM employees WHERE department_id IS NOT NULL ORDER BY 1 DESC ${top(d, 3)}`, d).trace;
-    expect(t.steps.map((s) => s.kind)).toEqual(['from', 'order', 'limit']);
+    expect(t.steps.map((s) => s.kind)).toEqual(['setop', 'order', 'limit']);
     const from = t.steps[0];
-    if (from.kind !== 'from') throw new Error('bước đầu không phải from');
+    if (from.kind !== 'setop') throw new Error('bước đầu không phải setop');
     expect(from.rows).toHaveLength(8);
     expect(t.clauses.map((c) => c.kind)).toEqual(['FROM', 'ORDER BY', by(d, { mysql: 'LIMIT', oracle: 'FETCH' })]);
     expect(t.result.rows.map((r) => r[0])).toEqual([120, 110, 90]);

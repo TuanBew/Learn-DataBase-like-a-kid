@@ -152,10 +152,11 @@ describe('window function trong query có GROUP BY, ORDER BY, subquery', () => {
     expect(col0(s, 'SELECT name, ROW_NUMBER() OVER (ORDER BY name) b, ROW_NUMBER() OVER (ORDER BY salary DESC, id) a FROM employees')).toEqual(['Binh', 'Chi', 'Dung', 'An', 'Em']);
   });
 
-  T('trace.partial là true khi có window function', (d) => {
+  T('trace có step window và không partial', (d) => {
     const s = sess(d);
     const r = exec(s, 'SELECT name, ROW_NUMBER() OVER (ORDER BY id) FROM employees');
-    expect(r.kind === 'select' && r.trace.partial).toBe(true);
+    expect(r.kind === 'select' && r.trace.partial).toBeFalsy();
+    expect(r.kind === 'select' && r.trace.steps.map((x) => x.kind)).toEqual(['from', 'window', 'select']);
     const plain = exec(s, 'SELECT name FROM employees');
     expect(plain.kind === 'select' && plain.trace.partial).toBeFalsy();
   });

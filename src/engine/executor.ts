@@ -16,7 +16,7 @@ import {
 } from './errors';
 import { FUNCTIONS, type FnEnv, addDays, arityOf, castValue, diffDays, extract } from './functions';
 import { didYouMean, friendly, reason } from './messages.vi';
-import type { ResultSet, Trace, TraceCol, TraceRow, TraceStep } from './trace';
+import type { ResultSet, Trace, TraceAct, TraceCol, TraceRow, TraceStep } from './trace';
 import { parse } from './parser';
 import { computeWindows, foldValues } from './window';
 import { arith, compare, isDate, keyOf, like, norm, parseIsoDate, peekWarnings, resetWarnings, show, showQuoted, toNumber, toText, warn } from './values';
@@ -1023,6 +1023,20 @@ export function viewTable(v: ViewDef, ref: TableRef, x: Pick<RefCtx, 'db' | 'd' 
   }
 }
 
+/** Các màn mà query đang chạy đã gặp: khối WITH, subquery trong FROM. Mỗi lần execSelect có một sổ riêng. */
+let actSink: { acts: TraceAct[]; seen: Set<object> } | null = null;
+/** Table tạm sinh từ khối WITH hay subquery trong FROM, để step `from` và `join` ghi `source`. */
+const cteDefs = new WeakSet<TableDef>();
+const derivedDefs = new WeakSet<TableDef>();
+
+function noteAct(kind: TraceAct['kind'], q: Query, name: string, sql: string, trace: Trace): void {
+  if (!actSink || actSink.seen.has(q)) return;
+  actSink.seen.add(q);
+  actSink.acts.push({ kind, name, sql: sql.slice(q.span.s, q.span.e).replace(/\s+/g, ' ').trim(), trace });
+}
+
+const sourceOf = (t: TableDef): 'cte' | 'derived' | undefined => (cteDefs.has(t) ? 'cte' : derivedDefs.has(t) ? 'derived' : undefined);
+
 /** Table trong FROM: table có thật, khối WITH, hoặc subquery (chạy ngay, kết quả thành table tạm). */
 export function resolveRef(ref: TableRef, x: RefCtx): TableDef {
   if (!ref.sub) {
@@ -1032,7 +1046,10 @@ export function resolveRef(ref: TableRef, x: RefCtx): TableDef {
     return findTable(x.db, ref, x.d);
   }
   const tr = execSelect(ref.sub, x.db, x.d, x.sql, x.env, x.depth + 1, x.outer);
-  return derivedTable(ref.alias ?? '', tr.result, x.d, ref.span);
+  const t = derivedTable(ref.alias ?? '', tr.result, x.d, ref.span);
+  derivedDefs.add(t);
+  noteAct('derived', ref.sub, t.name, x.sql, tr);
+  return t;
 }
 
 /** Gọi f cho mọi table thật mà query nhắc tới, kể cả trong subquery. `intoDerived` false thì bỏ qua subquery trong FROM. */
@@ -1101,6 +1118,8 @@ function withTables(ctes: Cte[], db: Database, d: Dialect, sql: string, env: FnE
     }
     const names = c.columns?.map((x) => (d === 'oracle' ? x.name.toUpperCase() : x.name));
     const t = derivedTable(c.name, tr.result, d, c.span, names);
+    cteDefs.add(t);
+    noteAct('cte', c.q, c.name, sql, tr);
     cur = { ...cur, tables: [t, ...cur.tables.filter((x) => x.name.toLowerCase() !== key)] };
   }
   return cur;
@@ -1108,13 +1127,18 @@ function withTables(ctes: Cte[], db: Database, d: Dialect, sql: string, env: FnE
 
 /** Chạy một query: SELECT, query ghép kết quả, có hay không có WITH. */
 export function execSelect(q: Query, db: Database, d: Dialect, sql: string, env: FnEnv = DEFAULT_ENV, depth = 0, outer?: OuterEnv): Trace {
+  const saved = actSink;
+  const mine = { acts: [] as TraceAct[], seen: new Set<object>() };
+  actSink = mine;
   try {
     if (depth === 0) resetWarnings();
     if (!env.user) env = { ...env, user: db.name.toUpperCase() };
     let base = db;
     if (q.with?.length) base = withTables(q.with, db, d, sql, env, depth, outer);
     const tr = q.t === 'select' ? execSelectInner(q, base, d, sql, env, depth, outer) : execSet(q, base, d, sql, env, depth, outer);
-    if (q.with?.length) tr.partial = true;
+    // Các màn chạy trước: khối WITH, subquery trong FROM, rồi các vế của query ghép.
+    const acts = [...mine.acts, ...(tr.acts ?? [])];
+    if (acts.length > 0) tr.acts = acts;
     // Cảnh báo của MySQL (SHOW WARNINGS) đi kèm kết quả.
     if (depth === 0 && d === 'mysql') {
       const w = peekWarnings();
@@ -1127,6 +1151,8 @@ export function execSelect(q: Query, db: Database, d: Dialect, sql: string, env:
       err.friendly = friendly['full-join-mysql']({});
     }
     throw err;
+  } finally {
+    actSink = saved;
   }
 }
 
@@ -1150,60 +1176,75 @@ function typeGroup(t: ResultSet['types'][number], rows: Value[][], i: number): '
 
 /**
  * UNION, UNION ALL, INTERSECT, EXCEPT, MINUS. Hai vế chạy riêng, rồi ghép. Tên column lấy từ query đầu.
- * ORDER BY và LIMIT ở cuối áp cho cả kết quả. Trace chỉ có kết quả đã ghép (partial): từng vế không diễn lại từng bước.
+ * ORDER BY và LIMIT ở cuối áp cho cả kết quả.
+ * Trace: mỗi vế là một màn (`acts`, kind 'branch'). Màn chính mở bằng một step `setop` cho mỗi toán tử, từ trái sang phải.
  */
 function execSet(stmt: SetStmt, db: Database, d: Dialect, sql: string, env: FnEnv, depth: number, outer?: OuterEnv): Trace {
   const src = (s: Span) => sql.slice(s.s, s.e);
-  const L = execSelect(stmt.left, db, d, sql, env, depth, outer).result;
-  const R = execSelect(stmt.right, db, d, sql, env, depth, outer).result;
-  if (L.columns.length !== R.columns.length) {
-    const p = { left: L.columns.length, right: R.columns.length };
-    if (d === 'mysql') throw new SqlError('runtime', '1222', 'ERROR 1222 (21000): The used SELECT statements have a different number of columns', 'setop-columns', friendly['setop-columns'](p), stmt.right.span);
-    throw new SqlError('runtime', 'ORA-01789', oraMessage('01789'), 'setop-columns', friendly['setop-columns'](p), stmt.right.span);
-  }
-  const width = L.columns.length;
-  const types = [...L.types];
-  const lrows = L.rows.map((r) => [...r]);
-  const rrows = R.rows.map((r) => [...r]);
-  for (let i = 0; i < width; i++) {
-    const a = typeGroup(L.types[i], L.rows, i);
-    const b = typeGroup(R.types[i], R.rows, i);
-    if (!a || !b || a === b) continue;
-    // Oracle không tự đổi data type (ORA-01790, mã trong tài liệu). MySQL đổi cả hai vế sang chữ.
-    if (d === 'oracle') throw new SqlError('runtime', 'ORA-01790', oraMessage('01790'), 'setop-type', friendly['setop-type']({ n: i + 1, a: GROUP_NAME[a], b: GROUP_NAME[b] }), stmt.right.span);
-    for (const rows of [lrows, rrows]) for (const r of rows) r[i] = r[i] === null || typeof r[i] === 'string' ? r[i] : toText(r[i]);
-    types[i] = 'text';
-  }
-
-  const key = (r: Value[]) => r.map((v) => keyOf(v, d)).join('\u0001');
-  const distinct = (rows: Value[][]) => {
-    const seen = new Set<string>();
-    return rows.filter((r) => {
-      const k = key(r);
-      if (seen.has(k)) return false;
-      seen.add(k);
-      return true;
-    });
+  const branches: TraceAct[] = [];
+  const setops: TraceStep[] = [];
+  let nextId = 0;
+  type Side = { columns: string[]; types: ResultSet['types']; rows: TraceRow[] };
+  const leaf = (q: Query): ResultSet => {
+    const tr = execSelect(q, db, d, sql, env, depth, outer);
+    branches.push({ kind: 'branch', name: `vế ${branches.length + 1}`, sql: src(q.span).replace(/\s+/g, ' ').trim(), trace: tr });
+    return tr.result;
   };
-  const rightKeys = new Set(rrows.map(key));
-  let rows: Value[][];
-  switch (stmt.op) {
-    case 'union all':
-      rows = [...lrows, ...rrows];
-      break;
-    case 'union':
-      rows = distinct([...lrows, ...rrows]);
-      break;
-    case 'intersect':
-      rows = distinct(lrows.filter((r) => rightKeys.has(key(r))));
-      break;
-    default:
-      rows = distinct(lrows.filter((r) => !rightKeys.has(key(r))));
-  }
+  const fresh = (r: ResultSet): Side => ({ columns: r.columns, types: [...r.types], rows: r.rows.map((cells) => ({ id: nextId++, cells: [...cells] })) });
+  /** Chuỗi ghép kiểu (A op B) op C đi thành một dãy step. Vế trái có WITH, ORDER BY hay LIMIT riêng thì là một màn. */
+  const chained = (q: Query): q is SetStmt => q.t === 'setop' && !q.with && !q.orderBy && !q.limit;
 
-  const cols: TraceCol[] = L.columns.map((h, i) => ({ key: `c${i}`, header: h, type: types[i] }));
-  let out: TraceRow[] = rows.map((cells, id) => ({ id, cells }));
-  const steps: TraceStep[] = [{ kind: 'from', table: 'kết quả ghép', columns: cols, rows: out.map((r) => ({ id: r.id, cells: r.cells })) }];
+  const run = (st: SetStmt): Side => {
+    const L = chained(st.left) ? run(st.left) : fresh(leaf(st.left));
+    const R = fresh(leaf(st.right));
+    if (L.columns.length !== R.columns.length) {
+      const p = { left: L.columns.length, right: R.columns.length };
+      if (d === 'mysql') throw new SqlError('runtime', '1222', 'ERROR 1222 (21000): The used SELECT statements have a different number of columns', 'setop-columns', friendly['setop-columns'](p), st.right.span);
+      throw new SqlError('runtime', 'ORA-01789', oraMessage('01789'), 'setop-columns', friendly['setop-columns'](p), st.right.span);
+    }
+    const width = L.columns.length;
+    const types = [...L.types];
+    // Row của bước trước giữ nguyên: đổi data type thì đổi trên bản sao.
+    const lrows = L.rows.map((r) => ({ id: r.id, cells: [...r.cells] }));
+    const rrows = R.rows;
+    for (let i = 0; i < width; i++) {
+      const a = typeGroup(L.types[i], lrows.map((r) => r.cells), i);
+      const b = typeGroup(R.types[i], rrows.map((r) => r.cells), i);
+      if (!a || !b || a === b) continue;
+      // Oracle không tự đổi data type (ORA-01790, mã trong tài liệu). MySQL đổi cả hai vế sang chữ.
+      if (d === 'oracle') throw new SqlError('runtime', 'ORA-01790', oraMessage('01790'), 'setop-type', friendly['setop-type']({ n: i + 1, a: GROUP_NAME[a], b: GROUP_NAME[b] }), st.right.span);
+      for (const rows of [lrows, rrows]) for (const r of rows) r.cells[i] = r.cells[i] === null || typeof r.cells[i] === 'string' ? r.cells[i] : toText(r.cells[i]);
+      types[i] = 'text';
+    }
+
+    const key = (r: TraceRow) => r.cells.map((v) => keyOf(v, d)).join('\u0001');
+    const rightKeys = new Set(rrows.map(key));
+    const seen = new Set<string>();
+    const kept: TraceRow[] = [];
+    const removed: { id: number; why: 'dup' | 'absent' | 'present' }[] = [];
+    const take = (r: TraceRow, why?: 'absent' | 'present') => {
+      const k = key(r);
+      if (why) removed.push({ id: r.id, why });
+      else if (st.op !== 'union all' && seen.has(k)) removed.push({ id: r.id, why: 'dup' });
+      else {
+        seen.add(k);
+        kept.push(r);
+      }
+    };
+    if (st.op === 'union all' || st.op === 'union') [...lrows, ...rrows].forEach((r) => take(r));
+    else for (const r of lrows) take(r, st.op === 'intersect' ? (rightKeys.has(key(r)) ? undefined : 'absent') : rightKeys.has(key(r)) ? 'present' : undefined);
+
+    const columns: TraceCol[] = L.columns.map((h, i) => ({ key: `c${i}`, header: h, type: types[i] }));
+    setops.push({ kind: 'setop', op: st.op, word: st.word, columns, left: lrows, right: rrows, rows: kept, removed });
+    return { columns: L.columns, types, rows: kept };
+  };
+  const merged = run(stmt);
+  const types = merged.types;
+  const rows = merged.rows.map((r) => r.cells);
+  const width = merged.columns.length;
+  const L = { columns: merged.columns };
+  let out: TraceRow[] = merged.rows.map((r) => ({ id: r.id, cells: r.cells }));
+  const steps: TraceStep[] = [...setops];
 
   /* ORDER BY: theo tên hoặc alias column của query đầu, theo số thứ tự, hoặc biểu thức tính từ các column đó. */
   if (stmt.orderBy) {
@@ -1281,10 +1322,12 @@ function execSet(stmt: SetStmt, db: Database, d: Dialect, sql: string, env: FnEn
   const all = [{ kind: 'FROM' as ClauseKind, span: { s: stmt.span.s, e: bodyEnd } }, ...stmt.clauses];
   const order = (k: string) => RUN_ORDER.indexOf(k as (typeof RUN_ORDER)[number]);
   const byRun = [...all].sort((a, b) => order(a.kind) - order(b.kind));
-  const clauses = all.map((c, written) => ({ kind: c.kind, text: src(c.span).replace(/\s+/g, ' ').trim(), written, run: byRun.indexOf(c) }));
+  // Clause FROM của query ghép là chính các vế: 'FROM vế 1 UNION vế 2'.
+  const joined = ['FROM vế 1', ...setops.map((o, i) => (o.kind === 'setop' ? `${o.word.toUpperCase()} vế ${i + 2}` : ''))].join(' ');
+  const clauses = all.map((c, written) => ({ kind: c.kind, text: c.kind === 'FROM' ? joined : src(c.span).replace(/\s+/g, ' ').trim(), written, run: byRun.indexOf(c) }));
 
   const result: ResultSet = { columns: L.columns, types, rows: out.map((r) => r.cells), rowIds: out.map((r) => r.id) };
-  return { dialect: d, sql, clauses, focus: [], steps, result, partial: true };
+  return { dialect: d, sql, clauses, focus: [], steps, result, acts: branches };
 }
 
 function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string, env: FnEnv, depth: number, outer?: OuterEnv): Trace {
@@ -1317,7 +1360,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     scope = scopeOf(base, fromRef);
     starCols = [...scope];
     rows = loadRows(base, d).map((cells, id) => ({ id, cells }));
-    if (base !== DUAL) steps.push({ kind: 'from', table: base.name, alias: fromRef.alias, columns: traceCols(scope, d), rows: rows.map((r) => ({ id: r.id, cells: r.cells })) });
+    if (base !== DUAL) steps.push({ kind: 'from', table: base.name, alias: fromRef.alias, ...(sourceOf(base) ? { source: sourceOf(base) } : {}), columns: traceCols(scope, d), rows: rows.map((r) => ({ id: r.id, cells: r.cells })) });
 
     plan.forEach((j, n) => {
       const right = resolveRef(j.ref, { db, d, sql, env, depth, outer });
@@ -1475,6 +1518,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
         joinKind: kind,
         table: right.name,
         alias: j.ref.alias,
+        ...(sourceOf(right) ? { source: sourceOf(right) } : {}),
         on: onText,
         rightColumns: traceCols(rightScope, d),
         rightRows: rightRows.map((cells, id) => ({ id, cells })),
@@ -1625,6 +1669,10 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
 
   /* ---------- GROUP BY và HAVING ---------- */
   let units: Unit[] = rows.map((r, i) => ({ id: r.id, cx: { cells: r.cells, rownum: i + 1 } }));
+  /** Giá trị các column đang trên sân khấu của từng unit (row, hoặc nhóm khi đã GROUP BY). Dùng cho step window. */
+  const stageCells = new Map<number, Value[]>();
+  const shownScope = scope.filter((c) => !c.virtual);
+  for (const r of rows) stageCells.set(r.id, shownScope.map((c) => r.cells[c.idx]));
   const aggs: FnExpr[] = [];
   const groupCols: TraceCol[] = [];
   if (grouped) {
@@ -1707,6 +1755,8 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
       return { id, rowIds: g.rows.map((r) => r.id), keyValues, aggValues, cx };
     });
     units = traceGroups.map((g) => ({ id: g.id, cx: g.cx }));
+    stageCells.clear();
+    for (const g of traceGroups) stageCells.set(g.id, [...g.keyValues, ...g.aggValues]);
     steps.push({
       kind: 'group',
       implicit: !stmt.groupBy,
@@ -1734,12 +1784,48 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
   };
   stmt.items.forEach((it) => it.e && findWin(it.e));
   (stmt.orderBy ?? []).forEach((o) => findWin(o.e));
+  const winKeys: string[] = [];
   if (winFns.length > 0) {
     winFns.forEach((f) => E.check(f, 'field list', grouped ? 'yes' : 'no'));
-    const order = computeWindows(winFns, units, E.ev, d);
+    const partsOf = new Map<FnExpr, { label: string; ids: number[] }[]>();
+    const order = computeWindows(winFns, units, E.ev, d, (fn, parts) => {
+      partsOf.set(fn, parts.map((p) => ({ label: p.key.map((v) => show(v)).join(', '), ids: p.idxs.map((i) => units[i].id) })));
+    });
     // Không có ORDER BY thì DBMS trả row theo thứ tự sắp của window cuối cùng.
     // CHỜ KIỂM TÀI LIỆU: Oracle không hứa thứ tự này. Engine làm giống MySQL (đã kiểm trên MySQL 8.0.46).
     if (order && !stmt.orderBy) units = order.map((i) => units[i]);
+
+    /* Mỗi cụm OVER (...) khác nhau một step. Column của cụm sau cộng dồn lên column của cụm trước. */
+    const clusters = new Map<string, FnExpr[]>();
+    for (const f of winFns) {
+      const k = src(f.over!.span).replace(/\s+/g, ' ');
+      clusters.set(k, [...(clusters.get(k) ?? []), f]);
+    }
+    let cols: TraceCol[] = grouped ? [...groupCols] : traceCols(shownScope, d);
+    const extra = new Map<number, Value[]>();
+    for (const fns of clusters.values()) {
+      const spec = fns[0].over!;
+      const added = fns.map((f) => `w${winFns.indexOf(f)}`);
+      winKeys.push(...added);
+      cols = [...cols, ...fns.map((f, i) => ({ key: added[i], header: d === 'oracle' ? oracleHeader(src(f.span)) : src(f.span), type: 'expr' as const }))];
+      for (const u of units) {
+        const vals = fns.map((f) => {
+          const v = u.cx.win?.get(f) ?? null;
+          return typeof v === 'boolean' ? (v ? 1 : 0) : v;
+        });
+        extra.set(u.id, [...(extra.get(u.id) ?? []), ...vals]);
+      }
+      steps.push({
+        kind: 'window',
+        fns: fns.map((f) => src(f.span).replace(/\s+/g, ' ')),
+        partitionBy: spec.partition.map((p) => src(p.span)),
+        orderBy: spec.orderBy.map((o) => ({ text: src(o.e.span), desc: o.desc })),
+        parts: partsOf.get(fns[0])!,
+        columns: cols,
+        added,
+        rows: units.map((u) => ({ id: u.id, cells: [...(stageCells.get(u.id) ?? []), ...(extra.get(u.id) ?? [])] })),
+      });
+    }
   }
 
   /* ---------- SELECT ---------- */
@@ -1783,7 +1869,9 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
       getters.push((cx) => (cx.nullKeys?.some((k) => E.same(k, e)) ? null : cx.cells[c.idx]));
       outDefs.push(c.def);
     } else {
-      const key = uniq(gk >= 0 ? `g${gk}` : ak >= 0 ? `a${ak}` : `x${xn++}`);
+      // Column của window function đã có từ step window: SELECT chỉ chọn nó.
+      const wk = e.t === 'fn' && e.over ? winFns.indexOf(e) : -1;
+      const key = uniq(gk >= 0 ? `g${gk}` : ak >= 0 ? `a${ak}` : wk >= 0 ? `w${wk}` : `x${xn++}`);
       // MySQL đặt tiêu đề của một chuỗi đứng riêng bằng chính nội dung chuỗi, không kèm dấu nháy.
       const plain = d === 'mysql' && e.t === 'str' ? e.v : text;
       // Oracle đặt tiêu đề của s.NEXTVAL là NEXTVAL.
@@ -1816,7 +1904,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     });
   }
   const keptKeys = new Set(outCols.map((c) => c.key.split('#')[0]));
-  const before = grouped ? groupCols.map((c) => c.key) : scope.map((c) => `c${c.idx}`);
+  const before = [...(grouped ? groupCols.map((c) => c.key) : scope.map((c) => `c${c.idx}`)), ...winKeys];
   steps.push({ kind: 'select', star, distinct: stmt.distinct, columns: outCols, rows: outRows, dropped: before.filter((k) => !keptKeys.has(k)), computed, duplicates });
 
   /* ---------- ORDER BY ---------- */
@@ -1909,6 +1997,5 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
   }));
 
   resultDefs.set(result, outDefs);
-  const derived = [fromRef, ...plan.map((j) => j.ref)].some((r) => r?.sub || (r && viewOf(db, r, d)));
-  return { dialect: d, sql, clauses, focus: E.focus(), steps, result, ...(derived || E.correlated || winFns.length > 0 ? { partial: true } : {}) };
+  return { dialect: d, sql, clauses, focus: E.focus(), steps, result, ...(E.correlated ? { partial: true } : {}) };
 }

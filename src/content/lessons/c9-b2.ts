@@ -76,8 +76,8 @@ export const lesson: Lesson = {
           sql: { mysql: part('department_id = 20', 'DESC', ';'), oracle: part('department_id = 20', 'DESC', '') },
         },
         {
-          label: 'Xếp hạng trong phòng 20 và 30, mỗi phòng đếm lại từ 1',
-          sql: { mysql: part('department_id IN (20, 30)', 'DESC', ';'), oracle: part('department_id IN (20, 30)', 'DESC', '') },
+          label: 'Xếp hạng trong phòng 30 và 40, mỗi phòng đếm lại từ 1',
+          sql: { mysql: part('department_id IN (30, 40)', 'DESC', ';'), oracle: part('department_id IN (30, 40)', 'DESC', '') },
         },
         {
           label: 'Đổi DESC thành ASC: lương thấp nhất hạng 1',

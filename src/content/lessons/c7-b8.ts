@@ -196,9 +196,9 @@ export const lesson: Lesson = {
       type: 'realworld',
       title: 'Doanh thu gấp ba lần số của kế toán',
       paragraphs: [
-        'Một bạn phân tích dữ liệu nối table khách với table đơn và table phiếu hỗ trợ. Bạn cộng doanh thu mỗi khách.',
+        'Một bạn phân tích dữ liệu nối table khách với table đơn và table phiếu hỗ trợ. Bạn ấy cộng doanh thu mỗi khách.',
         'Doanh thu cả công ty ra gấp ba lần số của phòng kế toán. Khách nào có nhiều phiếu hỗ trợ thì doanh thu bị cộng nhiều lần.',
-        'Bạn đếm row trước và sau mỗi lần nối, rồi thấy chỗ row phình ra. Bạn tách doanh thu và phiếu thành hai query, và số khớp với kế toán.',
+        'Bạn ấy đếm row trước và sau mỗi lần nối, rồi thấy chỗ row phình ra. Bạn ấy tách doanh thu và phiếu thành hai query, và số khớp với kế toán.',
       ],
     },
     {

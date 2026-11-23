@@ -67,7 +67,7 @@ export const lesson: Lesson = {
         'Tên `ck_salary` nói luật này là CHECK và nói về column salary.',
         'Khi row phạm luật, lỗi ghi tên luật. MySQL báo: Check constraint \'ck_salary\' is violated. Bạn đọc tên là biết luật nào bị phạm.',
         'Bạn không đặt tên thì database tự đặt. Oracle đặt tên kiểu `SYS_C008502`, không cho biết luật nói về column nào.',
-        'Vì vậy bài này đặt tên cho CHECK. Hai luật còn lại đã có tên dễ đoán nhờ tên column.',
+        'Vì vậy bài này đặt tên cho CHECK. Lỗi NOT NULL thì đã nhắc tên column, nên luật này không cần tên riêng.',
       ],
     },
     {

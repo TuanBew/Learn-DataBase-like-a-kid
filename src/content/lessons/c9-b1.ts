@@ -38,7 +38,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Chị Hạnh ở phòng Tài chính hỏi Bi: "Lương của chị so với trung bình phòng thế nào?"',
         'Bi chạy GROUP BY và có ngay con số trung bình của phòng. Nhưng kết quả chỉ còn một row cho mỗi phòng, và tên chị Hạnh biến mất.',
-        'Chị cần thấy cả hai: lương của chị và trung bình phòng, nằm cạnh nhau trên cùng một dòng.',
+        'Chị cần thấy cả hai: lương của chị và trung bình phòng, nằm cạnh nhau trên cùng một row.',
         'Bi cần một cách tính trên nhóm mà không gộp row. Cách đó là window function.',
       ],
     },
@@ -149,7 +149,7 @@ export const lesson: Lesson = {
       title: 'Báo cáo lương theo phòng',
       paragraphs: [
         'Phòng nhân sự gửi sếp danh sách lương. Sếp muốn thấy từng người, kèm trung bình của phòng người đó.',
-        'Chị làm báo cáo viết một query với `AVG(salary) OVER (PARTITION BY department_id)`. Query ngắn, mỗi người một dòng, không phải nối thêm table nào.',
+        'Chị làm báo cáo viết một query với `AVG(salary) OVER (PARTITION BY department_id)`. Query ngắn, mỗi người một row, không phải nối thêm table nào.',
         'Trước khi có window function, chị phải viết một query GROUP BY riêng rồi JOIN lại. Query dài gấp đôi và dễ sai.',
       ],
     },

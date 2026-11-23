@@ -109,7 +109,7 @@ export const lesson: Lesson = {
     },
     {
       type: 'text',
-      title: 'Ba chỗ dễ nhầm',
+      title: 'Những chỗ dễ nhầm',
       paragraphs: [
         'Quên ORDER BY thì LAG và LEAD không biết "trước" là row nào. Oracle báo ORA-30485. MySQL cho qua, và kết quả không đoán trước được.',
         'NULL ở tháng đầu là đúng, không phải lỗi. Phép trừ có NULL cho kết quả NULL, nên mức tăng của tháng đầu cũng là NULL.',

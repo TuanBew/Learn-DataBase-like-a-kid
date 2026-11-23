@@ -204,7 +204,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Một công ty dùng báo cáo viết từ mười năm trước. Query có sáu table ngăn bằng dấu phẩy và ba dấu (+).',
         'Bạn nhận báo cáo và cần thêm một điều kiện lọc. Bạn viết lại thành JOIN ... ON, chạy cả hai bản và so số row.',
-        'Hai bản ra cùng số row thì bạn mới thay bản cũ. Làm vậy, bạn không đổi kết quả mà báo cáo vẫn dễ đọc hơn.',
+        'Hai bản ra cùng số row thì bạn mới thay bản cũ. Kết quả giữ nguyên, còn báo cáo dễ đọc hơn.',
       ],
     },
     {

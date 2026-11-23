@@ -194,6 +194,38 @@ async function runScene(page, tag, scope, steps, marker, bubbleRequired = true) 
       } catch (e) { bad(tag, String(e.message).split('\n')[0]); }
     }
 
+    // Query Theater diễn trọn query ghép, WITH, window. Chỉ subquery phụ thuộc mới còn dòng .qt-partial.
+    {
+      const tag = `[${w}] theater nhiều màn`;
+      const cases = [
+        ['UNION', 'SELECT category FROM products WHERE price < 30000 UNION SELECT category FROM products WHERE calories > 300', 3, false],
+        ['WITH', 'WITH dat AS (SELECT name, price FROM products WHERE price > 30000) SELECT name FROM dat', 2, false],
+        ['window', 'SELECT name, RANK() OVER (ORDER BY price DESC) rk FROM products', 1, false],
+        ['phụ thuộc', 'SELECT name FROM products p WHERE price > (SELECT AVG(price) FROM products WHERE category = p.category)', 1, true],
+      ];
+      try {
+        await page.goto(`${BASE}/tap/c4-e6`, { waitUntil: 'networkidle' });
+        for (const [name, sql, screens, partial] of cases) {
+          await page.locator('.cm-content').click();
+          await page.keyboard.press('ControlOrMeta+a');
+          await page.keyboard.insertText(sql);
+          await clickBtn(page.locator('main'), 'Chạy');
+          await page.waitForSelector('.qt-progress', { timeout: 5000 });
+          const chips = await page.locator('.qt-screen').count();
+          check(`${tag} ${name}: số chip màn`, screens === 1 ? chips === 0 : chips === screens, `có ${chips} chip, cần ${screens === 1 ? 0 : screens}`);
+          const note = await page.locator('.qt-partial').count();
+          check(`${tag} ${name}: dòng báo partial`, partial ? note === 1 : note === 0, `có ${note} dòng .qt-partial`);
+          await clickBtn(page.locator('.qt'), 'Bỏ qua animation');
+          await page.waitForTimeout(200);
+          const max = Number(await page.locator('.qt-progress').getAttribute('aria-valuemax'));
+          const now = Number(await page.locator('.qt-progress').getAttribute('aria-valuenow'));
+          check(`${tag} ${name}: bỏ qua tới khung cuối`, now === max, `valuenow ${now}/${max}`);
+        }
+        const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+        check(`${tag} không tràn ngang`, over <= 1, `tràn ${over}px`);
+      } catch (e) { bad(tag, String(e.message).split('\n')[0]); }
+    }
+
     // Xưởng: khung cấu trúc table
     {
       const tag = `[${w}] workshop c3-b3`;

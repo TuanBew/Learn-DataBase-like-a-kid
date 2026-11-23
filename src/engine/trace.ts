@@ -29,13 +29,23 @@ export interface TraceRow {
 }
 
 export type TraceStep =
-  | { kind: 'from'; table: string; alias?: string; columns: TraceCol[]; rows: TraceRow[] }
+  | {
+      kind: 'from';
+      table: string;
+      alias?: string;
+      /** Table này là kết quả của một màn chạy trước: khối WITH hay subquery trong FROM. */
+      source?: 'cte' | 'derived';
+      columns: TraceCol[];
+      rows: TraceRow[];
+    }
   | {
       /** Ghép thêm một table vào các row đang có. */
       kind: 'join';
       joinKind: 'inner' | 'left' | 'right' | 'full' | 'cross';
       table: string;
       alias?: string;
+      /** Table bên phải là kết quả của một màn chạy trước. */
+      source?: 'cte' | 'derived';
       /** Điều kiện ON, nguyên văn. */
       on?: string;
       rightColumns: TraceCol[];
@@ -68,6 +78,36 @@ export type TraceStep =
       aggs: string[];
       columns: TraceCol[];
       groups: { id: number; rowIds: number[]; cells: Value[] }[];
+    }
+  | {
+      /** Một toán tử ghép kết quả: UNION, UNION ALL, INTERSECT, EXCEPT hay MINUS. Query ghép nhiều vế có một step cho mỗi toán tử, từ trái sang phải. */
+      kind: 'setop';
+      op: 'union' | 'union all' | 'intersect' | 'except';
+      /** Chữ người học viết: UNION, UNION ALL, INTERSECT, EXCEPT hoặc MINUS. */
+      word: string;
+      columns: TraceCol[];
+      /** Row đầu vào: bên trái là kết quả đã có, bên phải là kết quả của vế mới. id không đổi qua các step. */
+      left: TraceRow[];
+      right: TraceRow[];
+      /** Row sau khi ghép. */
+      rows: TraceRow[];
+      /** Row bị loại: trùng với row đứng trước, không có ở vế kia (INTERSECT), hay có ở vế kia (EXCEPT, MINUS). */
+      removed: { id: number; why: 'dup' | 'absent' | 'present' }[];
+    }
+  | {
+      /** Một cụm OVER (...) của window function. Row không gộp lại: mỗi row nhận thêm một giá trị. Các cụm OVER khác nhau có step riêng, cộng dồn column. */
+      kind: 'window';
+      /** Nguyên văn các function dùng cùng cụm OVER, ví dụ 'RANK() OVER (PARTITION BY d ORDER BY s DESC)'. */
+      fns: string[];
+      partitionBy: string[];
+      orderBy: { text: string; desc: boolean }[];
+      /** Các phần: id row theo thứ tự trong phần. Phần xếp theo giá trị PARTITION BY. */
+      parts: { label: string; ids: number[] }[];
+      /** Mọi column sau khi thêm column mới: column cũ rồi tới column của các cụm OVER đã tính. */
+      columns: TraceCol[];
+      /** Khóa các column mới của step này. Khóa dạng 'w0', 'w1'. */
+      added: string[];
+      rows: TraceRow[];
     }
   | { kind: 'having'; verdicts: { id: number; pass: boolean; reason: string }[] }
   | { kind: 'where'; verdicts: { id: number; pass: boolean; reason: string }[] }
@@ -114,6 +154,16 @@ export interface ResultSet {
   warnings?: Warning[];
 }
 
+/** Một màn chạy trước màn chính: khối WITH, subquery trong FROM, hay một vế của query ghép kết quả. */
+export interface TraceAct {
+  kind: 'cte' | 'derived' | 'branch';
+  /** Tên khối WITH, alias của subquery trong FROM (rỗng nếu Oracle không có alias), hay tên vế ('vế 1'). */
+  name: string;
+  /** Nguyên văn query của màn này. */
+  sql: string;
+  trace: Trace;
+}
+
 export interface Trace {
   dialect: Dialect;
   sql: string;
@@ -122,10 +172,11 @@ export interface Trace {
   focus: string[];
   steps: TraceStep[];
   result: ResultSet;
+  /** Các màn chạy trước màn chính, theo thứ tự chạy. Khối WITH dùng nhiều lần chỉ có một màn. Mỗi `trace` lại có thể có `acts`. */
+  acts?: TraceAct[];
   /**
-   * true khi `steps` chỉ diễn lại một phần query: ghép kết quả (UNION...), WITH, subquery trong FROM,
-   * hoặc subquery phụ thuộc query bên ngoài (chạy lại cho từng row). `result` vẫn đúng và đầy đủ.
-   * Các phần đó được coi như đã có sẵn: subquery trong FROM và khối WITH thành một table đã có row.
+   * true khi query có subquery phụ thuộc query bên ngoài (chạy lại cho từng row): `steps` chỉ diễn query bên ngoài.
+   * `result` vẫn đúng và đầy đủ.
    */
   partial?: boolean;
 }

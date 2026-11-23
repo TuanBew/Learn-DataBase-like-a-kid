@@ -7,11 +7,11 @@ import { Mascot, type Mood } from '../components/Mascot';
 import { Icon } from '../components/Icon';
 import { play } from '../sfx/sfx';
 import { theaterCopy as T } from './copy.vi';
-import { type Frame, type Phase, buildFrames, firstFrameOf } from './frames';
+import { type Frame, type Phase, buildFrames, firstFrameOf, screensOf } from './frames';
 import { Stage } from './Stage';
 import './theater.css';
 
-const MOOD: Record<Phase, Mood> = { written: 'idle', run: 'wow', from: 'happy', where: 'think', group: 'wow', having: 'think', select: 'idle', order: 'think', limit: 'idle', done: 'cheer' };
+const MOOD: Record<Phase, Mood> = { written: 'idle', run: 'wow', from: 'happy', setop: 'happy', where: 'think', group: 'wow', having: 'think', window: 'wow', select: 'idle', order: 'think', limit: 'idle', stash: 'happy', done: 'cheer' };
 const SPEEDS = [0.5, 1, 2];
 
 const TONE: Record<ClauseKind, string> = {
@@ -36,16 +36,17 @@ interface Props {
 /** Query Theater: diễn lại một query từng bước, dựng hoàn toàn từ trace của engine. */
 export function Theater({ trace, autoPlay = true, onEnd }: Props) {
   const frames = useMemo(() => buildFrames(trace), [trace]);
-  const focus = useMemo(() => new Set(trace.focus), [trace]);
+  const screens = useMemo(() => screensOf(trace), [trace]);
   const reduced = useReducedMotion() ?? false;
-  /* `partial` do engine thêm vào Trace sau: query mà Theater chỉ diễn được phần ngoài cùng. Chưa có trong kiểu thì đọc qua ép kiểu cục bộ. */
-  const partial = (trace as Trace & { partial?: boolean }).partial === true;
+  /* Subquery phụ thuộc query ngoài chạy lại cho từng row: Theater chỉ diễn query bên ngoài. */
+  const partial = screens.some((sc) => sc.trace.partial === true);
   const last = frames.length - 1;
 
   const [i, setI] = useState(0);
   const [playing, setPlaying] = useState(autoPlay && !reduced);
   const [speed, setSpeed] = useState(1);
   const frame: Frame = frames[Math.min(i, last)];
+  const focus = useMemo(() => new Set(frame.focus), [frame.focus]);
 
   /* Đo chiều ngang của sân khấu. */
   const stageRef = useRef<HTMLDivElement>(null);
@@ -120,7 +121,7 @@ export function Theater({ trace, autoPlay = true, onEnd }: Props) {
     }
   };
 
-  const ordered = useMemo(() => [...trace.clauses].sort((a, b) => (frame.rail === 'written' ? a.written - b.written : a.run - b.run)), [trace, frame.rail]);
+  const ordered = useMemo(() => [...frame.clauses].sort((a, b) => (frame.rail === 'written' ? a.written - b.written : a.run - b.run)), [frame.clauses, frame.rail]);
   const liveRows = frame.count;
   const sideFrame: Frame | null = frame.side
     ? { ...frame, cols: frame.side.cols, rows: frame.side.rows, count: frame.side.rows.length, more: frame.side.more > 0 ? { count: frame.side.more, text: T.more(frame.side.more) } : null, boxes: [], gate: null, scan: null, side: null }
@@ -137,9 +138,24 @@ export function Theater({ trace, autoPlay = true, onEnd }: Props) {
 
   return (
     <section className={`qt sheet ${frame.big ? 'qt--intro' : ''}`} aria-label={T.stage} onKeyDown={onKey}>
+      {screens.length > 1 && (
+        <ol className="qt-screens" aria-label={T.screens}>
+          {screens.map((sc, n) => {
+            const state = n < frame.screen.index ? 'done' : n === frame.screen.index ? 'active' : 'todo';
+            return (
+              <li key={n} className={`qt-screen qt-screen--${state}`} aria-current={state === 'active' ? 'step' : undefined} aria-label={T.screenChip(n + 1, screens.length)}>
+                <span className="qt-screen__n" aria-hidden="true">
+                  {state === 'done' ? <Icon name="check" size={12} /> : n + 1}
+                </span>
+                <span className="qt-screen__name">{sc.kind === 'main' ? T.screenMain : sc.name || T.noName}</span>
+              </li>
+            );
+          })}
+        </ol>
+      )}
       <div ref={railRef} className={`qt-rail ${frame.big ? 'qt-rail--big' : ''} qt-rail--${frame.rail}`}>
         {ordered.map((c) => (
-          <ClauseChip key={c.written} c={c} frame={frame} reduced={reduced} speed={speed} onJump={() => go(firstFrameOf(frames, c.run))} />
+          <ClauseChip key={`${frame.screen.index}-${c.written}`} c={c} frame={frame} reduced={reduced} speed={speed} onJump={() => go(firstFrameOf(frames, c.run, frame.screen.index))} />
         ))}
       </div>
 
@@ -165,6 +181,11 @@ export function Theater({ trace, autoPlay = true, onEnd }: Props) {
 
         <div className="qt-floor">
           <div className="qt-stagewrap" ref={stageRef}>
+            {frame.stash && (
+              <p className="qt-stash">
+                <span className="chip">{T.stashTable(frame.stash)}</span>
+              </p>
+            )}
             {width > 0 && <Stage frame={frame} width={width} focus={focus} speed={speed} reduced={reduced} emptyText={T.empty} />}
             {width > 0 && sideFrame && frame.side && (
               <div className="qt-sidetable">

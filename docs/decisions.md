@@ -127,7 +127,7 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Engine giữ hai chỗ lệch MySQL thật vì test cũ đang dựa vào**: `REFERENCES` viết ở column vẫn được kiểm (MySQL thật bỏ qua), và INSERT thiếu primary key của table mẫu báo 1048 thay vì 1364.
 - **Số giờ học ở trang chủ tính từ tổng số phút của các bài**, không ghi cứng.
 - **Bài tập "trên database của bạn" ở các chương sau chạy trên bản mẫu Sao Mai** (`src/data/saomai.ts`): cùng cấu trúc với database người học đã dựng, nhưng có đủ dữ liệu để luyện query. Database người học tự dựng chỉ có vài row.
-- **Query Theater chỉ diễn phần ngoài cùng** của query có UNION, subquery trong FROM, WITH, subquery phụ thuộc hay window function, và hiện một dòng nói rõ. Kết quả query vẫn đúng. Diễn từng bước cho các loại này tốn nhiều công, chưa đáng.
+- **Query Theater diễn trọn query có UNION, INTERSECT, MINUS hay EXCEPT, subquery trong FROM, WITH và window function** (thay cho quyết định cũ là chỉ diễn phần ngoài cùng). Trace có thêm `acts` (các màn chạy trước), step `setop` và step `window`; `buildFrames` vẫn là hàm thuần và diễn lần lượt từng màn. `partial` chỉ còn cho subquery phụ thuộc query ngoài, chạy lại cho từng row. Chi tiết ở `docs/engine.md`, mục "Trace nhiều màn". Chọn làm theo ba pha: trace, frames, giao diện.
 - **Sơ đồ database không vẽ foreign key trỏ về chính table** (`employees.manager_id`) và không dùng nó khi tìm đường. Trên điện thoại sơ đồ là danh sách dọc có nhãn bấm được.
 - **Trang Tra cứu nhớ dialect riêng** (`ldb:ref-dialect`). Mọi function engine chạy được đều phải có mục: có test bảo đảm.
 - **Khối thử tay có chế độ `session`** để chạy lệnh xem cấu trúc và data dictionary. Ở chế độ này không mở Query Theater.
@@ -138,4 +138,4 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Chương 11 không có bài boss.** Giấy chứng nhận tính theo các bài boss đang có.
 - **Ba chỗ dàn ý ghi mà bản dựng làm gọn**: đa số phần tự bấm dùng khối thử tay hoặc xưởng thay cho cảnh riêng; bài query chậm chỉ nhắc tên EXPLAIN PLAN; GRANT chỉ dạy đọc hiểu.
 - **Chi phí Mốc 4** (ước theo số liệu của từng subagent): khoảng 7 triệu token Sonnet ở các subagent, chưa kể lượt kiểm gộp. Các lượt mở rộng engine tốn nhất, mỗi lượt từ 200 tới 520 nghìn.
-
+- **Theater nhiều màn: chip màn ở đầu khung.** Khung tiêu đề `Màn n trên N` của mỗi màn giữ phase `written`, nên khung đầu luôn là `written`. Query ghép đặt tên vế là `vế 1`, `vế 2`. View chưa có màn riêng: vẫn là table đã có row, không còn `partial`.

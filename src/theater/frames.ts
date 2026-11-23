@@ -1,5 +1,5 @@
 import type { ClauseKind } from '../engine/ast';
-import type { Trace, TraceCol, TraceRow } from '../engine/trace';
+import type { Trace, TraceClause, TraceCol, TraceRow } from '../engine/trace';
 import type { ColumnType, Value } from '../engine/types';
 import { show } from '../engine/values';
 import type { SfxName } from '../sfx/sfx';
@@ -29,9 +29,27 @@ export interface StageRow {
   stack?: number;
 }
 
-export type Phase = 'written' | 'run' | 'from' | 'where' | 'group' | 'having' | 'select' | 'order' | 'limit' | 'done';
+export type Phase = 'written' | 'run' | 'from' | 'setop' | 'where' | 'group' | 'having' | 'window' | 'select' | 'order' | 'limit' | 'stash' | 'done';
+
+/** Một màn của Theater: một query chạy từ đầu tới cuối. Query có WITH, subquery trong FROM hay nhiều vế ghép có nhiều màn, màn chính đứng cuối. */
+export interface Screen {
+  /** Số thứ tự của màn, tính từ 0. */
+  index: number;
+  total: number;
+  kind: 'cte' | 'derived' | 'branch' | 'main';
+  /** Tên khối WITH, alias subquery, hay tên vế. Màn chính không có tên. */
+  name: string;
+}
 
 export interface Frame {
+  /** Màn đang diễn. */
+  screen: Screen;
+  /** Các clause của màn này, theo thứ tự viết. */
+  clauses: TraceClause[];
+  /** Khóa các column mà màn này nhắc tới. */
+  focus: string[];
+  /** Tên table mà kết quả của màn vừa được cất thành. Chỉ có ở khung cuối của màn phụ. */
+  stash: string | null;
   phase: Phase;
   /** Các clause đang xếp theo thứ tự viết hay thứ tự chạy. */
   rail: 'written' | 'run';
@@ -70,9 +88,34 @@ const DIALECT = { mysql: 'MySQL', oracle: 'Oracle' } as const;
 const toCols = (cols: TraceCol[], state: StageCol['state'] = 'on'): StageCol[] => cols.map((c) => ({ key: c.key, header: c.header, type: c.type, state }));
 const toRows = (rows: TraceRow[], cols: TraceCol[]): StageRow[] => rows.map((r) => ({ id: r.id, cells: Object.fromEntries(cols.map((c, i) => [c.key, r.cells[i]])) }));
 
+export interface ScreenInfo {
+  kind: Screen['kind'];
+  name: string;
+  trace: Trace;
+}
+
+/** Các màn của một query theo thứ tự diễn: màn phụ chạy trước (kể cả màn lồng nhau), màn chính cuối cùng. */
+export function screensOf(trace: Trace): ScreenInfo[] {
+  const out: ScreenInfo[] = [];
+  const walk = (t: Trace, kind: Screen['kind'], name: string) => {
+    t.acts?.forEach((a) => walk(a.trace, a.kind, a.name));
+    out.push({ kind, name, trace: t });
+  };
+  walk(trace, 'main', '');
+  return out;
+}
+
 /** Dựng toàn bộ khung hình của Theater từ trace. Hàm thuần: cùng trace thì cùng kết quả. */
 export function buildFrames(trace: Trace): Frame[] {
+  const screens = screensOf(trace);
+  return screens.flatMap((sc, i) => screenFrames(sc.trace, { index: i, total: screens.length, kind: sc.kind, name: sc.name }));
+}
+
+/** Khung hình của một màn. */
+function screenFrames(trace: Trace, screen: Screen): Frame[] {
   const frames: Frame[] = [];
+  const multi = screen.total > 1;
+  const lastScreen = screen.index === screen.total - 1;
   const runIdx = (...kinds: ClauseKind[]) => trace.clauses.find((c) => kinds.includes(c.kind))?.run ?? null;
   const byRun = [...trace.clauses].sort((a, b) => a.run - b.run);
 
@@ -87,6 +130,10 @@ export function buildFrames(trace: Trace): Frame[] {
     const live = (list: StageRow[]) => list.filter((r) => !(r.mark && FALL.has(r.mark))).length;
     const fail = hidden.length - live(hidden);
     frames.push({
+      screen,
+      clauses: trace.clauses,
+      focus: trace.focus,
+      stash: null,
       rail: 'run',
       big: false,
       active: null,
@@ -130,7 +177,10 @@ export function buildFrames(trace: Trace): Frame[] {
   };
 
   /* Mở màn: thứ tự viết, rồi thứ tự chạy. */
-  push({ phase: 'written', rail: 'written', big: true, caption: T.written, hold: 1500, sfx: [{ name: 'pop' }] });
+  if (multi) {
+    const what = screen.kind === 'main' ? (trace.steps[0]?.kind === 'setop' ? T.whatSetMain : T.whatMain) : screen.kind === 'cte' ? T.whatCte(screen.name) : screen.kind === 'derived' ? T.whatDerived(screen.name) : T.whatBranch(screen.name);
+    push({ phase: 'written', rail: 'written', big: true, caption: `${T.screenTitle(screen.index + 1, screen.total, what)}${screen.index === 0 ? ` ${T.written}` : ''}`, hold: 2200, sfx: [{ name: 'pop' }] });
+  } else push({ phase: 'written', rail: 'written', big: true, caption: T.written, hold: 1500, sfx: [{ name: 'pop' }] });
   push({ phase: 'run', big: true, caption: trace.clauses.length > 1 ? T.run(byRun[0].kind) : T.runSingle, hold: 2400, sfx: [{ name: 'whoosh' }, { name: 'tick', at: 0.45 }] });
 
   for (const step of trace.steps) {
@@ -138,7 +188,7 @@ export function buildFrames(trace: Trace): Frame[] {
       case 'from': {
         cols = toCols(step.columns);
         rows = toRows(step.rows, step.columns);
-        push({ phase: 'from', active: runIdx('FROM'), caption: T.from(step.table, rows.length, cols.length), hold: 1700, sfx: [{ name: 'fly' }] });
+        push({ phase: 'from', active: runIdx('FROM'), caption: step.source ? T.fromSource(step.table, rows.length, cols.length) : T.from(step.table, rows.length, cols.length), hold: 1700, sfx: [{ name: 'fly' }] });
         // Còn JOIN thì FROM chưa xong.
         if (!trace.steps.some((s) => s.kind === 'join')) done++;
         break;
@@ -150,7 +200,7 @@ export function buildFrames(trace: Trace): Frame[] {
         const matchedRight = new Set(step.links.filter((l) => l.left !== null && l.right !== null).map((l) => l.right));
         // RIGHT và FULL JOIN giữ cả row bên phải không khớp: đánh dấu ngay trên table đang bay vào.
         const sideShown = keepRight ? sideRows.map((r) => (matchedRight.has(r.id) ? r : { ...r, mark: 'passed' as const, note: T.joinKeep })) : sideRows;
-        const side = { title: T.sideTable(step.table), cols: toCols(step.rightColumns), rows: sideShown.slice(0, 6), more: Math.max(0, sideRows.length - 6) };
+        const side = { title: step.source ? T.sideSource(step.table) : T.sideTable(step.table), cols: toCols(step.rightColumns), rows: sideShown.slice(0, 6), more: Math.max(0, sideRows.length - 6) };
         push({ phase: 'from', active, side, caption: step.on ? T.joinArrive(step.table, step.on) : T.joinCross(step.table), hold: 2400, sfx: [{ name: 'fly' }] });
         const matches = new Map<number, number>();
         const kept = new Set<number>();
@@ -191,6 +241,75 @@ export function buildFrames(trace: Trace): Frame[] {
         const last = trace.steps.filter((s) => s.kind === 'join').pop() === step;
         if (last) done++;
         push({ phase: 'from', active: last ? null : active, caption: T.joinDone(rows.length, cols.length), hold: 1800, sfx: [{ name: 'whoosh' }] });
+        break;
+      }
+      case 'setop': {
+        const active = runIdx('FROM');
+        const n = trace.steps.filter((x) => x.kind === 'setop').indexOf(step);
+        const word = step.word.toUpperCase();
+        const right = n + 2;
+        const lastOp = trace.steps.filter((x) => x.kind === 'setop').pop() === step;
+        const all = toRows(step.left, step.columns);
+        cols = toCols(step.columns);
+        rows = all;
+        push({ phase: 'setop', active, caption: n === 0 ? T.setLeft(rows.length) : T.setCarry(rows.length), hold: 1700, sfx: [{ name: 'fly' }] });
+        const sideRows = toRows(step.right, step.columns);
+        const side = { title: T.sideBranch(right), cols: toCols(step.columns), rows: sideRows.slice(0, 6), more: Math.max(0, sideRows.length - 6) };
+        push({ phase: 'setop', active, side, caption: T.setArrive(word, right, sideRows.length), hold: 2200, sfx: [{ name: 'fly' }] });
+        const why = new Map(step.removed.map((x) => [x.id, x.why]));
+        const gone = step.removed.length;
+        const kept = toRows(step.rows, step.columns);
+        if (step.op === 'union' || step.op === 'union all') {
+          // Hai vế đổ chung vào một table. UNION bỏ row trùng với row đứng trước.
+          rows = [...all, ...sideRows].map((r) => (why.has(r.id) ? { ...r, mark: 'dup' as const, note: T.duplicate } : r));
+          push({ phase: 'setop', active, caption: step.op === 'union' ? T.setUnion(word, gone) : T.setUnionAll(word), hold: 2200, sfx: gone > 0 ? [{ name: 'bonk' }, { name: 'drop', at: 0.95 }] : [{ name: 'whoosh' }] });
+        } else {
+          // INTERSECT và EXCEPT soi từng row của vế trái với vế phải. Vế phải ở yên bên dưới.
+          const src = (r: StageRow): StageRow => {
+            const w = why.get(r.id);
+            if (w === 'dup') return { ...r, mark: 'dup', note: T.duplicate };
+            if (w) return { ...r, mark: 'fail', note: w === 'absent' ? T.setAbsent(right) : T.setPresent(right) };
+            return { ...r, mark: 'passed' };
+          };
+          rows = all.map(src);
+          push({ phase: 'setop', active, side, caption: step.op === 'intersect' ? T.setIntersect(word, right, gone) : T.setExcept(word, right, gone), hold: 2400, sfx: gone > 0 ? [{ name: 'bonk' }, { name: 'drop', at: 0.95 }] : [{ name: 'tick' }] });
+        }
+        rows = kept;
+        if (lastOp) done++;
+        push({ phase: 'setop', active: lastOp ? null : active, caption: T.setDone(rows.length, cols.length), hold: 1700, sfx: [{ name: 'whoosh' }] });
+        break;
+      }
+      case 'window': {
+        const active = runIdx('SELECT');
+        const names = step.fns.map((f) => f.replace(/\s+OVER\b.*$/i, '')).join(', ');
+        const partOf = new Map<number, number>();
+        step.parts.forEach((p, pi) => p.ids.forEach((id) => partOf.set(id, pi)));
+        const full = toRows(step.rows, step.columns);
+        const byId = new Map(full.map((r) => [r.id, r]));
+        const split = step.partitionBy.length > 0;
+        const tone = (r: StageRow): StageRow => ({ ...r, tone: (partOf.get(r.id) ?? 0) % 6 });
+        const newKeys = new Set(step.added);
+        // Bước 1: row cùng PARTITION BY được tô cùng màu. Row chưa đổi chỗ.
+        rows = rows.map(tone);
+        push({ phase: 'window', active, caption: split ? T.winSplit(names, step.partitionBy.join(', '), step.parts.length) : T.winWhole(names), hold: 2400, sfx: [{ name: 'pop' }] });
+        // Bước 2: trong từng phần, row xếp theo ORDER BY.
+        const arranged = step.parts.flatMap((p, pi) => p.ids.map((id) => ({ ...byId.get(id)!, tone: pi % 6 })));
+        const boxes: Frame['boxes'] = split ? step.parts.map((p, pi) => ({ label: p.label, start: step.parts.slice(0, pi).reduce((a, q) => a + q.ids.length, 0), size: p.ids.length, tone: pi % 6 })) : [];
+        const orderText = step.orderBy.map((o) => `${o.text}${o.desc ? ' giảm dần' : ''}`).join(', ');
+        const compact = rows.length > BIG;
+        if (!compact) {
+          rows = arranged;
+          push({ phase: 'window', active, boxes, caption: step.orderBy.length > 0 ? T.winOrder(orderText, split) : T.winNoOrder(split), hold: 2400, sfx: [{ name: 'whoosh' }] });
+        }
+        // Bước 3: column mới hiện ra. Mỗi row nhận thêm một giá trị, row không gộp lại.
+        // Tiêu đề dài như 'RANK() OVER (PARTITION BY ...)' làm column mới bị gập lại: chỉ giữ phần function.
+        const short = (h: string) => h.replace(/\s+OVER\b.*$/i, ' OVER ...');
+        cols = [...cols, ...toCols(step.columns.filter((c) => newKeys.has(c.key)).map((c) => ({ ...c, header: short(c.header) })), 'new')];
+        rows = (compact ? rows : arranged).map((r) => ({ ...byId.get(r.id)!, tone: r.tone, stack: r.stack }));
+        push({ phase: 'window', active, boxes: compact ? [] : boxes, caption: T.winValues(names, rows.length), hold: 2600, sfx: [{ name: 'pop' }, { name: 'tick', at: 0.5 }] });
+        cols = cols.map((c) => ({ ...c, state: 'on' as const }));
+        // Từ đây row nằm theo thứ tự mà engine giữ cho SELECT.
+        rows = full.map((r) => ({ id: r.id, cells: r.cells }));
         break;
       }
       case 'subquery': {
@@ -340,12 +459,17 @@ export function buildFrames(trace: Trace): Frame[] {
     }
   }
 
-  push({ phase: 'done', caption: T.done(trace.result.rows.length, trace.result.columns.length), hold: 1600, sfx: [{ name: 'ting' }] });
+  if (lastScreen) push({ phase: 'done', caption: T.done(trace.result.rows.length, trace.result.columns.length), hold: 1600, sfx: [{ name: 'ting' }] });
+  else {
+    // Màn phụ xong: kết quả được cất thành một table có tên, màn sau gọi tên đó ra dùng.
+    const name = screen.name || T.noName;
+    push({ phase: 'stash', stash: name, caption: T.stash(name, trace.result.rows.length, trace.result.columns.length), hold: 2000, sfx: [{ name: 'ting' }] });
+  }
   return frames;
 }
 
 /** Khung hình đầu tiên của từng clause, tính theo thứ tự chạy. Dùng khi người học bấm vào một clause. */
-export function firstFrameOf(frames: Frame[], run: number): number {
-  const i = frames.findIndex((f) => f.active === run);
+export function firstFrameOf(frames: Frame[], run: number, screen = 0): number {
+  const i = frames.findIndex((f) => f.active === run && f.screen.index === screen);
   return i < 0 ? frames.length - 1 : i;
 }

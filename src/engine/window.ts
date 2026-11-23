@@ -53,7 +53,14 @@ export interface WindowUnit {
  * Tính các window function trên các unit (row, hoặc nhóm khi đã GROUP BY) và ghi kết quả vào `cx.win` của từng unit.
  * Trả về thứ tự mà window cuối cùng sắp các unit: DBMS thật trả row theo thứ tự đó khi query không có ORDER BY.
  */
-export function computeWindows(fns: FnExpr[], units: WindowUnit[], ev: (e: Expr, cx: never) => Value, d: Dialect): number[] | undefined {
+export function computeWindows(
+  fns: FnExpr[],
+  units: WindowUnit[],
+  ev: (e: Expr, cx: never) => Value,
+  d: Dialect,
+  /** Gọi sau khi chia phần cho từng function: chỉ số unit theo thứ tự trong phần, và giá trị PARTITION BY của phần. */
+  report?: (fn: FnExpr, parts: { idxs: number[]; key: Value[] }[]) => void,
+): number[] | undefined {
   let last: number[] | undefined;
   for (const fn of fns) {
     const spec = fn.over!;
@@ -73,10 +80,12 @@ export function computeWindows(fns: FnExpr[], units: WindowUnit[], ev: (e: Expr,
     });
     const parts = [...groups.values()].sort((a, b) => cmpKeys(part[a[0]], part[b[0]], asc, d, span) || a[0] - b[0]);
     const order: number[] = [];
+    const seen: { idxs: number[]; key: Value[] }[] = [];
 
     for (const idxs of parts) {
       const sorted = [...idxs].sort((a, b) => cmpKeys(ord[a], ord[b], spec.orderBy, d, span) || a - b);
       order.push(...sorted);
+      seen.push({ idxs: sorted, key: part[idxs[0]] });
       const same = (a: number, b: number) => cmpKeys(ord[a], ord[b], spec.orderBy, d, span) === 0;
       // Với mỗi vị trí: đầu và cuối nhóm row cùng key ORDER BY.
       const first: number[] = [];
@@ -122,6 +131,7 @@ export function computeWindows(fns: FnExpr[], units: WindowUnit[], ev: (e: Expr,
         (u.cx.win ??= new Map()).set(fn, v);
       });
     }
+    report?.(fn, seen);
     last = order;
   }
   return last;

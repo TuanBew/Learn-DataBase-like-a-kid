@@ -47,7 +47,7 @@ Chạy ở cả hai dialect, trừ khi ghi riêng. Mã MySQL đã kiểm trên M
 - `= ANY`, `= SOME`, `> ALL`, `<> ALL` và mọi phép so sánh với ANY, SOME, ALL. Subquery rỗng: ANY sai, ALL đúng. Có NULL trong danh sách thì kết quả có thể là "chưa biết" (NULL).
 - MySQL: `LIMIT` trong subquery của IN, ANY, SOME, ALL báo 1235 (scalar subquery và FROM thì được). Oracle nhận `FETCH FIRST`.
 - UPDATE và DELETE: subquery ở WHERE và ở vế phải của `SET` chạy bình thường, kể cả phụ thuộc row đang xét. MySQL báo 1093 khi subquery đọc chính table đang sửa (gọi theo alias nếu có); bọc phần đọc trong FROM của một subquery khác thì qua. Oracle không có luật này.
-- Trace: subquery không phụ thuộc vẫn có bước `subquery` như cũ. Subquery phụ thuộc không có bước riêng, và trace mang `partial: true`.
+- Trace: subquery không phụ thuộc vẫn có bước `subquery` như cũ. Subquery phụ thuộc không có bước riêng, và trace mang `partial: true`. Subquery trong FROM là một màn riêng (`acts`, xem mục "Trace nhiều màn").
 
 ## Ghép kết quả
 
@@ -57,18 +57,26 @@ Chạy ở cả hai dialect, trừ khi ghi riêng. Mã MySQL đã kiểm trên M
 - `ORDER BY` đứng cuối áp cho cả kết quả, theo tên hoặc alias column của query đầu, hoặc theo số thứ tự. MySQL nhận cả biểu thức tính từ các tên đó (`ORDER BY d + 1`); Oracle chỉ nhận tên, alias, số thứ tự (ORA-01785). Tên không có: MySQL 1054, Oracle ORA-00904. Tên table đứng trước column: MySQL 1250, Oracle ORA-00904 (chưa có nguồn xác nhận). `ORDER BY` hay `LIMIT` đứng giữa chuỗi ghép mà không trong ngoặc: MySQL 1064, Oracle ORA-00933.
 - `LIMIT`, `FETCH FIRST`, `OFFSET` đứng cuối áp cho cả kết quả.
 - Lệch số column: MySQL 1222, Oracle ORA-01789. Lệch nhóm data type (số, chữ, ngày): Oracle ORA-01790; MySQL tự đổi cả hai vế sang chữ. NULL không làm lệch.
-- Trace luôn `partial: true`: chỉ có một bước `from` (table `kết quả ghép`, mọi row sau khi ghép), rồi `order` và `limit` nếu có. Hai vế không diễn lại từng bước.
+- Trace: mỗi vế là một màn `branch` trong `acts`, có trace đầy đủ của riêng nó. Màn chính mở bằng bước `setop` (mỗi toán tử một bước, từ trái sang phải), rồi `order` và `limit` nếu có. Không có bước `from`.
 
 ## WITH
 
 - `WITH ten AS (SELECT ...) [, ten2 AS (...)] query`. Nhiều khối, khối sau dùng được khối trước. Dùng trong FROM, JOIN, subquery và UNION của query chính. Khối che table cùng tên.
 - `WITH ten (c1, c2) AS (...)`. Số tên không khớp SELECT: MySQL 1353, Oracle ORA-32038. Hai khối trùng tên: MySQL 1066, Oracle ORA-00955 (chưa có nguồn xác nhận).
 - `WITH RECURSIVE` (MySQL) và khối WITH gọi lại chính nó (Oracle): báo "khóa học chưa dạy tới". `WITH` đứng trước UPDATE, DELETE, INSERT cũng chưa dạy.
-- Trace mang `partial: true`. Mỗi khối thành một table đã có sẵn row, hiện ở bước `from` bằng tên khối.
+- Trace: mỗi khối là một màn `cte` trong `acts`, có trace đầy đủ. Query dùng khối đó có bước `from` hay `join` mang `source: 'cte'`. Khối dùng hai lần vẫn là một màn.
 
-## Trace có `partial`
+## Trace nhiều màn
 
-`trace.partial` (kiểu `Trace` trong `src/engine/trace.ts`) là `true` khi `steps` chỉ diễn lại một phần query. `result` vẫn đúng và đầy đủ, và `steps` vẫn hợp lệ cho `buildFrames`. Các loại query mang `partial`: ghép kết quả, subquery trong FROM, WITH, subquery phụ thuộc query ngoài (WHERE, SELECT, HAVING, ORDER BY, EXISTS). Với subquery trong FROM và khối WITH, query ngoài diễn như thường, coi subquery là một table đã có row.
+Kiểu `Trace` nằm ở `src/engine/trace.ts`. Mọi thứ dưới đây chỉ thêm vào các step cũ, không đổi hình dạng của chúng.
+
+- `trace.acts` là danh sách `TraceAct` `{ kind: 'cte' | 'derived' | 'branch'; name; sql; trace }`: các màn chạy trước màn chính, theo thứ tự chạy. `trace` là một Trace đầy đủ và có thể lại có `acts` (subquery lồng nhau). Thứ tự trong một `acts`: khối WITH, rồi subquery trong FROM, rồi các vế của query ghép. `name` là tên khối WITH, alias subquery (rỗng nếu Oracle không có alias) hay `vế 1`, `vế 2`. Khối WITH dùng nhiều lần chỉ có một màn.
+- `execSelect` giữ một sổ màn riêng (`actSink`). `withTables` và `resolveRef` ghi màn vào sổ đó. Subquery trong WHERE, HAVING, SELECT chạy bằng một `execSelect` khác nên không đẩy màn lên query ngoài.
+- Step `from` và `join` có thêm `source?: 'cte' | 'derived'` khi table là kết quả của một màn trước. View không có `source`: view vẫn là table đã có row.
+- Step `setop`: `{ op, word, columns, left, right, rows, removed }`. `left` và `right` là row đầu vào, `rows` là row sau khi ghép, `removed` là `{ id, why }` với `why` là `dup` (trùng row đứng trước), `absent` (INTERSECT: không có ở vế phải) hay `present` (EXCEPT, MINUS: có ở vế phải). id row không đổi qua các step; row của vế phải lấy id mới. Chuỗi `(A op B) op C` đi thành hai step `setop` nối nhau và ba màn `branch`. Vế trái có WITH, ORDER BY hay LIMIT riêng thì là một màn (có `acts` riêng). Clause `FROM` của query ghép có chữ `FROM vế 1 UNION vế 2`.
+- Step `window`: `{ fns, partitionBy, orderBy, parts, columns, added, rows }`, đứng sau `having` và trước `select`. Mỗi cụm OVER (...) khác nhau một step, column cộng dồn: `columns` gồm column cũ rồi `w0`, `w1`... `added` là khóa các column mới của step này. `parts` là các phần, mỗi phần có id row theo thứ tự trong phần. `rows` theo thứ tự mà engine giữ cho SELECT. Step `select` coi `wN` là column đã có: không nằm trong `computed`, và nằm trong `dropped` nếu không được chọn.
+- `trace.partial` chỉ còn `true` khi query có subquery phụ thuộc query ngoài (WHERE, SELECT, HAVING, ORDER BY, EXISTS): `steps` chỉ diễn query ngoài. `result` vẫn đúng. Theater hiện dòng báo nếu màn nào có `partial`.
+- Theater: `buildFrames` lấy `screensOf(trace)` (màn phụ trước, màn chính cuối) và dựng khung cho từng màn. Màn phụ mở bằng khung tiêu đề `Màn n trên N: ...` (phase `written`) và đóng bằng khung `stash` (kết quả cất thành table có tên). Mỗi `Frame` mang `screen`, `clauses`, `focus` của màn nó.
 
 ## Function
 
@@ -124,7 +132,7 @@ Mọi lỗi dưới đây có lời tiếng Việt trong `messages.vi.ts`. MySQL
 - Dùng trong WHERE, ON, GROUP BY, HAVING: MySQL 3593, Oracle ORA-30483. Lời giải thích chỉ cách tính trong subquery ở FROM rồi lọc ở query ngoài.
 - ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD không có OVER: MySQL 1064 (ở chữ sau dấu `)`), Oracle ORA-30484. Function thường kèm OVER: MySQL 1064, Oracle ORA-30484. Oracle: ranking, LAG, LEAD thiếu ORDER BY trong OVER là ORA-30485 (MySQL cho qua). MySQL: số row của LAG, LEAD phải là số nguyên không âm viết thẳng, sai là 1064.
 - Tiêu đề column của MySQL giữ nguyên chữ viết, gồm cả phần `OVER (...)`.
-- Trace của query có window function đặt `partial: true`: các bước FROM, WHERE, SELECT vẫn diễn lại, riêng phần tính window thì chỉ có kết quả. Column của window hiện như column tính toán.
+- Trace của query có window function có bước `window` (xem "Trace nhiều màn"). Không còn `partial`.
 - `COUNT(DISTINCT a, b)`: MySQL đếm các cặp khác nhau (bỏ cặp có NULL). Oracle báo ORA-00909.
 
 ## Gom nhóm mở rộng
@@ -173,7 +181,7 @@ Kết quả là `{ ok: true, kind: 'ddl', op, object, table, columns }`. `op` l�
 ### VIEW
 
 - `CREATE [OR REPLACE] VIEW v AS SELECT ...`, `DROP VIEW [IF EXISTS] v` (Oracle 19c không có IF EXISTS). Cả hai tự COMMIT. View chỉ lưu câu SELECT (`Database.views: { name, sql }[]`) và chạy lại mỗi lần đọc, nên luôn thấy dữ liệu mới. `SELECT *` trong view cũng bung lại mỗi lần (DBMS thật bung một lần lúc tạo).
-- SELECT và JOIN trên view như một table. Trace của query dùng view là `partial` (view như một table đã có row). Tạo view thì chạy thử câu SELECT, nên lỗi table, column hiện ngay lúc tạo.
+- SELECT và JOIN trên view như một table. Trace của query dùng view không có màn riêng: view như một table đã có row. Tạo view thì chạy thử câu SELECT, nên lỗi table, column hiện ngay lúc tạo.
 - Tên view và tên table dùng chung một chỗ: trùng thì 1050 (MySQL), ORA-00955 (Oracle). View đã có mà không viết OR REPLACE: cùng mã đó. DROP VIEW trên table: 1347 (MySQL), ORA-00942 (Oracle). DROP TABLE trên view và DROP VIEW không có: 1051, ORA-00942.
 - View mất table nền: 1356 (MySQL), ORA-04063 (Oracle).
 - Chưa có: danh sách column sau tên view, `WITH CHECK OPTION`, `WITH READ ONLY`, `DESC view`, `SHOW CREATE VIEW`.

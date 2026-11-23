@@ -54,7 +54,7 @@ export const entries: Record<string, GlossaryEntry> = {
   },
   view: {
     term: 'view',
-    short: 'Câu SELECT được lưu dưới một cái tên. Bạn đọc view như một table. View không chứa dữ liệu riêng và chạy lại câu SELECT mỗi lần đọc.',
+    short: 'Một câu SELECT lưu dưới một cái tên. Bạn đọc view như một table. View không chứa dữ liệu riêng và chạy lại câu SELECT mỗi lần đọc.',
     example: 'Team dữ liệu lưu cách tính doanh thu thành view, các phòng khác chỉ cần SELECT từ view đó.',
   },
 };

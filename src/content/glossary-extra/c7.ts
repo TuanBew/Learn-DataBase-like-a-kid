@@ -4,7 +4,7 @@ import type { GlossaryEntry } from '../types';
 export const entries: Record<string, GlossaryEntry> = {
   'inner-join': {
     term: 'INNER JOIN',
-    short: 'Kiểu JOIN chỉ giữ các row ghép được với row của table kia. Row không có bạn đồng hành rơi ra ngoài.',
+    short: 'Kiểu JOIN chỉ giữ các row ghép được với row của table kia. Row không có cặp thì rơi ra ngoài.',
     example: 'Ghép đơn với khách quen: đơn của khách vãng lai không có tên để ghép, nên biến mất.',
   },
   'left-join': {

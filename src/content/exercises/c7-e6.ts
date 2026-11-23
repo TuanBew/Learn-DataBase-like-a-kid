@@ -40,7 +40,7 @@ export const exercise: SqlExercise = {
         mysql: 'SELECT p.name, SUM(oi.quantity * oi.unit_price) AS revenue FROM orders o INNER JOIN order_items oi ON o.order_id = oi.order_id INNER JOIN products p ON oi.product_id = p.product_id WHERE o.store_id = 3 GROUP BY p.name ORDER BY revenue DESC, p.name LIMIT 3',
         oracle: 'SELECT p.name, SUM(oi.quantity * oi.unit_price) AS revenue FROM orders o INNER JOIN order_items oi ON o.order_id = oi.order_id INNER JOIN products p ON oi.product_id = p.product_id WHERE o.store_id = 3 GROUP BY p.name ORDER BY revenue DESC, p.name FETCH FIRST 3 ROWS ONLY',
       },
-      hint: "Ba món đã đúng, nhưng doanh thu đang cộng cả đơn cancelled. Thêm điều kiện o.status = 'done' vào WHERE.",
+      hint: "Query nối đúng, nhưng doanh thu đang cộng cả đơn cancelled. Thêm điều kiện o.status = 'done' vào WHERE.",
     },
     {
       id: 'no-store',

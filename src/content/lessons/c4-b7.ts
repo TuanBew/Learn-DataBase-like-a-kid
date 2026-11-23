@@ -31,7 +31,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Database bỏ qua dấu cách thừa, chỗ xuống dòng, và chữ hoa hay chữ thường của từ khóa.',
         'Hai query cùng nội dung mà trình bày khác nhau thì cho cùng kết quả. Người đọc thì thấy khác biệt lớn.',
-        'Bốn thói quen giúp query dễ đọc.',
+        'Bốn quy tắc trình bày giúp query dễ đọc.',
         '1. Mỗi clause bắt đầu ở một dòng mới: SELECT, FROM, WHERE, ORDER BY.',
         '2. Điều kiện thứ hai của WHERE xuống dòng và thụt vào hai dấu cách. AND hoặc OR đứng đầu dòng.',
         '3. Từ khóa SQL viết hoa. Tên table và column viết thường.',

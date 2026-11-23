@@ -65,8 +65,8 @@ export const lesson: Lesson = {
     },
     {
       type: 'code',
-      title: 'Ba cách viết, một kết quả',
-      intro: 'Cả ba query đều trả về đơn 5013 của chị Mai. Cách đầu sai nên không ra row nào.',
+      title: 'Một cách sai, hai cách đúng',
+      intro: 'Cách đầu sai nên không ra row nào. Hai cách sau đều trả về đơn 5013 của chị Mai.',
       code: "-- sai: chỉ khớp row có giờ 00:00:00\nSELECT order_id FROM orders\nWHERE order_date = DATE '2025-03-09';\n\n-- đúng: khoảng\nSELECT order_id FROM orders\nWHERE order_date >= DATE '2025-03-09'\n  AND order_date <  DATE '2025-03-10';\n\n-- đúng: cắt giờ\nSELECT order_id FROM orders\nWHERE TRUNC(order_date) = DATE '2025-03-09';",
       notes: [
         { find: "WHERE order_date = DATE '2025-03-09';", text: 'So từng giây với 00:00:00. Đơn lúc 13:09:32 bị bỏ.' },

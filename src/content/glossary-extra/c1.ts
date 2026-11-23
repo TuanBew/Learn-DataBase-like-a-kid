@@ -13,7 +13,7 @@ export const entries: Record<string, GlossaryEntry> = {
   },
   postgresql: {
     term: 'PostgreSQL',
-    short: 'Một DBMS miễn phí, mã nguồn mở, được nhiều đội làm app chọn.',
+    short: 'Một DBMS miễn phí, mã nguồn mở. Nhiều đội làm app chọn nó.',
     example: 'Cũng là một người giữ kho, nói SQL gần giống hai hãng còn lại.',
   },
 };

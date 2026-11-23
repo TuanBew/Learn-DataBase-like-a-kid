@@ -5,7 +5,7 @@ export const lesson: Lesson = {
   chapter: 11,
   order: 1,
   title: 'Tool và kết nối: SQL Developer, DBeaver, worksheet, nút COMMIT',
-  lead: 'Bạn biết tool gửi lệnh tới database của công ty như thế nào, và cẩn thận với nút chạy và nút COMMIT.',
+  lead: 'Bạn biết tool gửi lệnh tới database của công ty như thế nào, và cẩn thận với nút Chạy và nút COMMIT.',
   minutes: 13,
   goals: [
     'Biết tool là client và database của công ty là server',
@@ -19,7 +19,7 @@ export const lesson: Lesson = {
       title: 'Ngày đầu có quyền vào database',
       paragraphs: [
         'Anh Khoa ở phòng IT gửi bạn một email: "Chào mừng em. Tài khoản database của em đã tạo xong."',
-        'Email có vài thông tin lạ: tên máy chủ, một con số, một cái tên service, tên đăng nhập.',
+        'Email có vài thông tin lạ: tên server, một con số, một cái tên service, tên đăng nhập.',
         'Bạn chưa thấy chỗ nào để gõ SQL. Máy bạn không có database nào cả.',
         'Bi giải thích: database của công ty nằm ở một máy khác. Bạn cần một chương trình trên máy mình để nói chuyện với máy đó.',
       ],
@@ -40,9 +40,9 @@ export const lesson: Lesson = {
       paragraphs: [
         'Một **[[connection]]** là đường nối từ tool của bạn tới một database cụ thể, với một user cụ thể.',
         'Muốn tạo kết nối, bạn điền các thông tin sau:',
-        '**host**: tên hoặc địa chỉ của máy chủ chứa database.',
-        '**port**: số cổng database lắng nghe trên máy chủ đó.',
-        '**tên service** hoặc **SID**: tên của database cần vào, vì một máy chủ có thể chứa nhiều database. Oracle dùng một trong hai cách gọi này.',
+        '**host**: tên hoặc địa chỉ của server chứa database.',
+        '**port**: số cổng database lắng nghe trên server đó.',
+        '**tên service** hoặc **SID**: tên của database cần vào, vì một server có thể chứa nhiều database. Oracle dùng một trong hai cách gọi này.',
         '**user** và **mật khẩu**: tài khoản của bạn.',
         'Người quản trị database cấp tất cả thông tin này. Bạn không tự đoán được. Nếu email thiếu thứ nào, nhắn lại hỏi.',
       ],
@@ -64,7 +64,7 @@ export const lesson: Lesson = {
         'Trong worksheet, bạn có thể gõ nhiều lệnh, mỗi lệnh kết thúc bằng dấu `;`.',
         'Tool có hai kiểu chạy. Kiểu thứ nhất chạy một lệnh, lệnh đang chứa con trỏ chuột hoặc lệnh bạn bôi đen. Kiểu thứ hai chạy cả **[[script]]**, tức mọi lệnh trong worksheet, lần lượt từ trên xuống.',
         'Ở SQL Developer, tài liệu của Oracle ghi Ctrl+Enter chạy một lệnh và F5 chạy cả script. Các tool khác có phím riêng, và phím có thể đổi theo cài đặt.',
-        'Nhiều người quên mình đang bấm kiểu nào. Bạn định chạy một SELECT nhưng bấm chạy cả script, và các UPDATE nằm bên dưới cũng chạy theo.',
+        'Nhiều người quên mình đang bấm kiểu nào. Bạn định chạy một SELECT nhưng chạy cả script, và các UPDATE nằm bên dưới cũng chạy theo.',
         'Thói quen an toàn: tách lệnh sửa dữ liệu ra một worksheet riêng, hoặc ghi chú thích rõ ràng giữa SELECT và lệnh sửa.',
       ],
     },
@@ -89,7 +89,7 @@ export const lesson: Lesson = {
           question: 'Bạn cài SQL Developer trên laptop và kết nối tới database công ty. Database nằm ở đâu?',
           options: [
             { text: 'Trên server của công ty. Laptop chỉ gửi lệnh và hiện kết quả', correct: true, feedback: 'Đúng. Tool là client. Dữ liệu ở lại trên server.' },
-            { text: 'Trên laptop của bạn', feedback: 'Laptop chỉ có tool. Database nằm ở máy chủ khác.' },
+            { text: 'Trên laptop của bạn', feedback: 'Laptop chỉ có tool. Database nằm ở server khác.' },
             { text: 'Trong chính SQL Developer', feedback: 'SQL Developer là chương trình gửi lệnh, không giữ dữ liệu của công ty.' },
           ],
         },
@@ -106,9 +106,9 @@ export const lesson: Lesson = {
           kind: 'match',
           question: 'Nối mỗi thông tin kết nối với ý của nó.',
           pairs: [
-            { left: 'host', right: 'Tên hoặc địa chỉ máy chủ chứa database' },
+            { left: 'host', right: 'Tên hoặc địa chỉ server chứa database' },
             { left: 'port', right: 'Số cổng database lắng nghe' },
-            { left: 'service hoặc SID', right: 'Tên database cần vào trên máy chủ' },
+            { left: 'service hoặc SID', right: 'Tên database cần vào trên server' },
             { left: 'user và mật khẩu', right: 'Tài khoản của bạn do người quản trị cấp' },
             { left: 'Chạy một lệnh', right: 'Chỉ chạy lệnh đang chọn, không chạy cả script' },
           ],
@@ -121,7 +121,7 @@ export const lesson: Lesson = {
       title: 'Ngày đầu đi làm',
       paragraphs: [
         'Phòng IT của bạn gửi email chào mừng với thông tin kết nối. Bạn cài tool, điền host, port, service, user và mật khẩu, rồi bấm kết nối.',
-        'Người làm lâu năm dặn thêm hai điều. Đừng bao giờ gõ lệnh sửa dữ liệu khi chưa nhìn tên kết nối. Và đừng bấm chạy cả script khi chỉ định chạy một lệnh.',
+        'Người làm lâu năm dặn thêm hai điều. Đừng bao giờ gõ lệnh sửa dữ liệu khi chưa nhìn tên kết nối. Và đừng chạy cả script khi chỉ định chạy một lệnh.',
       ],
     },
     {

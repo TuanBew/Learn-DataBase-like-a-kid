@@ -59,7 +59,7 @@ export const lesson: Lesson = {
       title: 'Yêu cầu lúc năm giờ chiều',
       paragraphs: [
         'Năm giờ chiều, trưởng phòng nhắn: "Tăng lương hai triệu cho phòng Kinh doanh. Làm ngay giúp anh."',
-        'Bạn đã biết viết UPDATE. Bạn mở tool, gõ lệnh, và bấm chạy chỉ mất một phút.',
+        'Bạn đã biết viết UPDATE. Bạn mở tool, gõ lệnh, và bấm Chạy chỉ mất một phút.',
         'Nhưng đây là table lương thật. Một lệnh sai là hai trăm người nhận sai lương.',
         'Người đi làm lâu năm không gõ lệnh ngay. Họ làm theo một quy trình sáu bước, lần nào cũng thế.',
       ],

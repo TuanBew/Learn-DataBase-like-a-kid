@@ -119,7 +119,7 @@ export const exercise: SqlExercise = {
           'FROM rep_sales\n' +
           'WHERE revenue > (SELECT AVG(revenue) FROM rep_sales)'
       },
-      hint: 'Các đơn chưa có nhân viên phụ trách tạo ra một nhóm NULL và kéo trung bình lên. Thêm `o.sales_rep_id IS NOT NULL` vào `rep_sales`.'
+      hint: 'Các đơn chưa có nhân viên phụ trách tạo ra một nhóm NULL và làm lệch con số trung bình. Thêm `o.sales_rep_id IS NOT NULL` vào `rep_sales`.'
     },
     {
       id: 'lower',

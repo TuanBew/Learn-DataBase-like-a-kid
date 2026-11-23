@@ -77,7 +77,7 @@ export const lesson: Lesson = {
         'Nhắn người quản trị. Nói bốn điều: tên user của bạn, tên table, quyền bạn cần, và lý do.',
         'Ví dụ: "Em là an. Em cần quyền UPDATE trên hr.employees để sửa mức lương theo phiếu số 123."',
         'Đừng tìm cách vòng. Đừng mượn tài khoản của đồng nghiệp, và đừng nhờ ai chạy hộ lệnh bạn không được phép chạy.',
-        'Quyền tồn tại để bảo vệ dữ liệu. Cách vòng làm mất dấu vết ai sửa gì. Chuyện này ảnh hưởng tới cả công ty, không chỉ bạn.',
+        'Quyền tồn tại để bảo vệ dữ liệu. Cách vòng làm mất dấu vết ai sửa gì. Chuyện này ảnh hưởng tới cả công ty.',
       ],
     },
     {

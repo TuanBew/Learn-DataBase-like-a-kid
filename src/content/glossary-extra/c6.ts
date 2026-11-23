@@ -18,7 +18,7 @@ export const entries: Record<string, GlossaryEntry> = {
   },
   avg: {
     term: 'AVG',
-    short: 'Function gom tính trung bình các số trong một column. Row NULL không được tính.',
+    short: 'Function gom tính trung bình các số trong một column. AVG bỏ qua row NULL.',
     example: 'Giá trung bình của các món trà sữa.',
   },
   min: {

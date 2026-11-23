@@ -4,7 +4,7 @@ import type { GlossaryEntry } from '../types';
 export const entries: Record<string, GlossaryEntry> = {
   'parent-table': {
     term: 'parent table',
-    short: 'Table được table khác trỏ tới bằng foreign key. Row của nó phải có trước.',
+    short: 'Table mà table khác trỏ tới bằng foreign key. Row của nó phải có trước.',
     example: 'departments là table cha của employees, vì mỗi nhân viên trỏ về một phòng.',
   },
   'child-table': {

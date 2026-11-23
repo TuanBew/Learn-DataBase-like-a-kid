@@ -29,7 +29,7 @@ export const entries: Record<string, GlossaryEntry> = {
   },
   privilege: {
     term: 'privilege',
-    short: 'Một việc database cho phép user làm trên một table, như đọc hay sửa.',
+    short: 'Một thao tác database cho phép user làm trên một table, như đọc hay sửa.',
     example: 'Thẻ văn phòng của bạn chỉ mở được tầng của mình.',
   },
   grant: {

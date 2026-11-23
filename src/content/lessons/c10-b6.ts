@@ -118,7 +118,7 @@ export const lesson: Lesson = {
       type: 'text',
       title: 'Oracle: MERGE',
       paragraphs: [
-        '**[[merge]]** gộp danh sách mới vào table. Bạn viết ba phần: nguồn, điều kiện khớp, và cách xử lý cho từng trường hợp.',
+        '**[[merge]]** gộp danh sách mới vào table. Bạn viết bốn phần: table đích, nguồn, điều kiện khớp, và cách xử lý cho từng trường hợp.',
         '`MERGE INTO menu_items m` là table đích, nơi dữ liệu được gộp vào.',
         '`USING price_update p` là nguồn: table hoặc subquery chứa danh sách mới.',
         '`ON (m.item_id = p.item_id)` là điều kiện khớp. Hai row cùng mã thì coi là cùng một món.',
@@ -273,7 +273,7 @@ ON DUPLICATE KEY UPDATE price = 47000;`,
       title: 'Nạp file giá mỗi sáng',
       paragraphs: [
         'Nhiều công ty nạp file từ đối tác vào database mỗi sáng: giá mới, tồn kho mới, danh sách khách mới.',
-        'Script nạp thường chạy bằng một lệnh MERGE. Chạy lần hai cùng file thì kết quả không đổi, nên nếu script bị chạy lại, dữ liệu không bị nhân đôi.',
+        'Script nạp thường chạy bằng một lệnh MERGE. Chạy lần hai cùng file thì kết quả không đổi. Script lỡ chạy lại cũng không làm dữ liệu nhân đôi.',
       ],
     },
     {

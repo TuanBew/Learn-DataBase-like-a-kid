@@ -48,7 +48,7 @@ export const exercise: SqlExercise = {
         mysql: "SELECT r.region_name, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id INNER JOIN customers c ON o.customer_id = c.customer_id INNER JOIN countries co ON c.country_id = co.country_id INNER JOIN regions r ON co.region_id = r.region_id WHERE o.status = 'delivered' GROUP BY r.region_name ORDER BY revenue DESC",
         oracle: "SELECT r.region_name, SUM(oi.quantity * oi.unit_price) AS revenue FROM order_items oi INNER JOIN orders o ON oi.order_id = o.order_id INNER JOIN customers c ON o.customer_id = c.customer_id INNER JOIN countries co ON c.country_id = co.country_id INNER JOIN regions r ON co.region_id = r.region_id WHERE o.status = 'delivered' GROUP BY r.region_name ORDER BY revenue DESC",
       },
-      hint: "Điều kiện này giữ mỗi đơn delivered và bỏ luôn đơn shipped, processing. Đề chỉ bỏ cancelled, nên viết o.status <> 'cancelled'.",
+      hint: "Điều kiện này chỉ giữ đơn delivered và bỏ luôn đơn shipped, processing. Đề chỉ bỏ cancelled, nên viết o.status <> 'cancelled'.",
     },
     {
       id: 'no-quantity',

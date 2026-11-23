@@ -68,6 +68,13 @@
   }
 }
 @media (max-width: 420px) {
+  .hdr__logo .mascot {
+    display: none;
+  }
+  .hdr__logo,
+  .hdr__link {
+    white-space: nowrap;
+  }
   .hdr__link {
     font-size: 0.95rem;
     padding-inline: 0;

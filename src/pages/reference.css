@@ -162,7 +162,8 @@
 }
 .ref-code code {
   font: inherit;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .ref-card__actions {
   display: flex;

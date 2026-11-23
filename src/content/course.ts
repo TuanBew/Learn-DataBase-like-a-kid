@@ -123,6 +123,18 @@ export const chapters: Chapter[] = [
     ],
   },
   {
+    id: 9,
+    title: 'Báo cáo nâng cao',
+    about: 'Xếp hạng, lấy top của từng nhóm, cộng dồn theo tháng, và đặt tên cho một query hay dùng.',
+    lessons: [
+      { id: 'c9-b1', title: 'Window function: tính trên nhóm mà vẫn giữ từng row', minutes: 15 },
+      { id: 'c9-b2', title: 'Xếp hạng: ROW_NUMBER, RANK, DENSE_RANK', minutes: 14 },
+      { id: 'c9-b3', title: 'Top N của mỗi nhóm', minutes: 15 },
+      { id: 'c9-b4', title: 'Cộng dồn và so với kỳ trước: SUM OVER, LAG, LEAD', minutes: 16 },
+      { id: 'c9-b5', title: 'VIEW: một query có tên', minutes: 14 },
+    ],
+  },
+  {
     id: 10,
     title: 'Sửa dữ liệu',
     about: 'Thêm, sửa, xóa row, rồi giữ hoặc hủy thay đổi bằng transaction.',

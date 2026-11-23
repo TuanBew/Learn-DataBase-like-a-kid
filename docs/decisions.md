@@ -147,3 +147,14 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Dùng image `gvenzl/oracle-xe` trên Docker Hub.** Đây là image mặc định của module Oracle trong Testcontainers. Oracle 19c không tải được nếu không có tài khoản Oracle, nên không dùng được. Chỉ kéo hai image: `gvenzl/oracle-xe:21-slim-faststart` (XE 21c) và `gvenzl/oracle-xe:18-slim-faststart` (XE 18c).
 - **Kẹp 19c giữa 18c và 21c.** Điểm nào dính tới thứ có thể mới sau 19c (EXCEPT, LISTAGG, khung window GROUPS, hành vi optimizer) thì chạy cả 18c và 21c. Hai bản cho cùng kết quả thì coi 19c cũng vậy. Hai bản khác nhau thì đọc trang tài liệu 19c để chọn. Mọi điểm lệch tìm thấy đều rơi vào trường hợp đầu, trừ ba chỗ ghi ở `docs/dialect-verification.md`: `EXCEPT` (21c nhận, 18c và 19c không), `LISTAGG(DISTINCT ...)` (18c báo ORA-30482, 19c có theo tài liệu) và `UPDATE ... SET c = (subquery nhiều row)` (21c chạy qua, 18c báo ORA-01427, engine theo 18c).
 - **Bộ đối chiếu nằm ở `src/engine/__tests__/oracle-real.test.ts`**, chỉ chạy khi có `ORACLE_REAL=1`. Mật khẩu của sandbox đọc từ biến môi trường `ORA_PW`, không ghi vào repo.
+
+## Lượt hoàn thiện sau Mốc 4 (23/11/2026)
+
+- **Chủ dự án yêu cầu làm nốt năm điểm còn hở trong báo cáo Mốc 4:** đọc soát hết chữ, soi hết ảnh, sửa nhãn lệch ở sơ đồ, kiểm Oracle trên database thật, Theater diễn trọn query nhiều phần. Tất cả giao subagent Sonnet.
+- **Soi ảnh chia lô dưới 20 mảnh cho mỗi subagent.** Công cụ đọc ảnh ngừng trả ảnh sau khoảng 25 tới 60 lượt trong một phiên. Ba trong bốn subagent đầu chỉ xem được 26 tới 59 mảnh. Các lô nhỏ xem đủ.
+- **Chụp trang Tra cứu phải tắt `content-visibility`.** Thẻ của trang này chỉ vẽ khi cuộn tới, nên ảnh chụp toàn trang để trắng các thẻ ở dưới. Script chụp chèn CSS `*{content-visibility:visible!important}`.
+- **Số trong table kết quả định dạng theo cả column** (`columnFormatter`). Column có giá trị từ 10.000 trở lên, hoặc mọi giá trị từ 1.000 trở lên đều tròn 500, thì mọi giá trị được chấm ngăn nghìn. Column khác không chấm. Trước đó `salary` hiện `24.000` cạnh `4800`.
+- **Code gập dòng dùng thụt treo, không cuộn ngang.** Người học trên điện thoại đọc được trọn dòng mà không phải kéo.
+- **Bài `c5-b3` đổi alias `raw` thành `original`.** RAW là từ dành riêng của Oracle, query cũ báo ORA-00923 trên Oracle thật. Engine chưa có danh sách từ dành riêng.
+- **Trang Tra cứu có 127 mục trong 12 nhóm.** Con số 139 ở báo cáo Mốc 4 đếm nhầm cả 12 nhóm.
+- **Chi phí lượt này** (theo số liệu của từng subagent): khoảng 4 triệu token Sonnet. Soi ảnh 2,1 triệu; đọc soát 0,9 triệu; Oracle 0,33 triệu; sửa bố cục 0,29 triệu; Theater 0,28 triệu; kiểm cuối khoảng 0,2 triệu.

@@ -115,16 +115,23 @@ Mọi script nhận địa chỉ gốc qua biến `BASE`, ví dụ `BASE=http://
 
 Mốc 4 đã xong cả bốn đợt: 12 chương, 83 bài học, 104 bài tập, trang Tra cứu, xưởng dựng table, database công ty với sơ đồ, window function và VIEW, sửa dữ liệu an toàn, Oracle ở công ty. Ba mốc đầu đã xong từ trước: engine, Query Theater, giao diện tối và lượt kiểm theo mục 13 của `docs/PROMPT.md`.
 
-Con số của lượt kiểm gộp sau Mốc 4, chạy ngày 23/11/2026:
+Lượt hoàn thiện ngày 23/11/2026 gồm các việc sau:
+
+- Dialect Oracle đã đối chiếu với Oracle XE 21c và 18c thật (Docker). 19c không tải được nếu thiếu tài khoản Oracle, nên điểm nào hai bản cho cùng kết quả thì coi 19c cũng vậy. Engine sửa khoảng 15 chỗ lệch. Chi tiết ở `docs/dialect-verification.md`.
+- Query Theater diễn trọn query nhiều phần: UNION, INTERSECT, MINUS và EXCEPT, subquery trong FROM, WITH, window function. Mỗi phần là một "màn" có chip riêng.
+- Trang Tra cứu có 127 mục trong 12 nhóm.
+- Đọc soát từng câu của 142 file nội dung, sửa 40 chỗ. Soi 575 mảnh ảnh của 124 trang và sửa các lỗi bố cục. Code gập dòng có thụt treo, số trong table kết quả định dạng theo cả column, khung "Database của bạn" có chiều cao giới hạn.
+
+Con số của lượt kiểm cuối, chạy ngày 23/11/2026:
 
 - Nội dung: 83 bài học, 104 bài tập (11 bài boss), 18 cảnh motion, 127 mục Tra cứu.
-- `npm test`: 2953 test qua. `copy-scan.cjs`: 0 dòng nghi phạm trong 321 file.
-- `crawl.cjs` trên 374 lượt mở trang (187 trang, hai chiều rộng): không lỗi console, không tràn ngang.
-- `axe.cjs` trên 193 trang ở hai chiều rộng, giao diện sáng và tối: 0 vi phạm.
-- `checks-4.cjs`: 15 PASS. `checks-5.cjs`: 142 PASS. `sfx-check.cjs`: 18 PASS.
+- `tsc --noEmit`: sạch. `npm test`: 3057 test qua, 2 bỏ qua. `copy-scan.cjs`: 0 dòng nghi phạm trong 322 file.
+- `crawl.cjs` trên @CRAWL@
+- `axe.cjs` trên 193 trang ở hai chiều rộng, giao diện sáng và tối: @AXE@
+- `checks-4.cjs`: 15 PASS. `checks-5.cjs`: 168 PASS. `sfx-check.cjs`: 18 PASS.
 - `solve-all.cjs`: 182 lượt giải bài tập trong giao diện thật (kể cả bài dựng table), tất cả PASS.
-- Lighthouse mobile trên 6 trang (`/`, `/bai/c3-b6`, `/bai/c7-b1`, `/bai/c9-b3`, `/tap/c8-boss`, `/tra-cuu`): Performance từ 96 tới 99, Accessibility 100.
-- Mã lỗi 1142 của MySQL (thiếu quyền SELECT) đã đối chiếu trên MySQL 8.0.46 thật: khớp với bài c11-b4.
+- Lighthouse mobile trên 6 trang (`/`, `/bai/c3-b8`, `/bai/c9-b3`, `/tap/c8-e5`, `/tap/c9-e4`, `/tra-cuu`): @LH@
+- Kiểm tay bằng Playwright: Theater với INTERSECT (MySQL) và MINUS (Oracle), gõ nhiều dòng có thụt lề vào editor, định dạng số, hộp sơ đồ, khung "Database của bạn" cuộn bằng bàn phím, giao diện tối, Tra cứu, phát lại Theater ở 2x cho bài window function và WITH: tất cả PASS.
 
 Con số của lượt kiểm sau Đợt 1 (22/11/2026), để so:
 
@@ -134,13 +141,10 @@ Con số của lượt kiểm sau Đợt 1 (22/11/2026), để so:
 
 ## Những điểm chưa kiểm được
 
-Các điểm MySQL đã kiểm trên MySQL 8.0.46 thật (xem `docs/dialect-verification.md`). Các điểm sau cần chạy trên Oracle thật mới chốt được, vì tài liệu chính thức không nói rõ. Test liên quan mang comment `CHỜ KIỂM TÀI LIỆU`. Chi tiết ở `docs/dialect-verification.md`.
+MySQL đã kiểm trên MySQL 8.0.46 thật, Oracle trên XE 21c và 18c thật (xem `docs/dialect-verification.md`). Chưa có Oracle 19c, nên điểm nào chỉ khác giữa các bản thì đọc theo tài liệu 19c. Phần còn lại:
 
-- Oracle báo mã gì cho dấu `%` (engine báo ORA-00911), cho query rỗng (ORA-00900) và cho chuỗi ngày ISO như `'2026-02-15'` (ORA-01861).
-- Tiêu đề column của biểu thức không alias ở Oracle.
-- Mã lỗi khi gửi hai câu lệnh liền nhau ở Oracle.
-- Nhiều mã lỗi Oracle của phần mở rộng (Chương 9 tới 11) mang comment `CHỜ KIỂM TÀI LIỆU` trong test của engine, vì chưa có Oracle thật để đối chiếu.
-- Vế "tiêu đề kết quả in hoa" ở Oracle, và việc tool Oracle thường chờ COMMIT. Tài liệu SQL Reference xem đây là hành vi của từng tool.
+- Tiêu đề kết quả in hoa ở Oracle và việc tool Oracle thường chờ COMMIT là hành vi của từng tool, SQL Reference không nói rõ.
+- Một số vế còn mang comment `CHỜ KIỂM TÀI LIỆU` trong test của engine. Danh sách nằm ở `docs/dialect-verification.md`.
 
 Âm thanh mới được kiểm bằng đo tín hiệu (`scripts/qa/sfx-check.cjs`): cả 15 hiệu ứng có tiếng ở mức nhỏ. Chưa ai nghe bằng tai, vì môi trường dựng site không có loa.
 

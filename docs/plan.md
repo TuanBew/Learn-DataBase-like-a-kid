@@ -94,3 +94,11 @@ Dàn ý ở `docs/outline-v2.md`, chủ dự án duyệt ngày 22/11/2026. Làm 
 Chủ dự án yêu cầu ngày 23/11/2026: không kiểm riêng từng đợt, dựng xong thì kiểm gộp một lượt. Kết quả lượt kiểm gộp ghi ở mục "Trạng thái" của `README.md`.
 
 Toàn khóa sau Mốc 4: 12 chương, 83 bài học, 104 bài tập.
+
+## Lượt hoàn thiện sau Mốc 4 (23/11/2026)
+
+- Đọc soát từng câu của 142 file nội dung và sửa 40 chỗ.
+- Soi 575 mảnh ảnh của 124 trang, sửa các lỗi bố cục: code gập dòng có thụt treo, số trong table kết quả định dạng theo column, khung "Database của bạn" có chiều cao giới hạn, trang bài tập và vài trang phụ.
+- Đối chiếu dialect Oracle với Oracle XE 21c và 18c thật, engine sửa khoảng 15 chỗ lệch. Chi tiết ở `docs/dialect-verification.md`.
+- Query Theater diễn trọn query nhiều phần (UNION, INTERSECT, MINUS, EXCEPT, subquery trong FROM, WITH, window function), mỗi phần là một màn.
+- Kết quả lượt kiểm cuối nằm ở mục "Trạng thái" của `README.md`.

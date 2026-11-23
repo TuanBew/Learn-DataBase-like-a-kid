@@ -19,7 +19,7 @@ export const lesson: Lesson = {
       title: 'Ngày đầu có quyền vào database',
       paragraphs: [
         'Anh Khoa ở phòng IT gửi bạn một email: "Chào mừng em. Tài khoản database của em đã tạo xong."',
-        'Email có vài dòng thông tin lạ: tên máy chủ, một con số, một cái tên service, tên đăng nhập.',
+        'Email có vài thông tin lạ: tên máy chủ, một con số, một cái tên service, tên đăng nhập.',
         'Bạn chưa thấy chỗ nào để gõ SQL. Máy bạn không có database nào cả.',
         'Bi giải thích: database của công ty nằm ở một máy khác. Bạn cần một chương trình trên máy mình để nói chuyện với máy đó.',
       ],
@@ -64,8 +64,8 @@ export const lesson: Lesson = {
         'Trong worksheet, bạn có thể gõ nhiều lệnh, mỗi lệnh kết thúc bằng dấu `;`.',
         'Tool có hai kiểu chạy. Kiểu thứ nhất chạy một lệnh, lệnh đang chứa con trỏ chuột hoặc lệnh bạn bôi đen. Kiểu thứ hai chạy cả **[[script]]**, tức mọi lệnh trong worksheet, lần lượt từ trên xuống.',
         'Ở SQL Developer, tài liệu của Oracle ghi Ctrl+Enter chạy một lệnh và F5 chạy cả script. Các tool khác có phím riêng, và phím có thể đổi theo cài đặt.',
-        'Quên kiểu nào đang bấm là lỗi hay gặp. Bạn định chạy một SELECT nhưng bấm chạy cả script, và các UPDATE nằm bên dưới cũng chạy theo.',
-        'Thói quen an toàn: tách lệnh sửa dữ liệu ra một worksheet riêng, hoặc để chúng cách xa SELECT bằng dòng chú thích rõ ràng.',
+        'Nhiều người quên mình đang bấm kiểu nào. Bạn định chạy một SELECT nhưng bấm chạy cả script, và các UPDATE nằm bên dưới cũng chạy theo.',
+        'Thói quen an toàn: tách lệnh sửa dữ liệu ra một worksheet riêng, hoặc ghi chú thích rõ ràng giữa SELECT và lệnh sửa.',
       ],
     },
     {
@@ -73,11 +73,11 @@ export const lesson: Lesson = {
       title: 'COMMIT: lưu hẳn, và người khác mới thấy',
       paragraphs: [
         'Bài về transaction đã nói: thay đổi chỉ lưu hẳn khi **[[commit]]**. Trước đó, thay đổi chỉ nằm trong phiên làm việc của bạn.',
-        'Phiên của người khác chưa thấy thay đổi chưa COMMIT. Bạn thấy bảng lương đã tăng. Đồng nghiệp chạy cùng SELECT vẫn thấy lương cũ.',
+        'Phiên của người khác chưa thấy thay đổi chưa COMMIT. Bạn thấy lương đã tăng. Đồng nghiệp chạy cùng SELECT vẫn thấy lương cũ.',
         'Mỗi tool có nút COMMIT và nút ROLLBACK. Chỗ đặt khác nhau theo tool. Hỏi đồng nghiệp hoặc người quản trị chỗ đặt nút trước khi sửa dữ liệu thật.',
-        'Tool còn có thể COMMIT thay bạn. Ở SQL Developer, tài liệu của Oracle nói tùy chọn Autocommit, khi bật, COMMIT sau mỗi lệnh INSERT, UPDATE và DELETE trong worksheet. Mặc định của từng bản có thể khác nhau, nên kiểm lại cài đặt của bạn.',
+        'Tool còn có thể COMMIT thay bạn. SQL Developer có tùy chọn Autocommit: khi bật, tool COMMIT sau mỗi lệnh INSERT, UPDATE và DELETE trong worksheet. Hãy kiểm tùy chọn này trong cài đặt của tool trước khi sửa dữ liệu.',
         'Chưa chắc tool đang ở chế độ nào thì làm thử trên database thử, không phải database chạy thật.',
-        'Có thể tool dùng chung một phiên cho nhiều worksheet cùng kết nối. SQL Developer là một ví dụ: COMMIT ở một worksheet lưu hẳn thay đổi của cả các worksheet kia.',
+        'Có tool dùng chung một phiên cho nhiều worksheet cùng kết nối. Theo tài liệu Oracle, SQL Developer mặc định làm vậy: COMMIT ở một worksheet cũng lưu hẳn thay đổi ở các worksheet khác của kết nối đó.',
       ],
     },
     {

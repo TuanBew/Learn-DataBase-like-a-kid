@@ -103,7 +103,7 @@ describe('nội dung bài học', () => {
                 bad.push(`${d}: thiếu query`);
                 continue;
               }
-              const r = run(sql, db, d);
+              const r = b.session ? createSession(db, d).run(sql) : run(sql, db, d);
               if (!r.ok) bad.push(`${d}: ${sql} -> ${r.error.code} ${r.error.friendly}`);
             }
           }

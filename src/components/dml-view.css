@@ -48,7 +48,8 @@
   color: var(--ink-soft);
 }
 /* Row bị lệnh nhắm tới */
-.dmlv__table tr.is-update td {
+.dmlv__table tr.is-update td,
+.dmlv__table tr.is-merge td {
   background: var(--mango-soft);
 }
 .dmlv__table td.is-changed {

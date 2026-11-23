@@ -9,7 +9,7 @@ const DIRS = ['src/content', 'src/theater/copy.vi.ts', 'src/engine/messages.vi.t
 
 /** Cụm từ đời thường hợp lệ. Xóa khỏi dòng trước khi dò từ cấm. */
 const ALLOWED = [
-  'cửa hàng', 'ngân hàng', 'khách hàng', 'đơn hàng', 'hàng hóa', 'xếp hàng', 'mặt hàng', 'món hàng', 'giỏ hàng', 'lấy hàng', 'cất hàng', 'mang hàng', 'hàng xếp', 'hàng về', 'hàng trong', 'hàng nào', 'kho hàng', 'hàng ngày', 'hàng tháng', 'hàng năm', 'hàng trăm', 'hàng nghìn', 'hàng triệu', 'hàng loạt',
+  'cửa hàng', 'bán hàng', 'ngân hàng', 'khách hàng', 'đơn hàng', 'hàng hóa', 'xếp hàng', 'mặt hàng', 'món hàng', 'giỏ hàng', 'lấy hàng', 'cất hàng', 'mang hàng', 'hàng xếp', 'hàng về', 'hàng trong', 'hàng nào', 'kho hàng', 'hàng ngày', 'hàng tháng', 'hàng năm', 'hàng trăm', 'hàng nghìn', 'hàng triệu', 'hàng loạt',
   'trường học', 'trường hợp', 'nhà trường', 'ở trường', 'tới trường',
   'giao dịch ngân hàng', 'giao dịch của ngân hàng', 'lưu giao dịch', 'ghi giao dịch', 'một giao dịch chuyển', 'giao dịch chuyển tiền',
   'bảng điểm', 'bảng giá', 'bảng đen', 'bảng tin',

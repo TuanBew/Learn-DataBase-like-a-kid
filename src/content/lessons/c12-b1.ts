@@ -4,7 +4,7 @@ export const lesson: Lesson = {
   id: 'c12-b1',
   chapter: 12,
   order: 1,
-  title: 'Nhiệm vụ cuối: báo cáo bằng Oracle SQL',
+  title: 'Nhiệm vụ 1: báo cáo nhân sự',
   lead: 'Bạn làm một báo cáo nhân sự hoàn chỉnh bằng Oracle SQL, trên database hr.',
   minutes: 18,
   goals: [

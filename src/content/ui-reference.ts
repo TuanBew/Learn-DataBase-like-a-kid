@@ -15,7 +15,6 @@ export const uiReference = {
   example: 'Ví dụ',
   run: 'Chạy',
   running: 'Đang chạy',
-  rerun: 'Chạy lại',
   resultCaption: (title: string) => `Kết quả của ${title}`,
   moreRows: (n: number) => `Còn ${n} row nữa, mình chỉ hiện phần đầu.`,
   done: 'Lệnh đã chạy xong. Lệnh này không trả về kết quả để hiện.',

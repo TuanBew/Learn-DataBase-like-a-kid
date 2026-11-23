@@ -75,6 +75,20 @@ export function SchemaPanel({ view }: { view: SchemaView }) {
           </section>
         );
       })}
+      {(view.views ?? []).length > 0 && (
+        <section className="sp-table" aria-label={T.views}>
+          <header className="sp-table__head">
+            <h4>{T.views}</h4>
+          </header>
+          <ul className="sp-checks">
+            {view.views.map((v) => (
+              <li key={v.name}>
+                <code>{v.name}</code> <span className="sp-tag">{T.viewTag}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {view.sequences.length > 0 && (
         <section className="sp-table" aria-label={T.sequences}>
           <header className="sp-table__head">

@@ -18,7 +18,6 @@ export const copy = {
   mysql: 'MySQL',
   oracle: 'Oracle',
   run: 'Chạy cả hai',
-  rerun: 'Chạy lại',
   noRun: 'Chủ đề này chỉ có chữ, không có nút chạy.',
   mistake: 'Nếu viết nhầm',
   mistakeInMysql: 'Gõ câu của Oracle vào MySQL:',

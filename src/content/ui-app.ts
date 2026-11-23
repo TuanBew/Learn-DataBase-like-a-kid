@@ -73,7 +73,7 @@ export const uiApp = {
     previewSay: 'Đây là table của bài. Viết query bên cạnh rồi bấm Chạy, mình sẽ diễn lại từng bước ở đây.',
     errorTitle: 'Database chưa chạy được query này',
     errorReal: (d: string) => `${d} báo`,
-    errorSay: 'Lỗi này ai viết SQL cũng gặp. Sửa chỗ gạch đỏ rồi bấm Chạy lại.',
+    errorSay: 'Lỗi này ai viết SQL cũng gặp. Sửa chỗ gạch đỏ rồi bấm Chạy.',
     outOfScope: 'Phần này nằm ngoài bài',
     correctTitle: 'Đúng rồi',
     wrongTitle: 'Gần đúng rồi, còn lệch một chút',

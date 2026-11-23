@@ -147,10 +147,40 @@ export const lesson: Lesson = {
       say: 'Đường nối sai ra 0 row, và database không báo lỗi. Sau khi đoán đường nối, hãy luôn nhìn kết quả.',
     },
     {
+      type: 'playground',
+      title: 'Thử tay ngay: hỏi database về cấu trúc của nó',
+      intro: 'Khối này chạy thật các lệnh xem cấu trúc. Bấm Chạy, rồi bấm từng mục.',
+      database: 'company',
+      tables: ['employees'],
+      dialects: ['mysql', 'oracle'],
+      session: true,
+      sql: {
+        mysql: 'SHOW TABLES;',
+        oracle: 'SELECT table_name FROM user_tables',
+      },
+      tries: [
+        {
+          label: 'Câu hai: table employees có column nào',
+          sql: {
+            mysql: 'DESCRIBE employees;',
+            oracle: "SELECT column_name, data_type FROM user_tab_columns WHERE table_name = 'EMPLOYEES'",
+          },
+        },
+        {
+          label: 'Tìm column có tên chứa SALARY (chỉ Oracle tìm được trong khối này)',
+          sql: {
+            mysql: 'DESCRIBE employees;',
+            oracle: "SELECT table_name, column_name FROM user_tab_columns WHERE column_name LIKE '%SALARY%'",
+          },
+        },
+      ],
+      say: 'Ở Oracle, nhớ viết hoa tên table trong data dictionary.',
+    },
+    {
       type: 'oracle',
       body: [
         'Mỗi dialect dùng lệnh của riêng nó. Hai khối dưới cho ba câu hỏi và lệnh trả lời.',
-        'Khối Thử tay ở trên chạy SELECT thường. Các lệnh xem cấu trúc, bạn chạy trong SQL Developer hay DBeaver ở công ty.',
+        'Khối Thử tay thứ hai chạy thật các lệnh xem cấu trúc này. Ở công ty, bạn chạy chúng trong SQL Developer hay DBeaver.',
         'Ở Oracle, tên trong data dictionary luôn viết hoa. Ở MySQL, tên table viết thường như lúc tạo.',
       ],
       mysql:

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import type { PlaygroundBlock } from '../content/types';
 import { uiApp } from '../content/ui-app';
 import { databases } from '../data';
-import { type SqlError, type Trace, run } from '../engine';
+import { type ResultSet, type SqlError, type Trace, createSession, run } from '../engine';
 import type { Dialect } from '../engine/types';
 import { useLoad } from '../lib/useLoad';
 import { play } from '../sfx/sfx';
@@ -18,7 +18,7 @@ import './playground.css';
 const U = uiApp.exercise;
 const P = uiApp.playground;
 
-type Out = { kind: 'error'; error: SqlError } | { kind: 'ran'; trace: Trace };
+type Out = { kind: 'error'; error: SqlError } | { kind: 'ran'; trace: Trace } | { kind: 'table'; result: ResultSet };
 
 /** "Thử tay ngay": một editor nhỏ kèm Query Theater, chạy trên dữ liệu thật của bài. */
 export default function Playground({ block }: { block: PlaygroundBlock }) {
@@ -35,6 +35,15 @@ export default function Playground({ block }: { block: PlaygroundBlock }) {
   const doRun = (sql: string) => {
     if (!db) return;
     play('tap');
+    if (block.session) {
+      const r = createSession(db, dialect).run(sql);
+      if (!r.ok) {
+        play('bonk');
+        setOut({ kind: 'error', error: r.error });
+      } else if (r.kind === 'select') setOut({ kind: 'table', result: r.result });
+      else setOut(null);
+      return;
+    }
     const r = run(sql, db, dialect);
     if (!r.ok) {
       play('bonk');
@@ -115,6 +124,8 @@ export default function Playground({ block }: { block: PlaygroundBlock }) {
       )}
 
       {out?.kind === 'error' && <ErrorCard error={out.error} dialect={dialect} />}
+
+      {out?.kind === 'table' && <ResultTable result={out.result} caption={U.yourResult} maxRows={12} />}
 
       {out?.kind === 'ran' && (
         <>

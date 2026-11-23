@@ -126,6 +126,8 @@ export interface PlaygroundBlock {
   tries?: { label: string; sql: Partial<Record<Dialect, string>> }[];
   /** Bi nói một câu dưới editor. */
   say?: Rich;
+  /** Mỗi lần Chạy dựng một session mới, nên chạy được lệnh xem cấu trúc (SHOW, DESC, data dictionary). Không mở Query Theater. */
+  session?: true;
 }
 
 /**

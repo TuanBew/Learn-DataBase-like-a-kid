@@ -151,7 +151,11 @@ export const chapters: Chapter[] = [
     id: 12,
     title: 'Dự án cuối',
     about: 'Một báo cáo hoàn chỉnh bằng Oracle SQL trên database hr.',
-    lessons: [{ id: 'c12-b1', title: 'Nhiệm vụ cuối: báo cáo bằng Oracle SQL', minutes: 18 }],
+    lessons: [
+      { id: 'c12-b1', title: 'Nhiệm vụ 1: báo cáo nhân sự', minutes: 18 },
+      { id: 'c12-b2', title: 'Nhiệm vụ 2: báo cáo bán hàng theo tháng, có xếp hạng', minutes: 10 },
+      { id: 'c12-b3', title: 'Nhiệm vụ 3: đối soát và sửa dữ liệu lỗi, có transaction', minutes: 12 },
+    ],
   },
 ];
 

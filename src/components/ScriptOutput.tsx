@@ -31,14 +31,23 @@ export function describeResult(r: Exclude<RunResult, { ok: false } | { kind: 'se
       if (r.op === 'alter') return D.alter(r.object);
       if (r.op === 'drop') return D.drop(r.object);
       if (r.op === 'truncate') return D.truncate(r.object);
+      if (r.op === 'view') return r.verb === 'drop' ? D.viewDrop(r.object) : D.viewCreate(r.object);
       return r.verb === 'drop' ? D.sequenceDrop(r.object) : D.sequenceCreate(r.object);
     case 'dml': {
       const n = r.dml.touched.length;
-      const line = r.dml.op === 'insert' ? D.insert(n, r.dml.table) : r.dml.op === 'update' ? D.update(n, r.dml.table) : D.delete(n, r.dml.table);
+      const line =
+        r.dml.op === 'insert' ? D.insert(n, r.dml.table) : r.dml.op === 'update' ? D.update(n, r.dml.table) : r.dml.op === 'delete' ? D.delete(n, r.dml.table) : D.merge(n, r.dml.table);
       return r.dml.pending ? line + D.pending : line;
     }
     case 'tx':
-      return r.op === 'commit' ? D.commit(r.changes) : r.op === 'rollback' ? D.rollback(r.changes) : D.begin;
+      if (r.op === 'commit') return D.commit(r.changes);
+      if (r.op === 'rollback') return D.rollback(r.changes);
+      if (r.op === 'begin') return D.begin;
+      if (r.op === 'savepoint') return D.savepoint;
+      if (r.op === 'rollback-to') return D.rollbackTo(r.changes);
+      return D.other;
+    default:
+      return D.other;
   }
 }
 

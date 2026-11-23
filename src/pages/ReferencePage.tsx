@@ -108,7 +108,7 @@ const Card = memo(function Card({ entry, dialect, showGroup }: { entry: RefEntry
           </pre>
           <div className="ref-card__actions">
             <button type="button" className="btn btn--sm" onClick={run} disabled={state.status === 'run'} aria-label={`${T.run} ${T.example.toLowerCase()} ${entry.title}`}>
-              {state.status === 'done' ? T.rerun : T.run}
+              {T.run}
             </button>
           </div>
           <div aria-live="polite">

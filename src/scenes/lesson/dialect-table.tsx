@@ -212,7 +212,7 @@ export default function DialectTable() {
           {topic.run && (
             <div className="dlt__actions">
               <button type="button" className="btn dlt__go" onClick={go} disabled={status === 'loading'}>
-                {ran ? copy.rerun : copy.run}
+                {copy.run}
               </button>
               {same && ran && <span className="dlt__same">{copy.sameSql}</span>}
             </div>

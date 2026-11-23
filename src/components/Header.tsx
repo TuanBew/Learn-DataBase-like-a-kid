@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
 import { uiApp } from '../content/ui-app';
+import { uiReference } from '../content/ui-reference';
 import { getTheme, onThemeChange, setTheme } from '../lib/theme';
 import { isMuted, onMuteChange, play, setMuted } from '../sfx/sfx';
 import { Mascot } from './Mascot';
@@ -28,6 +29,9 @@ export function Header() {
         <nav className="hdr__nav">
           <Link href="/#muc-luc" className="hdr__link">
             {uiApp.nav.toc}
+          </Link>
+          <Link href="/tra-cuu" className="hdr__link">
+            {uiReference.nav}
           </Link>
           <button
             type="button"

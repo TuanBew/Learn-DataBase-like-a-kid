@@ -143,8 +143,11 @@ export interface WorkshopBlock {
   dialects: Dialect[];
   /** Lệnh có sẵn trong editor lúc mở. */
   sql: Partial<Record<Dialect, string>>;
-  /** Các lệnh gợi ý để bấm thử. `expect: 'error'` là lệnh cố ý sai, để người học đọc lỗi. */
-  tries?: { label: string; sql: Partial<Record<Dialect, string>>; expect?: 'ok' | 'error' }[];
+  /**
+   * Các lệnh gợi ý để bấm thử. `expect: 'error'` là lệnh cố ý sai, để người học đọc lỗi.
+   * Khi hai dialect phản ứng khác nhau thì ghi riêng từng dialect, ví dụ `{ mysql: 'error', oracle: 'ok' }`.
+   */
+  tries?: { label: string; sql: Partial<Record<Dialect, string>>; expect?: 'ok' | 'error' | Partial<Record<Dialect, 'ok' | 'error'>> }[];
   /** Bi nói một câu dưới editor. */
   say?: Rich;
 }

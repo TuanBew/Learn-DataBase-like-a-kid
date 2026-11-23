@@ -6,9 +6,10 @@ export const lesson: Lesson = {
   order: 7,
   title: 'MySQL và Oracle khác nhau ở đâu',
   lead: 'Bạn ôn mọi khác biệt đã gặp và học cách đọc mã lỗi của Oracle.',
-  minutes: 16,
+  minutes: 18,
   goals: [
     'Nhớ các khác biệt chính giữa MySQL và Oracle',
+    'Biết lệnh xem cấu trúc của từng dialect',
     'Biết cách đọc một mã lỗi Oracle',
     'Đoán nguyên nhân của bảy mã ORA hay gặp',
     'Biết khóa học này dạy theo Oracle 19c',
@@ -60,6 +61,7 @@ export const lesson: Lesson = {
         'Định dạng ngày: MySQL dùng `DATE_FORMAT`. Oracle dùng `TO_CHAR`.',
         "Chuỗi thành ngày: MySQL dùng `STR_TO_DATE`. Oracle dùng `TO_DATE`, hoặc viết `DATE '2026-03-02'`.",
         'DATE của Oracle có cả giờ. Khi lọc theo ngày, dùng khoảng `>=` và `<` để khỏi sót row.',
+        'Cộng tháng: MySQL viết `DATE_ADD(d, INTERVAL 1 MONTH)`. Oracle viết `ADD_MONTHS(d, 1)`. Cộng ngày ở Oracle chỉ cần `d + 7`.',
         'Chia lấy dư: MySQL có `%`. Oracle chỉ có `MOD(a, b)`.',
         'Chuỗi rỗng: MySQL coi là một giá trị. Oracle coi là NULL.',
         'Thay NULL: MySQL viết `IFNULL`. Oracle viết `NVL`. `COALESCE` chạy ở cả hai.',
@@ -76,6 +78,28 @@ export const lesson: Lesson = {
         'INSERT nhiều row trong một câu: MySQL nhận. Oracle 19c không nhận.',
         'Lưu thay đổi: MySQL tự COMMIT sau mỗi lệnh. Tool Oracle thường chờ bạn gõ COMMIT.',
         'Lệnh DDL như CREATE TABLE tự COMMIT ở Oracle.',
+      ],
+    },
+    {
+      type: 'text',
+      title: 'Gom nhóm, nối table và ghép kết quả',
+      paragraphs: [
+        "Gộp chữ trong nhóm: MySQL viết `GROUP_CONCAT(name)`. Oracle viết `LISTAGG(name, ', ') WITHIN GROUP (ORDER BY name)`.",
+        'FULL OUTER JOIN: Oracle có. MySQL không có. Ở MySQL, bạn ghép LEFT JOIN và RIGHT JOIN bằng UNION.',
+        'Lấy row của query trước mà query sau không có: Oracle 19c viết `MINUS`. MySQL 8 viết `EXCEPT`.',
+        'Viết chữ của dialect kia thì báo lỗi. Oracle gặp EXCEPT báo ORA-00933. MySQL gặp MINUS báo lỗi 1064.',
+        'Dấu `(+)` và `DECODE` chỉ có ở Oracle. MySQL dùng LEFT JOIN và CASE.',
+      ],
+    },
+    {
+      type: 'text',
+      title: 'Xem cấu trúc database',
+      paragraphs: [
+        'Liệt kê table: MySQL viết `SHOW TABLES`. Oracle viết `SELECT table_name FROM user_tables`.',
+        'Xem column của một table: cả hai nhận `DESC orders`. MySQL còn nhận `DESCRIBE orders`.',
+        'Ở Oracle, DESC là lệnh của tool, không phải câu SQL. Ở MySQL, DESC và SHOW là lệnh của chính server.',
+        'Xem câu tạo table: MySQL viết `SHOW CREATE TABLE orders`. Oracle đọc data dictionary, như `USER_TAB_COLUMNS` và `USER_CONSTRAINTS`.',
+        'Gõ `SHOW TABLES` ở Oracle báo ORA-00900. Tên trong data dictionary của Oracle viết hoa.',
       ],
     },
     {
@@ -117,6 +141,15 @@ export const lesson: Lesson = {
           ],
         },
         {
+          kind: 'choice',
+          question: 'Bạn chạy `SELECT a FROM t1 EXCEPT SELECT a FROM t2` trên Oracle 19c. Chuyện gì xảy ra?',
+          options: [
+            { text: 'Oracle báo ORA-00933. Hãy viết MINUS', correct: true, feedback: 'Đúng. Oracle 19c dùng MINUS. MySQL 8 dùng EXCEPT.' },
+            { text: 'Oracle chạy bình thường', feedback: 'EXCEPT là chữ của MySQL. Oracle 19c báo lỗi.' },
+            { text: 'Oracle báo ORA-00942', feedback: 'ORA-00942 báo table không có. Lỗi này nằm ở chữ EXCEPT.' },
+          ],
+        },
+        {
           kind: 'match',
           question: 'Nối mã lỗi với nguyên nhân thường thấy.',
           pairs: [
@@ -140,7 +173,9 @@ export const lesson: Lesson = {
     {
       type: 'keypoints',
       items: [
-        'MySQL và Oracle khác nhau ở: LIMIT hay FETCH FIRST, nối chuỗi, ngày giờ, chuỗi rỗng, alias của table, cách lưu thay đổi.',
+        'MySQL và Oracle khác nhau ở: LIMIT hay FETCH FIRST, nối chuỗi, ngày giờ, chuỗi rỗng, alias của table, data type, id tự tăng, cách lưu thay đổi.',
+        'Khác nhau cả ở FULL OUTER JOIN, MINUS và EXCEPT, LISTAGG và GROUP_CONCAT, NVL và IFNULL, TO_CHAR và DATE_FORMAT, ADD_MONTHS và DATE_ADD.',
+        'Xem cấu trúc: MySQL có SHOW TABLES, DESCRIBE, SHOW CREATE TABLE. Oracle có DESC của tool và data dictionary.',
         'Mã ORA có năm chữ số. Đọc mã rồi đọc câu giải thích đi kèm.',
         'ORA-00933, 00942, 00904, 00923, 00936, 00979, 01722 là bảy mã hay gặp nhất.',
         'Khóa học này dạy theo Oracle 19c. Oracle 26ai nới vài luật.',
@@ -153,6 +188,8 @@ export const lesson: Lesson = {
         { name: 'MySQL 8.0 Reference Manual, START TRANSACTION, COMMIT, and ROLLBACK', url: 'https://dev.mysql.com/doc/refman/8.0/en/commit.html' },
         { name: 'Oracle Database 19c SQL Language Reference, SELECT', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/SELECT.html' },
         { name: 'Oracle Database 19c SQL Language Reference, Nulls', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Nulls.html' },
+        { name: 'Oracle Database 19c SQL Language Reference, LISTAGG', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/LISTAGG.html' },
+        { name: 'MySQL 8.0 Reference Manual, Aggregate Functions', url: 'https://dev.mysql.com/doc/refman/8.0/en/aggregate-functions.html' },
         { name: 'Oracle Database 19c SQL Language Reference, COMMIT', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/COMMIT.html' },
         { name: 'Oracle Database Error Help, ORA-00933', url: 'https://docs.oracle.com/en/error-help/db/ora-00933/' },
       ],

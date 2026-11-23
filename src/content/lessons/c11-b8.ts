@@ -47,7 +47,7 @@ export const lesson: Lesson = {
       title: 'File query dài hai chục dòng code',
       paragraphs: [
         'Chị Mai gửi Bi một query. "Báo cáo này chạy mỗi tháng. Người viết đã nghỉ. Em xem nó làm gì giúp chị."',
-        'Query dài hai mươi mấy dòng code, nối bốn table. Bi nhìn từ dòng SELECT và thấy rối ngay.',
+        'Query dài hai mươi mấy dòng code, nối bốn table. Bi đọc từ chữ SELECT và thấy rối ngay.',
         'Bi đổi cách. Bi đọc theo thứ tự database chạy, từng bước một.',
         'Sau năm bước, Bi viết được một câu: query này trả lời câu hỏi gì.',
       ],
@@ -146,13 +146,13 @@ export const lesson: Lesson = {
       type: 'code',
       title: 'Query kiểu Oracle cũ',
       intro: 'Query này liệt kê nhân viên theo phòng, kèm phòng chưa có ai. Đọc nó theo năm bước.',
-      code: "SELECT d.department_name,\n       j.job_title,\n       e.last_name,\n       DECODE(e.job_id, 'PU_CLERK', 'Mua hàng', 'MK_REP', 'Marketing', 'Khác') AS nhom,\n       NVL(e.commission_pct, 0) AS hoa_hong,\n       TO_CHAR(e.hire_date, 'DD/MM/YYYY') AS vao_lam\nFROM departments d, employees e, jobs j\nWHERE d.department_id = e.department_id(+)\n  AND e.job_id = j.job_id(+)\n  AND d.department_id >= 60\nORDER BY d.department_id, e.last_name",
+      code: "SELECT d.department_name,\n       j.job_title,\n       e.last_name,\n       DECODE(e.job_id, 'PU_CLERK', 'Mua sắm', 'MK_REP', 'Marketing', 'Khác') AS nhom,\n       NVL(e.commission_pct, 0) AS hoa_hong,\n       TO_CHAR(e.hire_date, 'DD/MM/YYYY') AS vao_lam\nFROM departments d, employees e, jobs j\nWHERE d.department_id = e.department_id(+)\n  AND e.job_id = j.job_id(+)\n  AND d.department_id >= 60\nORDER BY d.department_id, e.last_name",
       notes: [
         { find: 'FROM departments d, employees e, jobs j', text: 'Bước một. Ba table ngăn bằng dấu phẩy: departments, employees và jobs.' },
         { find: 'd.department_id = e.department_id(+)', text: 'Bước hai. Nối phòng với nhân viên. Dấu (+) ở bên e, nên mọi phòng được giữ, kể cả phòng chưa có nhân viên.' },
         { find: 'e.job_id = j.job_id(+)', text: 'Bước hai. Nối nhân viên với chức danh. Dấu (+) ở bên j, nên nhân viên thiếu chức danh vẫn được giữ.' },
         { find: 'd.department_id >= 60', text: 'Bước ba. Điều kiện chỉ có một alias, nên đây là điều kiện lọc. Giữ phòng từ mã 60 trở lên.' },
-        { find: "DECODE(e.job_id, 'PU_CLERK'", text: 'Bước năm. Chức danh PU_CLERK ra "Mua hàng", MK_REP ra "Marketing", còn lại ra "Khác". Nhân viên NULL cũng ra "Khác".' },
+        { find: "DECODE(e.job_id, 'PU_CLERK'", text: 'Bước năm. Chức danh PU_CLERK ra "Mua sắm", MK_REP ra "Marketing", còn lại ra "Khác". Phòng chưa có nhân viên có job_id là NULL, nên cũng ra "Khác".' },
         { find: 'NVL(e.commission_pct, 0)', text: 'Bước năm. Hoa hồng NULL hiện 0.' },
         { find: "TO_CHAR(e.hire_date, 'DD/MM/YYYY')", text: 'Bước năm. Ngày vào làm hiện theo kiểu ngày/tháng/năm.' },
       ],
@@ -165,9 +165,9 @@ export const lesson: Lesson = {
         'MySQL không có DECODE và NVL. Hãy dùng CASE và IFNULL. Ngày thì dùng DATE_FORMAT.',
       ],
       mysql:
-        "SELECT d.department_name,\n       j.job_title,\n       e.last_name,\n       CASE e.job_id WHEN 'PU_CLERK' THEN 'Mua hàng' WHEN 'MK_REP' THEN 'Marketing' ELSE 'Khác' END AS nhom,\n       IFNULL(e.commission_pct, 0) AS hoa_hong,\n       DATE_FORMAT(e.hire_date, '%d/%m/%Y') AS vao_lam\nFROM departments d\nLEFT JOIN employees e ON e.department_id = d.department_id\nLEFT JOIN jobs j ON j.job_id = e.job_id\nWHERE d.department_id >= 60\nORDER BY d.department_id, e.last_name;",
+        "SELECT d.department_name,\n       j.job_title,\n       e.last_name,\n       CASE e.job_id WHEN 'PU_CLERK' THEN 'Mua sắm' WHEN 'MK_REP' THEN 'Marketing' ELSE 'Khác' END AS nhom,\n       IFNULL(e.commission_pct, 0) AS hoa_hong,\n       DATE_FORMAT(e.hire_date, '%d/%m/%Y') AS vao_lam\nFROM departments d\nLEFT JOIN employees e ON e.department_id = d.department_id\nLEFT JOIN jobs j ON j.job_id = e.job_id\nWHERE d.department_id >= 60\nORDER BY d.department_id, e.last_name;",
       oracle:
-        "SELECT d.department_name,\n       j.job_title,\n       e.last_name,\n       CASE e.job_id WHEN 'PU_CLERK' THEN 'Mua hàng' WHEN 'MK_REP' THEN 'Marketing' ELSE 'Khác' END AS nhom,\n       NVL(e.commission_pct, 0) AS hoa_hong,\n       TO_CHAR(e.hire_date, 'DD/MM/YYYY') AS vao_lam\nFROM departments d\nLEFT JOIN employees e ON e.department_id = d.department_id\nLEFT JOIN jobs j ON j.job_id = e.job_id\nWHERE d.department_id >= 60\nORDER BY d.department_id, e.last_name",
+        "SELECT d.department_name,\n       j.job_title,\n       e.last_name,\n       CASE e.job_id WHEN 'PU_CLERK' THEN 'Mua sắm' WHEN 'MK_REP' THEN 'Marketing' ELSE 'Khác' END AS nhom,\n       NVL(e.commission_pct, 0) AS hoa_hong,\n       TO_CHAR(e.hire_date, 'DD/MM/YYYY') AS vao_lam\nFROM departments d\nLEFT JOIN employees e ON e.department_id = d.department_id\nLEFT JOIN jobs j ON j.job_id = e.job_id\nWHERE d.department_id >= 60\nORDER BY d.department_id, e.last_name",
     },
     {
       type: 'quiz',
@@ -187,7 +187,7 @@ export const lesson: Lesson = {
           question: "Trong query cũ, điều kiện nào là điều kiện nối: `d.department_id = e.department_id(+)` hay `d.department_id >= 60`?",
           options: [
             { text: 'd.department_id = e.department_id(+), vì có hai alias', correct: true, feedback: 'Đúng. Điều kiện nối ghép column của hai table. Điều kiện có một alias là điều kiện lọc.' },
-            { text: 'd.department_id >= 60, vì có dấu so sánh', feedback: 'Điều kiện này chỉ nhắc tới d. Nó lọc phòng, không nối table.' },
+            { text: 'd.department_id >= 60, vì có dấu so sánh', feedback: 'Điều kiện này chỉ nhắc tới d. Điều kiện này lọc phòng, không nối table.' },
             { text: 'Cả hai đều là điều kiện nối', feedback: 'Chỉ điều kiện đầu ghép hai table. Điều kiện sau chỉ lọc.' },
           ],
         },
@@ -207,7 +207,7 @@ export const lesson: Lesson = {
     },
     {
       type: 'realworld',
-      title: 'Bàn giao query khi đồng nghiệp nghỉ việc',
+      title: 'Bàn giao query khi đồng nghiệp chuyển team',
       paragraphs: [
         'Khi một người rời team, query của họ còn ở lại. Người nhận phải hiểu nó trước khi sửa.',
         'Người làm tốt thường ghi câu tóm tắt ở đầu file, rồi mỗi khúc một dòng chú thích bằng dấu `--`. Query sau đó dễ đọc cho người kế tiếp.',

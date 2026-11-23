@@ -219,6 +219,7 @@ SET total_spent = (SELECT total FROM orders WHERE orders.customer_id = customers
         },
         {
           label: 'Subquery đọc chính table đang sửa',
+          expect: { mysql: 'error', oracle: 'ok' },
           sql: {
             mysql: `-- MySQL báo lỗi 1093: orders vừa bị sửa vừa bị đọc.
 UPDATE orders

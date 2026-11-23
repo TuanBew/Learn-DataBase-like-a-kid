@@ -13,7 +13,7 @@ const ids = (dir) =>
     .map((f) => f.replace(/\.ts$/, ''));
 
 const pages = [
-  '/', '/tien-trinh', '/hoc-tiep', '/nguon', '/chung-nhan',
+  '/', '/tien-trinh', '/hoc-tiep', '/tra-cuu', '/nguon', '/chung-nhan',
   ...ids('lessons').map((i) => `/bai/${i}`),
   ...ids('exercises').map((i) => `/tap/${i}`),
 ].filter((p) => p.includes(filter));

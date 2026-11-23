@@ -22,7 +22,7 @@ export const lesson: Lesson = {
       type: 'story',
       title: 'Ngày đầu ở công ty mới',
       paragraphs: [
-        'Bạn vào công ty mới. Anh IT gửi cho bạn một tài khoản Oracle và nói: "Dữ liệu bán hàng nằm trong đó rồi."',
+        'Bạn vào công ty mới. Anh IT gửi cho bạn một tài khoản Oracle và nói: "Dữ liệu đơn đặt mua nằm trong đó rồi."',
         'Bạn đăng nhập. Không có tài liệu nào đi kèm. Người vẽ sơ đồ đã nghỉ từ lâu.',
         'Bi nói: "Database tự biết mình có gì. Bạn chỉ cần hỏi đúng chỗ."',
         'Bài này dạy bạn hỏi đúng chỗ, bằng ba câu hỏi.',
@@ -149,7 +149,7 @@ export const lesson: Lesson = {
     {
       type: 'oracle',
       body: [
-        'Mỗi dialect dùng lệnh của riêng nó. Bảng dưới cho ba câu hỏi và lệnh trả lời.',
+        'Mỗi dialect dùng lệnh của riêng nó. Hai khối dưới cho ba câu hỏi và lệnh trả lời.',
         'Khối Thử tay ở trên chạy SELECT thường. Các lệnh xem cấu trúc, bạn chạy trong SQL Developer hay DBeaver ở công ty.',
         'Ở Oracle, tên trong data dictionary luôn viết hoa. Ở MySQL, tên table viết thường như lúc tạo.',
       ],
@@ -176,7 +176,7 @@ export const lesson: Lesson = {
           question: 'Bạn cần biết table nào có column tên chứa DATE. Bạn dùng gì?',
           options: [
             { text: "USER_TAB_COLUMNS với WHERE column_name LIKE '%DATE%'", correct: true, feedback: 'Đúng. Query này trả về HIRE_DATE, END_DATE, START_DATE và ORDER_DATE cùng tên table của chúng.' },
-            { text: 'DESC với tên column', feedback: 'DESC nhận tên table, không nhận tên column. Nó không tìm được trên nhiều table.' },
+            { text: 'DESC với tên column', feedback: 'DESC nhận tên table, không nhận tên column. DESC không tìm được trên nhiều table.' },
             { text: 'USER_TABLES', feedback: 'USER_TABLES chỉ có tên table. Tên column nằm ở USER_TAB_COLUMNS.' },
           ],
         },

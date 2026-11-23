@@ -1,10 +1,12 @@
 import { Link } from 'wouter';
 import { uiApp } from '../content/ui-app';
+import { uiReference } from '../content/ui-reference';
 import './footer.css';
 
 const N = uiApp.nav;
 const LINKS = [
   { href: '/#muc-luc', text: N.toc },
+  { href: '/tra-cuu', text: uiReference.nav },
   { href: '/tien-trinh', text: N.progress },
   { href: '/hoc-tiep', text: N.next },
   { href: '/nguon', text: N.sources },

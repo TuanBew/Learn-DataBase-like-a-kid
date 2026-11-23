@@ -84,7 +84,7 @@ describe('nội dung bài học', () => {
             };
             if (b.setup) exec('setup', b.setup[d], 'ok');
             exec('sql', b.sql[d], 'ok');
-            for (const t of b.tries ?? []) exec(t.label, t.sql[d], t.expect ?? 'ok');
+            for (const t of b.tries ?? []) exec(t.label, t.sql[d], (typeof t.expect === 'object' ? t.expect[d] : t.expect) ?? 'ok');
           }
         }
         expect(bad).toEqual([]);

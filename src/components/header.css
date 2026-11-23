@@ -67,3 +67,12 @@
     gap: var(--s2);
   }
 }
+@media (max-width: 420px) {
+  .hdr__link {
+    font-size: 0.95rem;
+    padding-inline: 0;
+  }
+  .hdr__nav {
+    gap: var(--s2);
+  }
+}

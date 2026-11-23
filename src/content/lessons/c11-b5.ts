@@ -4,14 +4,16 @@ export const lesson: Lesson = {
   id: 'c11-b5',
   chapter: 11,
   order: 5,
-  title: 'Index',
-  lead: 'Bạn hiểu vì sao index giúp tìm row nhanh, và cái giá phải trả.',
-  minutes: 14,
+  title: 'index và query chậm',
+  lead: 'Bạn hiểu vì sao index giúp tìm row nhanh, cái giá phải trả, và làm gì khi query chạy chậm.',
+  minutes: 17,
   goals: [
     'Biết index giống mục lục cuối sách',
     'Phân biệt scan và tìm bằng index',
     'Biết index làm INSERT, UPDATE, DELETE chậm hơn một chút',
     'Biết primary key luôn có index',
+    'Nhận ra query chạy chậm và nhớ ba thói quen tốt',
+    'Biết EXPLAIN PLAN là gì và khi nào nhờ người quản trị',
   ],
   blocks: [
     {
@@ -64,9 +66,33 @@ export const lesson: Lesson = {
       ],
     },
     {
+      type: 'text',
+      title: 'Khi query chạy chậm',
+      paragraphs: [
+        'Query chậm có dấu hiệu dễ thấy. Bạn bấm Chạy và vòng quay hiện lâu. Hoặc query hôm qua chạy nhanh, hôm nay chậm hơn vì table đã lớn lên.',
+        'Thường thì database phải scan nhiều row, trong khi bạn chỉ cần vài row.',
+        'Thói quen một: lọc sớm bằng WHERE, trên column có index. Tìm theo primary key luôn nhanh, vì primary key có index.',
+        'Thói quen hai: đừng viết `SELECT *` trên table lớn. Hãy liệt kê đúng các column bạn cần. Tool khỏi phải nhận về những column bạn không đọc.',
+        'Thói quen ba: thử trước với ít row. Oracle viết `FETCH FIRST 10 ROWS ONLY`. MySQL viết `LIMIT 10`. Thấy kết quả đúng rồi, bạn mới bỏ giới hạn.',
+        'Query có ORDER BY hay GROUP BY vẫn phải xử lý hết row. Cách thử này chủ yếu giúp tool không phải hiện cả nghìn row.',
+        '**[[explain-plan]]** cho biết database định chạy query bằng cách nào, ví dụ scan hay dùng index. Oracle viết `EXPLAIN PLAN FOR` trước query. MySQL viết `EXPLAIN`.',
+        'Khóa học này không dạy đọc kết quả của EXPLAIN PLAN. Người quản trị database đọc nó.',
+        'Query vẫn chậm sau ba thói quen? Gửi query cho người quản trị và nhờ họ xem. Đừng tự đoán rồi thêm index.',
+      ],
+    },
+    {
       type: 'quiz',
       title: 'Kiểm tra nhanh',
       items: [
+        {
+          kind: 'choice',
+          question: 'Một query chạy chậm trên table có cả triệu row. Bạn muốn thử nhanh, trước khi chạy hết. Bạn làm gì?',
+          options: [
+            { text: 'Thêm FETCH FIRST 10 ROWS ONLY (MySQL: LIMIT 10) để thử với ít row', correct: true, feedback: 'Đúng. Bạn kiểm query có đúng không mà không chờ cả table.' },
+            { text: 'Đổi column thành SELECT *', feedback: 'SELECT * chở về mọi column, nên chậm thêm. Hãy liệt kê đúng column cần.' },
+            { text: 'Tạo index cho mọi column', feedback: 'Index chiếm chỗ và làm ghi chậm. Hãy nhờ người quản trị xem trước khi thêm index.' },
+          ],
+        },
         {
           kind: 'choice',
           question: 'Column không có index. Bạn tìm một giá trị trong đó. Database làm gì?',
@@ -112,11 +138,17 @@ export const lesson: Lesson = {
         'Không có index, database scan cả table. Có index, database nhảy thẳng tới row.',
         'Bù lại, index chiếm chỗ và làm INSERT, UPDATE, DELETE chậm hơn một chút.',
         'Primary key luôn có index.',
+        'Query chậm: lọc sớm bằng WHERE trên column có index, không SELECT * trên table lớn, thử trước với 10 row.',
+        'EXPLAIN PLAN cho biết database định chạy query thế nào. Người quản trị đọc nó. Query vẫn chậm thì nhờ họ xem.',
       ],
     },
     {
       type: 'sources',
-      items: [{ name: 'Harvard CS50 SQL, Lecture 5', url: 'https://cs50.harvard.edu/sql/notes/5/', note: 'CC BY-NC-SA 4.0' }],
+      items: [
+        { name: 'Harvard CS50 SQL, Lecture 5', url: 'https://cs50.harvard.edu/sql/notes/5/', note: 'CC BY-NC-SA 4.0' },
+        { name: 'Oracle Database 19c SQL Language Reference, EXPLAIN PLAN', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/EXPLAIN-PLAN.html' },
+        { name: 'MySQL 8.0 Reference Manual, EXPLAIN Statement', url: 'https://dev.mysql.com/doc/refman/8.0/en/explain.html' },
+      ],
     },
   ],
 };

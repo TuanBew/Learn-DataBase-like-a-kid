@@ -170,7 +170,7 @@ export const lesson: Lesson = {
         },
         {
           kind: 'match',
-          question: 'Nối mỗi mẩu với việc nó làm.',
+          question: 'Nối mỗi mẩu với ý nghĩa của nó.',
           pairs: [
             { left: 'TO_DATE', right: 'Đổi chữ thành ngày' },
             { left: 'TO_CHAR', right: 'Đổi ngày thành chữ' },

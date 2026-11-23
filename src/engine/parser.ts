@@ -1637,10 +1637,10 @@ class Parser {
     this.i += 2; // CREATE TABLE
     let ifNotExists = false;
     if (this.isW('IF') && this.isW('NOT', this.peek())) {
-      // Oracle 19c không có IF NOT EXISTS: nó đọc IF thành tên table rồi lạc ở chữ NOT.
+      // Oracle 19c không có IF NOT EXISTS: nó đọc IF thành tên table rồi lạc ở chữ NOT. Oracle 21c thật: ORA-00922.
       if (this.d === 'oracle') {
         this.i++;
-        throw this.fail('00906', 'if-exists-oracle', { stmt: 'CREATE TABLE' });
+        throw this.fail('00922', 'if-exists-oracle', { stmt: 'CREATE TABLE' });
       }
       this.i += 2;
       this.needW('EXISTS');
@@ -1703,7 +1703,8 @@ class Parser {
     const noType = mode === 'modify' && this.d === 'oracle' && !(tt.type === 'word' && TYPES[tt.value]);
     if (!noType) {
       const info = tt.type === 'word' ? TYPES[tt.value] : undefined;
-      if (!info) throw this.fail('00902', tt.type === 'eof' ? 'unexpected-end' : 'unknown-type', { name: this.show(), after: n.text });
+      // Oracle XE 21c và 18c thật: tên data type lạ mà có ngoặc theo sau (VARCHR2(50)) báo ORA-00907, không có ngoặc (FOO) báo ORA-00902.
+      if (!info) throw this.fail(this.d === 'oracle' && tt.type === 'word' && this.isOp('(', this.peek()) ? '00907' : '00902', tt.type === 'eof' ? 'unexpected-end' : 'unknown-type', { name: this.show(), after: n.text });
       if (info.only && info.only !== this.d) throw this.fail('00902', 'type-other-dialect', { name: tt.value, use: info.use, dialect: this.d === 'mysql' ? 'MySQL' : 'Oracle' });
       this.i++;
       spec.typeName = tt.value;
@@ -1713,6 +1714,8 @@ class Parser {
       const textual = info.type === 'text' && word !== 'TEXT' && word !== 'CLOB';
       // Chỉ DECIMAL, NUMERIC, NUMBER có độ chính xác. FLOAT(7,3) đọc rồi bỏ qua.
       const numeric = word === 'DECIMAL' || word === 'NUMERIC' || word === 'NUMBER';
+      // Oracle XE 21c và 18c thật: INT, INTEGER, SMALLINT, DATE, CLOB không nhận ngoặc, ORA-00907.
+      if (this.d === 'oracle' && ['INT', 'INTEGER', 'SMALLINT', 'DATE', 'CLOB'].includes(word) && this.isOp('(')) throw this.fail('00907', 'missing-paren');
       if (this.eatOp('(')) {
         const negative = numeric && this.d === 'oracle';
         const a = this.int(`${word}(`);
@@ -1837,9 +1840,13 @@ class Parser {
     return t.type === 'word' && (t.value === 'CONSTRAINT' || t.value === 'PRIMARY' || t.value === 'UNIQUE' || t.value === 'FOREIGN' || t.value === 'CHECK');
   }
 
-  /** Oracle: COLUMN là từ dành riêng, nên ADD COLUMN và MODIFY COLUMN đều lỗi. */
-  private noColumnWordInOracle(): void {
+  /**
+   * Oracle: COLUMN là từ dành riêng, nên ADD COLUMN và MODIFY COLUMN đều lỗi.
+   * ADD COLUMN: ORA-00904 ở chữ COLUMN. MODIFY COLUMN: ORA-00905 ở chữ sau tên column (Oracle 21c thật).
+   */
+  private noColumnWordInOracle(modify = false): void {
     if (this.d === 'oracle' && this.isW('COLUMN') && !this.isOp('(', this.peek())) {
+      if (modify) throw this.fail('00905', 'column-word-oracle', {}, this.peek(2));
       const t = this.tok;
       throw new SqlError('syntax', 'ORA-00904', 'ORA-00904: : invalid identifier', 'column-word-oracle', friendly['column-word-oracle']({}), { s: t.s, e: t.e });
     }
@@ -1853,8 +1860,8 @@ class Parser {
     for (;;) {
       actions.push(...this.alterAction());
       if (!this.isOp(',')) break;
-      // Oracle không cho nối nhiều việc bằng dấu phẩy: viết ADD (a ..., b ...) hoặc chạy từng lệnh.
-      if (this.d === 'oracle') throw this.fail('00933', 'alter-comma-oracle');
+      // Oracle không cho nối nhiều việc bằng dấu phẩy: viết ADD (a ..., b ...) hoặc chạy từng lệnh. Oracle 21c thật: ORA-01735 ở dấu phẩy.
+      if (this.d === 'oracle') throw this.fail('01735', 'alter-comma-oracle');
       this.i++;
     }
     return { t: 'alter', table, actions, span: { s, e: this.prev.e } };
@@ -1886,7 +1893,7 @@ class Parser {
             this.eatW('COLUMN');
             // MySQL không nhận MODIFY (a ..., b ...) trong ngoặc, chỉ Oracle nhận.
             if (this.isOp('(')) throw this.fail('00900', 'unexpected', { tok: '(' });
-          } else this.noColumnWordInOracle();
+          } else this.noColumnWordInOracle(true);
           const { cols } = this.columnItems('modify');
           if (this.isW('FIRST') || this.isW('AFTER')) throw unsupported('FIRST và AFTER trong ALTER TABLE', this.at());
           return [{ a: 'modify', cols, span: done() }];
@@ -1943,7 +1950,8 @@ class Parser {
           break;
       }
     }
-    throw this.fail('01735', t.type === 'eof' ? 'unexpected-end' : 'alter-option', { after: 'tên table', tok: this.show() });
+    // ALTER TABLE t trơ trọi: Oracle 21c thật báo ORA-02210 (no options specified for ALTER TABLE).
+    throw this.fail(t.type === 'eof' && this.d === 'oracle' ? '02210' : '01735', t.type === 'eof' ? 'unexpected-end' : 'alter-option', { after: 'tên table', tok: this.show() });
   }
 
   private dropTable(): DropTableStmt {
@@ -2004,8 +2012,13 @@ class Parser {
         stmt.increment = inc.v;
         stmt.incrementSpan = inc.span;
       } else if (this.eatW('CACHE')) {
-        this.int('CACHE');
-      } else if (this.eatW('NOCACHE') || this.eatW('NOCYCLE') || this.eatW('ORDER') || this.eatW('NOORDER')) {
+        const c = this.tok;
+        stmt.cache = this.int('CACHE');
+        // Oracle 21c thật: CACHE 0 và CACHE 1 báo ORA-04010.
+        if (stmt.cache < 2) throw this.fail('04010', 'cache-small', {}, c);
+      } else if (this.eatW('NOCACHE')) {
+        stmt.cache = 0;
+      } else if (this.eatW('NOCYCLE') || this.eatW('ORDER') || this.eatW('NOORDER')) {
         /* không ảnh hưởng gì với engine */
       } else if (this.isW('MINVALUE') || this.isW('MAXVALUE') || this.isW('NOMINVALUE') || this.isW('NOMAXVALUE') || this.isW('CYCLE')) {
         throw unsupported(`${this.tok.value} của sequence`, this.at());

@@ -42,42 +42,42 @@ export const lesson: Lesson = {
     {
       type: 'playground',
       title: 'Thử tay ngay: làm sạch một mã nhân viên',
-      intro: 'Bấm Chạy. Column raw là mã gõ tay, column cleaned là mã đã làm sạch. Hai column len cho biết độ dài.',
+      intro: 'Bấm Chạy. Column original là mã gõ tay, column cleaned là mã đã làm sạch. Hai column len cho biết độ dài.',
       database: 'company',
       tables: ['employees'],
       dialects: ['mysql', 'oracle'],
       sql: {
         mysql:
-          "SELECT '  nv_007 ' AS raw,\n  LENGTH('  nv_007 ') AS len_raw,\n  REPLACE(UPPER(TRIM('  nv_007 ')), '_', '-') AS cleaned,\n  LENGTH(REPLACE(UPPER(TRIM('  nv_007 ')), '_', '-')) AS len_cleaned;",
+          "SELECT '  nv_007 ' AS original,\n  LENGTH('  nv_007 ') AS len_original,\n  REPLACE(UPPER(TRIM('  nv_007 ')), '_', '-') AS cleaned,\n  LENGTH(REPLACE(UPPER(TRIM('  nv_007 ')), '_', '-')) AS len_cleaned;",
         oracle:
-          "SELECT '  nv_007 ' AS raw,\n  LENGTH('  nv_007 ') AS len_raw,\n  REPLACE(UPPER(TRIM('  nv_007 ')), '_', '-') AS cleaned,\n  LENGTH(REPLACE(UPPER(TRIM('  nv_007 ')), '_', '-')) AS len_cleaned\nFROM DUAL",
+          "SELECT '  nv_007 ' AS original,\n  LENGTH('  nv_007 ') AS len_original,\n  REPLACE(UPPER(TRIM('  nv_007 ')), '_', '-') AS cleaned,\n  LENGTH(REPLACE(UPPER(TRIM('  nv_007 ')), '_', '-')) AS len_cleaned\nFROM DUAL",
       },
       tries: [
         {
           label: 'Đổi TRIM thành LTRIM',
           sql: {
             mysql:
-              "SELECT '  nv_007 ' AS raw,\n  LENGTH('  nv_007 ') AS len_raw,\n  REPLACE(UPPER(LTRIM('  nv_007 ')), '_', '-') AS cleaned,\n  LENGTH(REPLACE(UPPER(LTRIM('  nv_007 ')), '_', '-')) AS len_cleaned;",
+              "SELECT '  nv_007 ' AS original,\n  LENGTH('  nv_007 ') AS len_original,\n  REPLACE(UPPER(LTRIM('  nv_007 ')), '_', '-') AS cleaned,\n  LENGTH(REPLACE(UPPER(LTRIM('  nv_007 ')), '_', '-')) AS len_cleaned;",
             oracle:
-              "SELECT '  nv_007 ' AS raw,\n  LENGTH('  nv_007 ') AS len_raw,\n  REPLACE(UPPER(LTRIM('  nv_007 ')), '_', '-') AS cleaned,\n  LENGTH(REPLACE(UPPER(LTRIM('  nv_007 ')), '_', '-')) AS len_cleaned\nFROM DUAL",
+              "SELECT '  nv_007 ' AS original,\n  LENGTH('  nv_007 ') AS len_original,\n  REPLACE(UPPER(LTRIM('  nv_007 ')), '_', '-') AS cleaned,\n  LENGTH(REPLACE(UPPER(LTRIM('  nv_007 ')), '_', '-')) AS len_cleaned\nFROM DUAL",
           },
         },
         {
           label: 'Đổi TRIM thành RTRIM',
           sql: {
             mysql:
-              "SELECT '  nv_007 ' AS raw,\n  LENGTH('  nv_007 ') AS len_raw,\n  REPLACE(UPPER(RTRIM('  nv_007 ')), '_', '-') AS cleaned,\n  LENGTH(REPLACE(UPPER(RTRIM('  nv_007 ')), '_', '-')) AS len_cleaned;",
+              "SELECT '  nv_007 ' AS original,\n  LENGTH('  nv_007 ') AS len_original,\n  REPLACE(UPPER(RTRIM('  nv_007 ')), '_', '-') AS cleaned,\n  LENGTH(REPLACE(UPPER(RTRIM('  nv_007 ')), '_', '-')) AS len_cleaned;",
             oracle:
-              "SELECT '  nv_007 ' AS raw,\n  LENGTH('  nv_007 ') AS len_raw,\n  REPLACE(UPPER(RTRIM('  nv_007 ')), '_', '-') AS cleaned,\n  LENGTH(REPLACE(UPPER(RTRIM('  nv_007 ')), '_', '-')) AS len_cleaned\nFROM DUAL",
+              "SELECT '  nv_007 ' AS original,\n  LENGTH('  nv_007 ') AS len_original,\n  REPLACE(UPPER(RTRIM('  nv_007 ')), '_', '-') AS cleaned,\n  LENGTH(REPLACE(UPPER(RTRIM('  nv_007 ')), '_', '-')) AS len_cleaned\nFROM DUAL",
           },
         },
         {
           label: "Đổi '-' thành '/' trong REPLACE",
           sql: {
             mysql:
-              "SELECT '  nv_007 ' AS raw,\n  LENGTH('  nv_007 ') AS len_raw,\n  REPLACE(UPPER(TRIM('  nv_007 ')), '_', '/') AS cleaned,\n  LENGTH(REPLACE(UPPER(TRIM('  nv_007 ')), '_', '/')) AS len_cleaned;",
+              "SELECT '  nv_007 ' AS original,\n  LENGTH('  nv_007 ') AS len_original,\n  REPLACE(UPPER(TRIM('  nv_007 ')), '_', '/') AS cleaned,\n  LENGTH(REPLACE(UPPER(TRIM('  nv_007 ')), '_', '/')) AS len_cleaned;",
             oracle:
-              "SELECT '  nv_007 ' AS raw,\n  LENGTH('  nv_007 ') AS len_raw,\n  REPLACE(UPPER(TRIM('  nv_007 ')), '_', '/') AS cleaned,\n  LENGTH(REPLACE(UPPER(TRIM('  nv_007 ')), '_', '/')) AS len_cleaned\nFROM DUAL",
+              "SELECT '  nv_007 ' AS original,\n  LENGTH('  nv_007 ') AS len_original,\n  REPLACE(UPPER(TRIM('  nv_007 ')), '_', '/') AS cleaned,\n  LENGTH(REPLACE(UPPER(TRIM('  nv_007 ')), '_', '/')) AS len_cleaned\nFROM DUAL",
           },
         },
       ],

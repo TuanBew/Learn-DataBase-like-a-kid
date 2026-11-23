@@ -65,9 +65,11 @@ describe('LISTAGG (Oracle)', () => {
     const e = fails("SELECT LISTAGG(RPAD('x', 3000, 'x'), ',') WITHIN GROUP (ORDER BY id) FROM s", 'oracle');
     expect(e.code).toBe('ORA-01489');
   });
-  it('lỗi: thiếu WITHIN GROUP, sai dialect', () => {
-    // CHỜ KIỂM TÀI LIỆU: trang LISTAGG chỉ cho cú pháp có WITHIN GROUP, không nêu mã lỗi khi thiếu
-    expect(fails("SELECT LISTAGG(prod, ',') FROM s", 'oracle').hint).toBe('listagg-within');
+  it('thiếu WITHIN GROUP vẫn chạy ở Oracle, LISTAGG sai dialect', () => {
+    // Đã kiểm trên Oracle XE 21c và 18c thật, và tài liệu 19c ("order_by_clause và WITHIN GROUP phải đi cùng nhau hoặc vắng cùng nhau"):
+    // LISTAGG(x, ',') không có WITHIN GROUP chạy được, thứ tự nối không được hứa.
+    expect(or("SELECT LISTAGG(prod, ',') FROM s WHERE id < 0")).toEqual([[null]]);
+    expect(or('SELECT LISTAGG(prod) FROM s')).toEqual([['TraSuaSuaTraTraTraTra']]);
     const e = fails("SELECT LISTAGG(prod, ',') WITHIN GROUP (ORDER BY id) FROM s", 'mysql');
     expect(e.code).toBe('1305');
     expect(e.friendly).toContain('GROUP_CONCAT');
@@ -151,7 +153,7 @@ describe('ROLLUP và GROUPING', () => {
   });
   it('lỗi: viết kiểu của dialect kia, GROUPING sai chỗ', () => {
     expect(fails('SELECT region FROM s GROUP BY ROLLUP(region)', 'mysql').hint).toBe('rollup-in-mysql');
-    // CHỜ KIỂM TÀI LIỆU: mã ORA-00933 cho WITH ROLLUP ở Oracle chưa có nguồn xác nhận
+    // Đã kiểm trên Oracle XE 21c thật: WITH ROLLUP báo ORA-00933
     expect(fails('SELECT region, SUM(qty) FROM s GROUP BY region WITH ROLLUP', 'oracle').hint).toBe('rollup-in-oracle');
     expect(fails('SELECT region, GROUPING(qty) FROM s GROUP BY region WITH ROLLUP', 'mysql').code).toBe('3602');
     expect(fails('SELECT GROUPING(region) FROM s', 'mysql').code).toBe('1111');

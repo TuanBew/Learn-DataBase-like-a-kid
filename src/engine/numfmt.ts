@@ -24,10 +24,19 @@ export function truncTo(n: number, p: number): number {
   return clean(n < 0 ? -r : r);
 }
 
-/** Số thành chữ như Oracle in: không có số 0 đứng trước dấu phẩy (0.5 thành .5). */
+/**
+ * Số thành chữ như Oracle in: không có số 0 đứng trước dấu phẩy (0.5 thành .5), và viết đủ chữ số
+ * trong khoảng 1e-40 tới 1e38 (JS viết 1e-10, Oracle XE 21c thật viết .0000000001).
+ */
 export function oracleNumberText(n: number): string {
-  const s = String(n);
-  if (/e/i.test(s)) return s;
+  let s = String(n);
+  const m = /^(-?)(\d)(?:\.(\d+))?e([+-]\d+)$/.exec(s);
+  if (m) {
+    const exp = Number(m[4]);
+    if (exp < -40 || exp > 38) return s;
+    const digits = m[2] + (m[3] ?? '');
+    s = exp >= 0 ? m[1] + (digits.length > exp + 1 ? `${digits.slice(0, exp + 1)}.${digits.slice(exp + 1)}` : digits.padEnd(exp + 1, '0')) : `${m[1]}0.${'0'.repeat(-exp - 1)}${digits}`;
+  }
   return s.replace(/^(-?)0\./, '$1.');
 }
 
@@ -70,7 +79,8 @@ export function oracleNumberFormat(n: number, fmt: string): string {
   let intStr = String(Math.trunc(abs));
   if (intStr === '0') intStr = '';
   const digitSlots = intTokens.filter((t) => t === '9' || t === '0').length;
-  if (intStr.length > digitSlots) return '#'.repeat(width + (fm ? 0 : 1));
+  // Đã kiểm trên Oracle XE 21c thật: số tràn mẫu ra (độ rộng mẫu + 1) dấu thăng, có FM hay không đều vậy.
+  if (intStr.length > digitSlots) return '#'.repeat(width + 1);
   // Chữ số thập phân.
   const fracDigits = abs.toFixed(places).split('.')[1] ?? '';
   if (places === 0 && intStr === '') intStr = '0';

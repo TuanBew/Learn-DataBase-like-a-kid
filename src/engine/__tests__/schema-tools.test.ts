@@ -253,7 +253,7 @@ describe('Oracle: data dictionary', () => {
       ['ID', 'NUMBER', 22, 5, 0, 'N', 1, null],
       ['NAME', 'VARCHAR2', 50, null, null, 'N', 2, null],
       ['EMAIL', 'VARCHAR2', 80, null, null, 'Y', 3, null],
-      // CHỜ KIỂM TÀI LIỆU: DATA_LENGTH của VARCHAR2(20 CHAR) là 80 (4 byte một ký tự, AL32UTF8).
+      // Đã kiểm trên Oracle XE 21c thật: DATA_LENGTH của VARCHAR2(20 CHAR) là 80 (4 byte một ký tự, AL32UTF8).
       ['CITY', 'VARCHAR2', 80, null, null, 'Y', 4, "'Hue'"],
       ['BORN', 'DATE', 7, null, null, 'Y', 5, null],
       ['NOTE', 'CLOB', 4000, null, null, 'Y', 6, null],
@@ -293,10 +293,24 @@ describe('Oracle: data dictionary', () => {
 
   it('USER_SEQUENCES: INCREMENT_BY và LAST_NUMBER đi theo NEXTVAL', () => {
     const s = ora();
-    // CHỜ KIỂM TÀI LIỆU: Oracle thật có CACHE 20 mặc định, LAST_NUMBER nhảy theo cache. Engine tính như NOCACHE.
+    // Đã kiểm trên Oracle XE 21c và 18c thật: CACHE 20 mặc định, nên LAST_NUMBER nhảy theo lô: START 100 INCREMENT 5, sau NEXTVAL đầu là 200.
     expect(rows(s, 'SELECT sequence_name, increment_by, last_number FROM user_sequences')).toEqual([['ORD_SEQ', 5, 100]]);
     good(s, 'SELECT ord_seq.NEXTVAL FROM DUAL');
-    expect(rows(s, 'SELECT last_number FROM user_sequences')).toEqual([[105]]);
+    expect(rows(s, 'SELECT last_number FROM user_sequences')).toEqual([[200]]);
+    good(s, 'SELECT ord_seq.NEXTVAL FROM DUAL');
+    expect(rows(s, 'SELECT last_number FROM user_sequences')).toEqual([[200]]);
+  });
+
+  it('USER_SEQUENCES: NOCACHE và CACHE n, CACHE 1 là ORA-04010', () => {
+    // Đã kiểm trên Oracle XE 21c và 18c thật: NOCACHE sau NEXTVAL đầu là 2. CACHE 3 sau NEXTVAL đầu là 4, sau NEXTVAL thứ tư (giá trị 4) là 7.
+    const s = S('oracle');
+    all(s, ['CREATE SEQUENCE a1 NOCACHE', 'CREATE SEQUENCE a2 CACHE 3']);
+    good(s, 'SELECT a1.NEXTVAL FROM DUAL');
+    good(s, 'SELECT a2.NEXTVAL FROM DUAL');
+    expect(rows(s, 'SELECT sequence_name, last_number FROM user_sequences ORDER BY 1')).toEqual([['A1', 2], ['A2', 4]]);
+    for (let i = 0; i < 3; i++) good(s, 'SELECT a2.NEXTVAL FROM DUAL');
+    expect(rows(s, "SELECT last_number FROM user_sequences WHERE sequence_name = 'A2'")).toEqual([[7]]);
+    expect(err(s, 'CREATE SEQUENCE a3 CACHE 1').dbMessage).toBe('ORA-04010: the number of values to CACHE must be greater than 1');
   });
 
   it('ALL_TABLES và ALL_TAB_COLUMNS: thêm column OWNER đứng đầu', () => {

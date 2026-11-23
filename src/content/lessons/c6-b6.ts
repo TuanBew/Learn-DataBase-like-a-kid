@@ -209,7 +209,7 @@ export const lesson: Lesson = {
       type: 'oracle',
       body: [
         '`GROUP_CONCAT` chỉ có ở MySQL, `LISTAGG` chỉ có ở Oracle. Gọi nhầm tên thì MySQL báo 1305 và Oracle báo ORA-00904.',
-        'LISTAGG bắt buộc có `WITHIN GROUP (ORDER BY ...)`. Thiếu phần này, Oracle báo ORA-00905.',
+        'Viết LISTAGG kèm `WITHIN GROUP (ORDER BY ...)`. Thiếu phần này, Oracle vẫn chạy nhưng không hứa thứ tự các tên.',
         'MySQL ngăn các giá trị bằng dấu phẩy khi bạn không viết SEPARATOR. Oracle ngăn bằng chuỗi rỗng khi bạn không viết chuỗi ngăn, nên các tên dính liền nhau. Luôn viết chuỗi ngăn.',
         'Kết quả dài có giới hạn. MySQL cắt ở 1024 byte theo mặc định của `group_concat_max_len`. Oracle báo ORA-01489 khi kết quả dài quá 4000 byte.',
         'ROLLUP viết khác nhau. MySQL đặt `WITH ROLLUP` sau GROUP BY. Oracle bọc column trong `ROLLUP(...)`. Viết nhầm kiểu thì MySQL báo 1064 và Oracle báo ORA-00933.',
@@ -226,7 +226,7 @@ export const lesson: Lesson = {
           kind: 'choice',
           question: 'Bạn dùng Oracle và muốn nối tên nhân viên của mỗi phòng vào một ô. Viết gì?',
           options: [
-            { text: "`LISTAGG(last_name, ', ') WITHIN GROUP (ORDER BY last_name)`", correct: true, feedback: 'Đúng. Oracle dùng LISTAGG, và cần WITHIN GROUP.' },
+            { text: "`LISTAGG(last_name, ', ') WITHIN GROUP (ORDER BY last_name)`", correct: true, feedback: 'Đúng. Oracle dùng LISTAGG. WITHIN GROUP chọn thứ tự nối.' },
             { text: "`GROUP_CONCAT(last_name SEPARATOR ', ')`", feedback: 'GROUP_CONCAT chỉ có ở MySQL. Oracle báo ORA-00904.' },
             { text: '`SUM(last_name)`', feedback: 'SUM chỉ cộng số. Chữ thì cần LISTAGG hoặc GROUP_CONCAT.' },
           ],

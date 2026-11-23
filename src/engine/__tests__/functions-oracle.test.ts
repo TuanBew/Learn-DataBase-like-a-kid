@@ -4,7 +4,7 @@ import { type Case, bad, fails, rows, val } from './fn-util';
 /**
  * Function của Oracle 19c. Nguồn: Oracle Database SQL Language Reference 19c
  * (https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/): trang của từng function,
- * Format-Models.html (bảng Number Conversions). Chỗ tài liệu không nói rõ có comment "CHỜ KIỂM TÀI LIỆU".
+ * Format-Models.html (bảng Number Conversions). Chỗ tài liệu không nói rõ đã kiểm trên Oracle XE 21c thật (xem docs/dialect-verification.md).
  * Bảng Number Conversions của tài liệu in kết quả đã cắt khoảng trắng đầu, nên test dùng `trim` ở các mẫu có đệm.
  */
 
@@ -47,7 +47,7 @@ describe('chuỗi', () => {
     ['ASCII(NULL)', null],
     ['CHR(65)', 'A'],
     ['CHR(NULL)', null],
-    // CHỜ KIỂM TÀI LIỆU: database UTF-8 trả mã byte của chữ (tài liệu chỉ nói "in the database character set")
+    // Đã kiểm trên Oracle XE 21c thật (AL32UTF8): ASCII('đ') là 50321, mã byte UTF-8 của chữ (tài liệu chỉ nói "in the database character set").
     ["ASCII('đ')", 50321],
   ]);
   it('sai số tham số: ORA-00909', () => {
@@ -86,7 +86,7 @@ describe('số', () => {
     ['LEAST(1, 5, 3)', 1],
     ["GREATEST('a', 'b')", 'b'],
     ["GREATEST(1, '5')", 5], // tham số đầu là số: các tham số sau đổi sang số
-    // CHỜ KIỂM TÀI LIỆU: trang GREATEST không nói NULL; Oracle 19c thật cho NULL khi có một tham số NULL
+    // Đã kiểm trên Oracle XE 21c và 18c thật: GREATEST, LEAST có một tham số NULL thì ra NULL.
     ['GREATEST(1, NULL, 3)', null],
     ['LEAST(1, NULL, 3)', null],
   ]);
@@ -142,7 +142,7 @@ describe('đổi data type', () => {
     expect(bad('CAST(1234 AS NUMBER(3))', 'oracle').code).toBe('ORA-01438');
     expect(bad("CAST('2026-03-09' AS DATE)", 'oracle').code).toBe('ORA-01861');
     expect(bad('CAST(5 AS DATE)', 'oracle').dbMessage).toBe('ORA-00932: inconsistent datatypes: expected DATE got NUMBER');
-    // CHỜ KIỂM TÀI LIỆU: tài liệu có ORA-00902 cho data type sai, chưa thấy ví dụ riêng cho CAST sang SIGNED
+    // Đã kiểm trên Oracle XE 21c và 18c thật: CAST(1.5 AS SIGNED) báo ORA-00902.
     const e = bad("CAST('1' AS SIGNED)", 'oracle');
     expect(e.code).toBe('ORA-00902');
     expect(e.hint).toBe('bad-cast-type-oracle');
@@ -167,6 +167,21 @@ describe('đổi data type', () => {
       ["TO_CHAR(5, '0000')", ' 0005'],
       ["TO_CHAR(12345, '999')", '####'], // số dài hơn mẫu
     ]);
+    // Đã kiểm trên Oracle XE 21c thật: số tràn mẫu ra (độ rộng mẫu + 1) dấu thăng, có FM hay không đều vậy.
+    check('số tràn mẫu', [
+      ["TO_CHAR(38000000, 'FM999,999')", '########'],
+      ["TO_CHAR(38000000, '999,999')", '########'],
+      ["TO_CHAR(38000000, 'FM9999')", '#####'],
+      ["TO_CHAR(12345.678, 'FM999.99')", '#######'],
+    ]);
+    // Đã kiểm trên Oracle XE 21c thật: số nhỏ hơn 1 đổi sang chữ ngầm cũng mất số 0 đứng đầu, và không dùng ký hiệu e.
+    check('số nhỏ hơn 1 đổi sang chữ', [
+      ["0.1 || 'x'", '.1x'],
+      ["'x' || -0.5", 'x-.5'],
+      ["CONCAT(0.25, 'y')", '.25y'],
+      ['LENGTH(0.5)', 2],
+      ['TO_CHAR(0.0000000001)', '.0000000001'],
+    ]);
     it('các dòng của bảng Number Conversions trong tài liệu', () => {
       expect(trimmed("TO_CHAR(0, '99.99')")).toBe('.00');
       expect(trimmed("TO_CHAR(0.1, '99.99')")).toBe('.10');
@@ -189,7 +204,7 @@ describe('đổi data type', () => {
     it('mẫu lạ: ORA-01481', () => {
       expect(bad("TO_CHAR(1, 'abc')", 'oracle').code).toBe('ORA-01481');
     });
-    // CHỜ KIỂM TÀI LIỆU: tài liệu không có ví dụ FM mà mọi ô sau dấu chấm đều là 9
+    // Đã kiểm trên Oracle XE 21c thật: TO_CHAR(1234, 'FM9999.99') là '1234.' (FM bỏ hết số 0 thừa, còn dấu chấm), TO_CHAR(1234.5, ...) là '1234.5'.
     it('FM9999.99 với số nguyên', () => {
       expect(val("TO_CHAR(1234, 'FM9999.99')", 'oracle')).toBe('1234.');
     });

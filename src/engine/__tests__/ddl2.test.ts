@@ -5,7 +5,7 @@ import { BOTH, INT, S, TEXT, all, err, good, rows } from './ddl-util';
 /**
  * ALTER TABLE, DROP TABLE, TRUNCATE TABLE và việc mọi lệnh DDL tự COMMIT.
  * Test MySQL ghi kết quả đã thấy trên MySQL 8.0.46 thật. Test Oracle theo Oracle Database 19c SQL Language Reference.
- * Mã Oracle chưa tìm được nguồn xác nhận có dòng `CHỜ KIỂM TÀI LIỆU` ngay trên test.
+ * Mã Oracle đã kiểm trên Oracle XE 21c thật (xem docs/dialect-verification.md).
  */
 
 /** Table t(id, name, age) có hai row, dùng cho nhiều test. */
@@ -109,17 +109,17 @@ describe('ALTER TABLE ADD column', () => {
   });
 
   it('Oracle: ADD COLUMN (có chữ COLUMN) là lỗi', () => {
-    // CHỜ KIỂM TÀI LIỆU: COLUMN là từ dành riêng của Oracle nên không đứng làm tên column được. Mã ORA-00904 là suy luận.
+    // Đã kiểm trên Oracle XE 21c thật: COLUMN là từ dành riêng của Oracle, ADD COLUMN báo ORA-00904 ở chữ COLUMN.
     const s = S('oracle');
     seedT(s);
     expect(err(s, 'ALTER TABLE t ADD COLUMN x NUMBER').code).toBe('ORA-00904');
   });
 
-  it('Oracle: nối hai ADD bằng dấu phẩy là lỗi ORA-00933', () => {
-    // CHỜ KIỂM TÀI LIỆU: mã ORA-00933 cho "ADD a, ADD b" là suy luận.
+  it('Oracle: nối hai ADD bằng dấu phẩy là lỗi ORA-01735', () => {
+    // Đã kiểm trên Oracle XE 21c và 18c thật: "ADD a NUMBER, ADD b NUMBER" báo ORA-01735 ở dấu phẩy.
     const s = S('oracle');
     seedT(s);
-    expect(err(s, 'ALTER TABLE t ADD a NUMBER, ADD b NUMBER').code).toBe('ORA-00933');
+    expect(err(s, 'ALTER TABLE t ADD a NUMBER, ADD b NUMBER').code).toBe('ORA-01735');
   });
 
   it('ALTER table không có: MySQL 1146, Oracle ORA-00942', () => {
@@ -253,7 +253,7 @@ describe('ALTER TABLE MODIFY', () => {
   });
 
   it('Oracle: MODIFY (a NOT NULL) khi column đang có NULL là ORA-02296', () => {
-    // CHỜ KIỂM TÀI LIỆU: câu thông báo đầy đủ của ORA-02296 trong trường hợp này (tên constraint để trống) chưa kiểm được.
+    // Đã kiểm trên Oracle XE 21c thật: thông báo là 'ORA-02296: cannot enable (HOC.) - null values found' (tên constraint để trống).
     const s = S('oracle');
     seedT(s);
     expect(err(s, 'ALTER TABLE t MODIFY (age NOT NULL)').code).toBe('ORA-02296');
@@ -289,11 +289,11 @@ describe('ALTER TABLE MODIFY', () => {
     expect(err(s, 'ALTER TABLE t MODIFY (nope NUMBER)').dbMessage).toBe('ORA-00904: "NOPE": invalid identifier');
   });
 
-  it('Oracle: MODIFY COLUMN (có chữ COLUMN) là lỗi', () => {
-    // CHỜ KIỂM TÀI LIỆU: như ADD COLUMN, mã ORA-00904 là suy luận từ việc COLUMN là từ dành riêng.
+  it('Oracle: MODIFY COLUMN (có chữ COLUMN) là lỗi ORA-00905', () => {
+    // Đã kiểm trên Oracle XE 21c và 18c thật: khác ADD COLUMN, MODIFY COLUMN age NUMBER báo ORA-00905 ở chữ NUMBER.
     const s = S('oracle');
     seedT(s);
-    expect(err(s, 'ALTER TABLE t MODIFY COLUMN age NUMBER').code).toBe('ORA-00904');
+    expect(err(s, 'ALTER TABLE t MODIFY COLUMN age NUMBER').code).toBe('ORA-00905');
   });
 });
 
@@ -328,7 +328,7 @@ describe('ALTER TABLE DROP COLUMN', () => {
   });
 
   it('Oracle: DROP a (thiếu chữ COLUMN) là lỗi', () => {
-    // CHỜ KIỂM TÀI LIỆU: mã ORA-00905 cho "DROP a" thiếu COLUMN là suy luận.
+    // Đã kiểm trên Oracle XE 21c thật: ORA-00905.
     const s = S('oracle');
     seedT(s);
     expect(err(s, 'ALTER TABLE t DROP name').code).toBe('ORA-00905');
@@ -370,7 +370,7 @@ describe('ALTER TABLE DROP COLUMN', () => {
   });
 
   it('Oracle: xóa column con có foreign key một column thì foreign key đi theo', () => {
-    // CHỜ KIỂM TÀI LIỆU: Oracle tự bỏ constraint một column khi xóa column đó (theo mô tả DROP COLUMN). Chưa kiểm câu chữ chính xác.
+    // Đã kiểm trên Oracle XE 21c thật: xóa column con thì foreign key một column đi theo, DROP TABLE cha chạy được.
     const s = S('oracle');
     all(s, ['CREATE TABLE p (id NUMBER PRIMARY KEY)', 'CREATE TABLE c (id NUMBER, pid NUMBER, CONSTRAINT fk_c FOREIGN KEY (pid) REFERENCES p(id))']);
     good(s, 'ALTER TABLE c DROP COLUMN pid');
@@ -388,7 +388,7 @@ describe('ALTER TABLE DROP COLUMN', () => {
 
   it('Oracle: xóa column có CHECK một column thì CHECK đi theo; CHECK nhiều column thì ORA-12991', () => {
     // Error Messages 19c: ORA-12991 "column is referenced in a multi-column constraint" (action: drop the constraints or CASCADE CONSTRAINTS).
-    // CHỜ KIỂM TÀI LIỆU: việc Oracle tự bỏ CHECK một column khi xóa column đó.
+    // Đã kiểm trên Oracle XE 21c thật: CHECK một column đi theo column bị xóa.
     const s = S('oracle');
     all(s, ['CREATE TABLE t (id NUMBER, a NUMBER, b NUMBER)', 'ALTER TABLE t ADD CONSTRAINT ck_a CHECK (a > 0)', 'ALTER TABLE t ADD CONSTRAINT ck_ab CHECK (a < b)']);
     expect(err(s, 'ALTER TABLE t DROP COLUMN a').dbMessage).toBe('ORA-12991: column is referenced in a multi-column constraint');
@@ -473,7 +473,7 @@ describe('ALTER TABLE RENAME', () => {
   });
 
   it('Oracle: đổi tên column thì biểu thức CHECK đi theo', () => {
-    // CHỜ KIỂM TÀI LIỆU: Oracle cập nhật CHECK khi đổi tên column (theo mô tả RENAME COLUMN); chưa kiểm câu chữ.
+    // Đã kiểm trên Oracle XE 21c thật: sau RENAME COLUMN, CHECK vẫn chặn -5 (ORA-02290) và nhận 5.
     const s = S('oracle');
     all(s, ['CREATE TABLE t (id NUMBER, w2 NUMBER)', 'ALTER TABLE t ADD CONSTRAINT ck CHECK (w2 > 0)', 'ALTER TABLE t RENAME COLUMN w2 TO w3']);
     expect(err(s, 'INSERT INTO t VALUES (1, -5)').code).toBe('ORA-02290');
@@ -528,7 +528,7 @@ describe('ALTER TABLE ADD CONSTRAINT', () => {
     expect(err(m, 'ALTER TABLE t ADD PRIMARY KEY (a)').dbMessage).toBe('ERROR 1138 (22004): Invalid use of NULL value');
     const o = S('oracle');
     all(o, ['CREATE TABLE t (a NUMBER, b NUMBER)', 'INSERT INTO t VALUES (1, 1)', 'INSERT INTO t VALUES (NULL, 3)']);
-    // CHỜ KIỂM TÀI LIỆU: ORA-01449 cho ADD PRIMARY KEY trên column có NULL.
+    // Đã kiểm trên Oracle XE 21c thật: ORA-01449.
     expect(err(o, 'ALTER TABLE t ADD PRIMARY KEY (a)').code).toBe('ORA-01449');
   });
 
@@ -764,16 +764,16 @@ describe('ALTER TABLE DROP CONSTRAINT', () => {
   });
 
   it('Oracle: DROP FOREIGN KEY và DROP CHECK (cú pháp MySQL) là lỗi', () => {
-    // CHỜ KIỂM TÀI LIỆU: Oracle chỉ có DROP CONSTRAINT. Mã ORA-00905 cho hai cú pháp MySQL này là suy luận.
+    // Đã kiểm trên Oracle XE 21c thật: Oracle chỉ có DROP CONSTRAINT, hai cú pháp MySQL này báo ORA-00905.
     const s = setup('oracle');
     expect(err(s, 'ALTER TABLE c DROP FOREIGN KEY fk_c').code).toBe('ORA-00905');
     expect(err(s, 'ALTER TABLE c DROP CHECK ck_n').code).toBe('ORA-00905');
   });
 
-  it('ALTER TABLE không có việc nào: Oracle ORA-01735', () => {
-    // CHỜ KIỂM TÀI LIỆU: mã ORA-01735 cho ALTER TABLE t trơ trọi là suy luận.
+  it('ALTER TABLE không có việc nào: Oracle ORA-02210', () => {
+    // Đã kiểm trên Oracle XE 21c và 18c thật: ORA-02210 no options specified for ALTER TABLE.
     const s = setup('oracle');
-    expect(err(s, 'ALTER TABLE c').code).toBe('ORA-01735');
+    expect(err(s, 'ALTER TABLE c').code).toBe('ORA-02210');
   });
 });
 
@@ -805,7 +805,7 @@ describe('DROP TABLE', () => {
   });
 
   it('Oracle 19c không có IF EXISTS: ORA-00933', () => {
-    // CHỜ KIỂM TÀI LIỆU: Oracle đọc IF thành tên table rồi lạc ở chữ EXISTS. Mã ORA-00933 là hiểu biết tốt nhất, chưa tìm trang xác nhận.
+    // Đã kiểm trên Oracle XE 21c thật và 18c: Oracle đọc IF thành tên table rồi lạc ở chữ EXISTS, ORA-00933.
     const e = err(S('oracle'), 'DROP TABLE IF EXISTS nope');
     expect(e.code).toBe('ORA-00933');
   });

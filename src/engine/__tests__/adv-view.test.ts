@@ -132,12 +132,13 @@ describe('CREATE TABLE ... AS SELECT', () => {
     expect(t.columns.map((c) => c.type)).toEqual(d === 'mysql' ? ['INT', 'VARCHAR(50)', 'DECIMAL(10,2)'] : ['NUMBER(38)', 'VARCHAR2(50)', 'NUMBER(10,2)']);
   });
 
+  // Oracle XE 21c và 18c thật: DESC bảng sao chép chỉ giữ NOT NULL viết rõ. NOT NULL ngầm của primary key không đi theo. MySQL giữ cả hai.
   T('không chép primary key, nhưng giữ NOT NULL', (d) => {
     const s = sess(d);
     exec(s, 'CREATE TABLE copy1 AS SELECT * FROM employees');
     const t = s.schema().tables.find((x) => x.name === 'copy1')!;
     expect(t.columns.some((c) => c.pk)).toBe(false);
-    expect(t.columns.map((c) => c.nullable)).toEqual([false, false, true, true, true]);
+    expect(t.columns.map((c) => c.nullable)).toEqual([d === 'oracle', false, true, true, true]);
     // Không còn primary key: hai row trùng id vào được.
     exec(s, "INSERT INTO copy1 (id, name) VALUES (1, 'trùng')");
   });

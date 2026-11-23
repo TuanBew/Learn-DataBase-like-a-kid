@@ -26,10 +26,10 @@ Mọi kiểu dưới đây chạy ở cả hai dialect, trừ khi ghi riêng. Tr
 
 - `RIGHT [OUTER] JOIN ... ON ...`: giữ mọi row bên phải. MySQL xếp row theo table bên phải.
 - `FULL [OUTER] JOIN ... ON ...`: chỉ Oracle. Ở MySQL, chữ FULL ngay sau table bị đọc như alias (đã kiểm trên MySQL 8.0.46). `a FULL JOIN b ON ...` báo 1054 vì tên `a` không còn dùng được. `a x FULL JOIN b` và `a FULL OUTER JOIN b` báo 1064 tại chữ FULL hoặc OUTER. `a FULL JOIN b USING (c)` chạy như JOIN thường. Mọi lỗi này kèm lời giải thích: MySQL không có FULL JOIN, ghép LEFT JOIN và RIGHT JOIN bằng UNION.
-- `CROSS JOIN`: ghép mọi row với mọi row. `a JOIN b` không có ON: MySQL coi là CROSS JOIN, Oracle báo ORA-00905. `CROSS JOIN ... ON`: MySQL coi là INNER JOIN, Oracle báo ORA-00933 (mã chưa có nguồn xác nhận).
+- `CROSS JOIN`: ghép mọi row với mọi row. `a JOIN b` không có ON: MySQL coi là CROSS JOIN, Oracle báo ORA-00905. `CROSS JOIN ... ON`: MySQL coi là INNER JOIN, Oracle báo ORA-00933.
 - `JOIN ... USING (c1, c2)`: nối theo column cùng tên. `SELECT *` hiện column trong USING một lần, đứng đầu. MySQL xếp theo thứ tự trong table bên trái (RIGHT JOIN thì theo table bên phải, và column còn lại của bên phải đứng trước bên trái). Oracle xếp theo thứ tự viết trong USING, rồi column còn lại của bên trái, rồi bên phải (theo chuẩn SQL, chưa có nguồn xác nhận cho RIGHT JOIN). Giá trị column gộp là giá trị khác NULL đầu tiên của hai bên, nên RIGHT JOIN hiện giá trị của bên phải. `t.*` vẫn hiện đủ column của table t.
 - Column trong USING và NATURAL: MySQL cho viết `alias.column`. Oracle báo ORA-25154 (USING) hoặc ORA-25155 (NATURAL).
-- Column trong USING không có ở một bên: MySQL 1054 ở `from clause`, Oracle ORA-00904 (chưa có nguồn xác nhận). Column có ở nhiều table bên trái: MySQL 1052, Oracle ORA-00918.
+- Column trong USING không có ở một bên: MySQL 1054 ở `from clause`, Oracle ORA-00904 (ghi `"bên thiếu"."COLUMN"`). Column có ở nhiều table bên trái: MySQL 1052, Oracle ORA-00918.
 - `NATURAL [INNER | LEFT | RIGHT] JOIN`: nối theo mọi column cùng tên. Không có column nào trùng thì thành CROSS JOIN. Oracle có thêm `NATURAL FULL JOIN`. Sau NATURAL không viết ON hay USING (MySQL 1064, Oracle ORA-00933). `NATURAL CROSS JOIN` không có ở cả hai.
 - Dấu `(+)` của Oracle, trong WHERE, FROM ngăn bằng dấu phẩy: `WHERE a.x = b.x(+)` giữ mọi row của a. Điều kiện lọc có `(+)` (như `AND b.y(+) = 'x'`) nằm trong phần nối, còn điều kiện không có `(+)` lọc sau khi nối. Trace là LEFT JOIN: table có `(+)` nối sau, nên `a.x(+) = b.x` cho trace bắt đầu từ b. `SELECT *` vẫn theo thứ tự table trong FROM. Một table được nối ngoài với nhiều table kia thì chạy. MySQL báo 1064 tại dấu `)`.
 - Lỗi của `(+)`: ở hai table trong một điều kiện ORA-01468; trong OR hoặc IN ORA-01719; so với subquery ORA-01799; trong SELECT, GROUP BY, HAVING, ORDER BY ORA-30563; chung query với JOIN ... ON ORA-25156; hai table nối ngoài vào nhau ORA-01416.
@@ -40,7 +40,7 @@ Mọi kiểu dưới đây chạy ở cả hai dialect, trừ khi ghi riêng. Tr
 Chạy ở cả hai dialect, trừ khi ghi riêng. Mã MySQL đã kiểm trên MySQL 8.0.46. Mã Oracle theo tài liệu 19c.
 
 - Scalar subquery ở mọi chỗ nhận biểu thức: danh sách SELECT, WHERE, HAVING, ORDER BY, vế phải của `SET`. Không ra row nào thì là NULL. Ra hơn một row: MySQL 1242, Oracle ORA-01427. Ra hơn một column: MySQL 1241, Oracle ORA-00913 (cũng áp cho IN, ANY, ALL). Tên column trong danh sách SELECT: MySQL giữ nguyên chữ trong query (kể cả ngoặc), Oracle in hoa và bỏ dấu cách.
-- Subquery trong FROM: `FROM (SELECT ...) t`. Nối được với table và subquery khác, lồng nhiều tầng. MySQL bắt buộc có alias (1248) và báo 1060 khi hai column trùng tên. Oracle không bắt buộc alias, và hai column trùng tên chỉ báo ORA-00918 khi gọi tên chúng (chưa có nguồn xác nhận). Subquery trong FROM không nhìn thấy table cùng cấp (không có LATERAL).
+- Subquery trong FROM: `FROM (SELECT ...) t`. Nối được với table và subquery khác, lồng nhiều tầng. MySQL bắt buộc có alias (1248) và báo 1060 khi hai column trùng tên. Oracle không bắt buộc alias, và hai column trùng tên chạy được khi không đọc tên column nào (`COUNT(*)`), còn `SELECT *`, `SELECT a` và `t.a` đều báo ORA-00918. Subquery trong FROM không nhìn thấy table cùng cấp (không có LATERAL).
 - Subquery phụ thuộc: nhắc tới column của query ngoài, ở WHERE, danh sách SELECT, HAVING, ORDER BY, lồng nhiều tầng (nhắc tới cả query ngoài cùng). Tên column ở subquery thắng tên cùng chữ ở query ngoài. Engine chạy lại subquery cho từng row ngoài, và nhớ kết quả theo giá trị của các column ngoài mà nó dùng.
 - `EXISTS (subquery)`, `NOT EXISTS (subquery)`. Subquery chọn gì cũng được (kể cả NULL hay nhiều column). Ở MySQL, EXISTS trong danh sách SELECT ra 1 hoặc 0. Oracle không cho đặt điều kiện trong danh sách SELECT (dùng CASE WHEN).
 - `IN`, `NOT IN` đúng luật NULL: `NOT IN` gặp một NULL trong danh sách thì không row nào qua. Subquery rỗng: IN sai, NOT IN đúng, kể cả với vế trái NULL.
@@ -51,7 +51,7 @@ Chạy ở cả hai dialect, trừ khi ghi riêng. Mã MySQL đã kiểm trên M
 
 ## Ghép kết quả
 
-- `UNION`, `UNION ALL`, `INTERSECT`, và `MINUS` (Oracle) hoặc `EXCEPT` (MySQL). Chữ của dialect kia báo lỗi kèm lời chỉ sang chữ đúng: Oracle gặp EXCEPT báo ORA-00933 (chỉ sang MINUS); MySQL gặp MINUS báo 1064 ở chữ sau MINUS (chỉ sang EXCEPT). MySQL nhận thêm `UNION DISTINCT`. `INTERSECT ALL` và `EXCEPT ALL` chưa dạy.
+- `UNION`, `UNION ALL`, `INTERSECT`, và `MINUS` (Oracle) hoặc `EXCEPT` (MySQL). Chữ của dialect kia báo lỗi kèm lời chỉ sang chữ đúng: Oracle 19c gặp EXCEPT báo ORA-00933 (chỉ sang MINUS; Oracle 21c đã nhận EXCEPT, nên bản 19c kiểm trên 18c); MySQL gặp MINUS báo 1064 ở chữ sau MINUS (chỉ sang EXCEPT). MySQL nhận thêm `UNION DISTINCT`. `INTERSECT ALL` và `EXCEPT ALL` chưa dạy.
 - Ghép nhiều hơn hai query, có ngoặc. Độ ưu tiên: MySQL 8 cho INTERSECT cao hơn UNION và EXCEPT; Oracle xếp mọi phép ngang hàng, chạy từ trái sang phải. Query trong ngoặc có ORDER BY và LIMIT riêng.
 - Tên column lấy từ query đầu. Row trùng bỏ theo collation của dialect (MySQL không phân biệt hoa thường). Không có ORDER BY thì engine giữ thứ tự gặp (Oracle thật không bảo đảm thứ tự).
 - `ORDER BY` đứng cuối áp cho cả kết quả, theo tên hoặc alias column của query đầu, hoặc theo số thứ tự. MySQL nhận cả biểu thức tính từ các tên đó (`ORDER BY d + 1`); Oracle chỉ nhận tên, alias, số thứ tự (ORA-01785). Tên không có: MySQL 1054, Oracle ORA-00904. Tên table đứng trước column: MySQL 1250, Oracle ORA-00904 (chưa có nguồn xác nhận). `ORDER BY` hay `LIMIT` đứng giữa chuỗi ghép mà không trong ngoặc: MySQL 1064, Oracle ORA-00933.
@@ -62,7 +62,7 @@ Chạy ở cả hai dialect, trừ khi ghi riêng. Mã MySQL đã kiểm trên M
 ## WITH
 
 - `WITH ten AS (SELECT ...) [, ten2 AS (...)] query`. Nhiều khối, khối sau dùng được khối trước. Dùng trong FROM, JOIN, subquery và UNION của query chính. Khối che table cùng tên.
-- `WITH ten (c1, c2) AS (...)`. Số tên không khớp SELECT: MySQL 1353, Oracle ORA-32038. Hai khối trùng tên: MySQL 1066, Oracle ORA-00955 (chưa có nguồn xác nhận).
+- `WITH ten (c1, c2) AS (...)`. Số tên không khớp SELECT: MySQL 1353, Oracle ORA-32038. Hai khối trùng tên: MySQL 1066. Oracle không báo lỗi: khối đầu thắng, khối trùng tên sau nó không chạy.
 - `WITH RECURSIVE` (MySQL) và khối WITH gọi lại chính nó (Oracle): báo "khóa học chưa dạy tới". `WITH` đứng trước UPDATE, DELETE, INSERT cũng chưa dạy.
 - Trace: mỗi khối là một màn `cte` trong `acts`, có trace đầy đủ. Query dùng khối đó có bước `from` hay `join` mang `source: 'cte'`. Khối dùng hai lần vẫn là một màn.
 
@@ -121,14 +121,14 @@ Giới hạn vì engine dùng số của JavaScript: `CAST(12 AS DECIMAL(5,2))` 
 
 ### Lỗi mới
 
-Mọi lỗi dưới đây có lời tiếng Việt trong `messages.vi.ts`. MySQL: 1690 (POWER vượt trần), 1064 (CAST sang data type lạ, INTERVAL sai, dạng gọi sai, ROLLUP(...) kiểu Oracle), 1056 (GROUP BY alias của function gom), 3602 (GROUPING nhận column ngoài GROUP BY), 1111 (GROUPING không có GROUP BY). Oracle: ORA-01428 (SQRT số âm, INSTR lần thứ < 1, POWER không tính được), ORA-01426, ORA-01481, ORA-01846, ORA-01899, ORA-00932 (CAST số sang DATE), ORA-00975, ORA-01438 (CAST NUMBER(p,s) tràn), ORA-01489 (LISTAGG dài hơn 4000 byte), ORA-00902 (CAST sang data type của MySQL), ORA-00905 (LISTAGG thiếu WITHIN GROUP, chưa có nguồn xác nhận), ORA-00933 (`WITH ROLLUP`, chưa có nguồn xác nhận).
+Mọi lỗi dưới đây có lời tiếng Việt trong `messages.vi.ts`. MySQL: 1690 (POWER vượt trần), 1064 (CAST sang data type lạ, INTERVAL sai, dạng gọi sai, ROLLUP(...) kiểu Oracle), 1056 (GROUP BY alias của function gom), 3602 (GROUPING nhận column ngoài GROUP BY), 1111 (GROUPING không có GROUP BY). Oracle: ORA-01428 (SQRT số âm, INSTR lần thứ < 1, POWER không tính được), ORA-01426, ORA-01481, ORA-01846, ORA-01899, ORA-00932 (CAST số sang DATE), ORA-00975, ORA-01438 (CAST NUMBER(p,s) tràn), ORA-01489 (LISTAGG dài hơn 4000 byte), ORA-00902 (CAST sang data type của MySQL), ORA-00933 (`WITH ROLLUP`).
 
 ## Window function
 
 - `ROW_NUMBER()`, `RANK()`, `DENSE_RANK()`, `LAG(x [, n [, mặc định]])`, `LEAD(...)`, và `SUM`, `AVG`, `COUNT` (kể cả `COUNT(*)`), `MIN`, `MAX`, kèm `OVER ([PARTITION BY ...] [ORDER BY ...])`. Dùng được trong danh sách SELECT, trong ORDER BY, và trong biểu thức (`salary - AVG(salary) OVER (PARTITION BY dept)`). Tính sau WHERE, GROUP BY và HAVING, nên đọc được kết quả gom nhóm (`RANK() OVER (ORDER BY SUM(salary) DESC)`).
 - Có ORDER BY trong OVER thì SUM, AVG, COUNT, MIN, MAX tính cộng dồn theo khung mặc định của SQL: các row có cùng giá trị ORDER BY nhận cùng kết quả. Không có ORDER BY thì tính trên cả partition. Khung viết rõ chỉ nhận đúng một dạng: `ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` (cộng từng row một). `RANGE`, `GROUPS`, `ROWS` dạng khác, `DISTINCT` trong window, window đặt tên (`OVER w`), GROUP_CONCAT và LISTAGG kèm OVER: "khóa học chưa dạy tới".
 - NULL khi sắp: nhỏ nhất ở MySQL, lớn nhất ở Oracle (như ORDER BY). NULL trong PARTITION BY là một nhóm riêng.
-- Query không có ORDER BY ngoài thì row ra theo thứ tự sắp của window đứng cuối trong SELECT, như MySQL 8.0.46. Oracle không hứa thứ tự này (CHỜ KIỂM TÀI LIỆU). Bài tập nên luôn có ORDER BY.
+- Query không có ORDER BY ngoài thì row ra theo thứ tự sắp của window đứng cuối trong SELECT, như MySQL 8.0.46. Oracle XE 21c thật cho cùng thứ tự trong 5 query thử, nhưng Oracle không hứa thứ tự này. Bài tập nên luôn có ORDER BY.
 - Dùng trong WHERE, ON, GROUP BY, HAVING: MySQL 3593, Oracle ORA-30483. Lời giải thích chỉ cách tính trong subquery ở FROM rồi lọc ở query ngoài.
 - ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD không có OVER: MySQL 1064 (ở chữ sau dấu `)`), Oracle ORA-30484. Function thường kèm OVER: MySQL 1064, Oracle ORA-30484. Oracle: ranking, LAG, LEAD thiếu ORDER BY trong OVER là ORA-30485 (MySQL cho qua). MySQL: số row của LAG, LEAD phải là số nguyên không âm viết thẳng, sai là 1064.
 - Tiêu đề column của MySQL giữ nguyên chữ viết, gồm cả phần `OVER (...)`.
@@ -138,7 +138,7 @@ Mọi lỗi dưới đây có lời tiếng Việt trong `messages.vi.ts`. MySQL
 ## Gom nhóm mở rộng
 
 - `GROUP_CONCAT([DISTINCT] a [, b...] [ORDER BY x [ASC|DESC], ...] [SEPARATOR 'chuỗi'])` (MySQL). Chuỗi nối mặc định là dấu phẩy. Row có NULL ở bất kỳ tham số nào bị bỏ. Không còn row nào thì ra NULL. Kết quả dài hơn 1024 byte bị cắt kèm cảnh báo 1260.
-- `LISTAGG([DISTINCT] a [, 'chuỗi nối']) WITHIN GROUP (ORDER BY x, ...)` (Oracle 19c). Chuỗi nối mặc định là rỗng. Bỏ NULL. Dài hơn 4000 byte: ORA-01489. Thiếu `WITHIN GROUP`: lỗi cú pháp.
+- `LISTAGG([DISTINCT] a [, 'chuỗi nối']) WITHIN GROUP (ORDER BY x, ...)` (Oracle 19c). Chuỗi nối mặc định là rỗng. Bỏ NULL. Dài hơn 4000 byte: ORA-01489. Thiếu `WITHIN GROUP` vẫn chạy (Oracle 18c, 21c thật và tài liệu 19c cho bỏ cả `WITHIN GROUP (ORDER BY ...)`), thứ tự nối không được hứa.
 - `GROUP BY a, b WITH ROLLUP` (MySQL) và `GROUP BY ROLLUP(a, b)` hoặc `GROUP BY x, ROLLUP(a, b)` (Oracle, ROLLUP đứng cuối). Mỗi nhóm có thêm row tổng: cuộn lần lượt key cuối thành NULL, cuối cùng là row tổng cộng. Chưa có CUBE và GROUPING SETS.
 - `GROUPING(col [, col...])` (cả hai): 1 khi col là NULL do cuộn lên ở row tổng, 0 trong các trường hợp khác (kể cả NULL thật của dữ liệu). Nhiều col cho số nhị phân, col đầu là bit cao nhất. Dùng được trong SELECT, HAVING, ORDER BY.
 - Thứ tự row: engine xếp các nhóm theo key tăng dần, row tổng đứng ngay sau các row chi tiết của nó (MySQL cho đúng như vậy, đã kiểm). Key NULL đứng đầu ở MySQL, đứng cuối ở Oracle (chưa có nguồn xác nhận cho Oracle: nên viết ORDER BY).
@@ -167,15 +167,15 @@ Kết quả là `{ ok: true, kind: 'ddl', op, object, table, columns }`. `op` l�
 ### CREATE TABLE
 
 - MySQL: INT, INTEGER, BIGINT, SMALLINT, TINYINT, DECIMAL(p,s), NUMERIC(p,s), VARCHAR(n) (bắt buộc có n), CHAR(n), TEXT, DATE, DATETIME, TIMESTAMP. `IF NOT EXISTS`. Đọc và bỏ qua `ENGINE=`, `DEFAULT CHARSET=`, `COMMENT`, `KEY`, `INDEX`. `AUTO_INCREMENT=n` đặt số bắt đầu.
-- Oracle: NUMBER, NUMBER(p), NUMBER(p,s), INTEGER, INT, VARCHAR2(n), VARCHAR2(n CHAR), VARCHAR(n), CHAR(n), CLOB, DATE, TIMESTAMP. Không có `IF NOT EXISTS`.
-- Data type của dialect kia: MySQL báo 1064, Oracle báo ORA-00902. Độ dài hoặc độ chính xác vượt limit: MySQL 1074, 1426, 1427; Oracle ORA-00910, ORA-01727, ORA-01728.
+- Oracle: NUMBER, NUMBER(p), NUMBER(p,s), INTEGER, INT, VARCHAR2(n), VARCHAR2(n CHAR), VARCHAR(n), CHAR(n), CLOB, DATE, TIMESTAMP. Không có `IF NOT EXISTS`. `INT(5)`, `INTEGER(5)`, `SMALLINT(5)`, `DATE(5)`, `CLOB(5)` và tên data type lạ có ngoặc theo sau (`VARCHR2(50)`) báo ORA-00907. Tên lạ không có ngoặc báo ORA-00902.
+- Data type của dialect kia: MySQL báo 1064, Oracle báo ORA-00902. Độ dài hoặc độ chính xác vượt limit: MySQL 1074, 1426, 1427; Oracle ORA-00910, ORA-01727, ORA-01728. Độ dài 0: Oracle ORA-01723.
 - `DEFAULT giá trị` (MySQL chỉ nhận một giá trị, `CURRENT_TIMESTAMP` hoặc biểu thức trong ngoặc; Oracle nhận biểu thức, và `DEFAULT` phải đứng trước `NOT NULL`). DEFAULT sai data type: MySQL 1067.
 - Constraint mức column và mức table: `PRIMARY KEY (a, b)`, `UNIQUE (a, b)`, `FOREIGN KEY (a) REFERENCES t(b)`, `CHECK (...)`, đặt tên bằng `CONSTRAINT ten ...`. Foreign key được trỏ về chính table đang tạo.
 - Tên constraint hiện trong lỗi như DBMS thật. Không đặt tên thì MySQL dùng `PRIMARY`, tên column, `t_ibfk_n`, `t_chk_n`; Oracle dùng `SYS_C00nnnn`.
 - `ON DELETE CASCADE`, `ON DELETE SET NULL`. MySQL còn nhận `RESTRICT` và `NO ACTION` (bằng mặc định). Chưa có `ON UPDATE CASCADE`.
 - Lỗi lúc tạo: tên column trùng (1060, ORA-00957), hai primary key (1068, ORA-02260), column không có trong constraint (1072, ORA-00904), tên constraint trùng (1826, 3822, 1061, ORA-02264), foreign key sai (MySQL 1824, 3734, 1822, 3780, 1239, 1830; Oracle ORA-00942, ORA-00904, ORA-02270, ORA-02267, ORA-02256), AUTO_INCREMENT không phải key (1075).
 - Table mẫu viết constraint bằng cờ `pk`, `unique`, `fk`, `checks`. Session tự dựng danh sách `constraints` từ các cờ đó, nên ALTER và DROP chạy được trên cả table mẫu.
-- `CREATE TABLE t AS SELECT ...` (MySQL còn nhận `CREATE TABLE t SELECT ...`): chép column (data type, NOT NULL) và row. Không chép primary key, foreign key, UNIQUE, CHECK, AUTO_INCREMENT, identity, DEFAULT. Column NOT NULL kiểu số ở MySQL nhận `DEFAULT 0`, như MySQL thật. Column là biểu thức: data type suy từ giá trị (số nguyên là INT hoặc NUMBER, số lẻ là DECIMAL(20,s) hoặc NUMBER, chữ là VARCHAR(255) hoặc VARCHAR2(4000)), chỉ gần đúng so với DBMS thật. Hai column trùng tên: 1060, ORA-00957. Oracle: biểu thức không có alias là ORA-00998. Chưa có: `CREATE TABLE t (a, b) AS SELECT`. Tự COMMIT như mọi DDL.
+- `CREATE TABLE t AS SELECT ...` (MySQL còn nhận `CREATE TABLE t SELECT ...`): chép column (data type, NOT NULL) và row. Oracle chỉ chép NOT NULL viết rõ, NOT NULL ngầm của primary key không đi theo (engine coi mọi column primary key là ngầm). Không chép primary key, foreign key, UNIQUE, CHECK, AUTO_INCREMENT, identity, DEFAULT. Column NOT NULL kiểu số ở MySQL nhận `DEFAULT 0`, như MySQL thật. Column là biểu thức: data type suy từ giá trị (số nguyên là INT hoặc NUMBER, số lẻ là DECIMAL(20,s) hoặc NUMBER, chữ là VARCHAR(255) hoặc VARCHAR2(4000)), chỉ gần đúng so với DBMS thật. Hai column trùng tên: 1060, ORA-00957. Oracle: biểu thức không có alias là ORA-00998. Chưa có: `CREATE TABLE t (a, b) AS SELECT`. Tự COMMIT như mọi DDL.
 - Chưa có: CREATE INDEX, thêm column AUTO_INCREMENT hoặc IDENTITY bằng ALTER, `ALTER TABLE ... CHANGE`, `FIRST` và `AFTER`.
 
 ### VIEW
@@ -190,7 +190,7 @@ Kết quả là `{ ok: true, kind: 'ddl', op, object, table, columns }`. `op` l�
 
 - Mỗi database có một tên schema: tên database (`congty` ở MySQL, `CONGTY` ở Oracle). Viết `schema.table` ở SELECT (FROM, JOIN, subquery), INSERT, UPDATE, DELETE, MERGE, CREATE TABLE, CREATE VIEW, ALTER, DROP, TRUNCATE, DESC. Đúng schema thì chạy như thường. Chưa có `schema.table.column`.
 - MySQL phân biệt hoa thường ở tên schema (`CONGTY.employees` là 1049). Oracle không phân biệt, trừ khi nằm trong nháy kép.
-- Schema khác: MySQL 1049 (`Unknown database`), riêng DROP TABLE và DROP VIEW là 1051, TRUNCATE là 1146. Oracle ORA-00942, riêng CREATE là ORA-01918 (CHỜ KIỂM TÀI LIỆU) và DESC là ORA-04043.
+- Schema khác: MySQL 1049 (`Unknown database`), riêng DROP TABLE và DROP VIEW là 1051, TRUNCATE là 1146. Oracle ORA-00942, riêng CREATE là ORA-01918 và DESC là ORA-04043.
 - Oracle: `SELECT USER FROM DUAL` trả tên schema. `ALL_TABLES`, `ALL_TAB_COLUMNS`, `ALL_VIEWS` có column `OWNER` bằng tên đó. `USER_VIEWS` có `VIEW_NAME`, `TEXT`. MySQL: `SHOW TABLES` gồm cả view, `SHOW FULL TABLES` thêm column `Table_type` (`BASE TABLE` hay `VIEW`).
 
 ### ALTER TABLE
@@ -207,12 +207,12 @@ Kết quả là `{ ok: true, kind: 'ddl', op, object, table, columns }`. `op` l�
 
 ### DROP TABLE, TRUNCATE TABLE
 
-- `DROP TABLE t`. MySQL có `IF EXISTS`. Oracle 19c không có (ORA-00933) nhưng có `CASCADE CONSTRAINTS` và `PURGE`. Table không có: MySQL 1051, Oracle ORA-00942. Table đang bị foreign key trỏ tới: MySQL 3730, Oracle ORA-02449.
+- `DROP TABLE t`. MySQL có `IF EXISTS`. Oracle 19c không có (ORA-00933), `CREATE TABLE IF NOT EXISTS` cũng không (ORA-00922), nhưng có `CASCADE CONSTRAINTS` và `PURGE`. Table không có: MySQL 1051, Oracle ORA-00942. Table đang bị foreign key trỏ tới: MySQL 3730, Oracle ORA-02449.
 - `TRUNCATE TABLE t` (MySQL cho bỏ chữ TABLE, Oracle không: ORA-03290). Table đang bị foreign key trỏ tới: MySQL 1701, Oracle ORA-02266.
 
 ### Sequence (chỉ Oracle)
 
-- `CREATE SEQUENCE s [START WITH n] [INCREMENT BY m]`, `DROP SEQUENCE s`. Chấp nhận và bỏ qua `CACHE`, `NOCACHE`, `NOCYCLE`, `ORDER`, `NOORDER`. Chưa có MINVALUE, MAXVALUE, CYCLE.
+- `CREATE SEQUENCE s [START WITH n] [INCREMENT BY m]`, `DROP SEQUENCE s`. Nhận `CACHE n` (n từ 2, nhỏ hơn là ORA-04010) và `NOCACHE`: chúng chỉ đổi LAST_NUMBER trong USER_SEQUENCES. Bỏ qua `NOCYCLE`, `ORDER`, `NOORDER`. Chưa có MINVALUE, MAXVALUE, CYCLE.
 - `s.NEXTVAL`, `s.CURRVAL` dùng được trong VALUES của INSERT, trong `SELECT ... FROM DUAL` và trong DEFAULT. NEXTVAL chỉ tăng một lần trong mỗi lệnh. Lỗi: ORA-02289 (không có sequence), ORA-08002 (CURRVAL trước NEXTVAL), ORA-04002 (INCREMENT BY 0), ORA-00955 (trùng tên).
 - MySQL không có sequence: `CREATE SEQUENCE` báo 1064.
 
@@ -241,7 +241,7 @@ Các lệnh này chạy qua `createSession` và trả `kind: 'select'`, nên gia
 | `USER_SEQUENCES` | SEQUENCE_NAME, INCREMENT_BY, LAST_NUMBER |
 | `ALL_TABLES`, `ALL_TAB_COLUMNS` | như bản `USER_`, thêm OWNER ở đầu (tên database viết hoa) |
 
-- NOT NULL không hiện thành dòng `C` trong `USER_CONSTRAINTS` (Oracle thật có). Table của người học trùng tên view thì che view. LAST_NUMBER tính như sequence NOCACHE.
+- NOT NULL không hiện thành dòng `C` trong `USER_CONSTRAINTS` (Oracle thật có). Table của người học trùng tên view thì che view. LAST_NUMBER theo CACHE (mặc định 20) như Oracle thật: START 100 INCREMENT 5, sau NEXTVAL đầu là 200. Identity không sinh sequence ngầm `ISEQ$$_...` trong USER_SEQUENCES.
 - Ở MySQL, các tên này là table không có (1146).
 - `SHOW TABLES` ở Oracle báo ORA-00900, lời giải thích chỉ sang `USER_TABLES`.
 

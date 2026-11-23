@@ -8,7 +8,7 @@ import { hr } from '../../data/hr';
  * Subquery đủ kiểu, ghép kết quả (UNION, INTERSECT, EXCEPT, MINUS) và WITH.
  * MySQL: kết quả, tên column, mã lỗi và câu báo đều đã kiểm trên MySQL 8.0.46 thật (database hr nạp từ src/data/hr.ts).
  * Oracle: theo tài liệu 19c (SQL Language Reference: Subqueries, Set Operators, WITH; Database Error Messages).
- * Mã Oracle chưa có nguồn xác nhận ghi `CHỜ KIỂM TÀI LIỆU` ngay trên test.
+ * Mã Oracle đã kiểm trên Oracle XE 21c thật, chỗ nào 21c khác 19c thì kiểm thêm trên 18c (xem docs/dialect-verification.md).
  */
 
 const DIALECTS: Dialect[] = ['mysql', 'oracle'];
@@ -121,10 +121,13 @@ describe('subquery trong FROM', () => {
     expect(e.code).toBe('1060');
     expect(e.dbMessage).toBe("ERROR 1060 (42S21): Duplicate column name 'a'");
   });
-  // CHỜ KIỂM TÀI LIỆU: ORA-00918 khi gọi tên column trùng trong subquery FROM không alias là hiểu biết tốt nhất, chưa tìm trang xác nhận.
-  it('oracle: hai column cùng tên chỉ lỗi khi gọi tên chúng (ORA-00918)', () => {
-    expect(ok('SELECT * FROM (SELECT 1 a, 2 a FROM DUAL)', 'oracle').result.rows).toEqual([[1, 2]]);
+  // Đã kiểm trên Oracle XE 21c và 18c thật: subquery có hai column cùng tên chạy được khi không đọc tên column nào (COUNT(*), SELECT 1).
+  // SELECT *, SELECT a và t.a đều báo ORA-00918.
+  it('oracle: hai column cùng tên chỉ lỗi khi đọc tên chúng (ORA-00918)', () => {
+    expect(ok('SELECT COUNT(*) FROM (SELECT 1 a, 2 a FROM DUAL)', 'oracle').result.rows).toEqual([[1]]);
+    expect(fail('SELECT * FROM (SELECT 1 a, 2 a FROM DUAL)', 'oracle').code).toBe('ORA-00918');
     expect(fail('SELECT a FROM (SELECT 1 a, 2 a FROM DUAL)', 'oracle').code).toBe('ORA-00918');
+    expect(fail('SELECT t.a FROM (SELECT 1 a, 2 a FROM DUAL) t', 'oracle').code).toBe('ORA-00918');
   });
   it('oracle: alias trong nháy kép giữ đúng chữ hoa chữ thường', () => {
     const r = ok('SELECT * FROM (SELECT salary "Total" FROM employees) WHERE ROWNUM = 1', 'oracle').result;
@@ -285,7 +288,7 @@ describe('ghép kết quả', () => {
     expect(col(`SELECT department_id FROM departments ${word} SELECT department_id FROM employees`, d)).toEqual([120]);
     expect(col(`SELECT department_id FROM employees WHERE department_id IS NOT NULL ${word} SELECT department_id FROM departments WHERE department_id > 20 ORDER BY 1`, d)).toEqual([10, 20]);
   });
-  // CHỜ KIỂM TÀI LIỆU: Oracle đọc EXCEPT như alias của table rồi lạc ở chữ SELECT sau nó. Mã ORA-00933 là hiểu biết tốt nhất, vị trí lỗi thì engine gạch chân chữ EXCEPT cho dễ hiểu.
+  // Đã kiểm trên Oracle XE 18c thật: ORA-00933. Oracle 21c đã nhận EXCEPT, 19c thì chưa (tài liệu 19c chỉ có UNION, INTERSECT, MINUS). Vị trí lỗi thì engine gạch chân chữ EXCEPT cho dễ hiểu.
   it('oracle: EXCEPT báo ORA-00933 và chỉ sang MINUS', () => {
     const e = fail('SELECT 1 FROM DUAL EXCEPT SELECT 2 FROM DUAL', 'oracle');
     expect(e.code).toBe('ORA-00933');
@@ -367,7 +370,7 @@ describe('ghép kết quả', () => {
   it('mysql: ORDER BY nhận biểu thức tính từ tên column của query đầu', () => {
     expect(col('SELECT department_id d FROM departments UNION SELECT 1 ORDER BY d + 1 LIMIT 2', 'mysql')).toEqual([1, 10]);
   });
-  // CHỜ KIỂM TÀI LIỆU: trang ORA-01785 chỉ nói "ORDER BY item must be the number of a SELECT-list expression". Việc Oracle nhận thêm tên và alias theo mô tả ORDER BY trong tài liệu SELECT; biểu thức tính (d + 1) báo ORA-01785 là suy ra.
+  // Đã kiểm trên Oracle XE 21c thật: biểu thức tính (d + 1) báo ORA-01785.
   it('oracle: ORDER BY của câu ghép chỉ nhận tên, alias hoặc số thứ tự (ORA-01785)', () => {
     const e = fail('SELECT department_id d FROM departments UNION SELECT 1 FROM DUAL ORDER BY d + 1', 'oracle');
     expect(e.code).toBe('ORA-01785');
@@ -382,7 +385,7 @@ describe('ghép kết quả', () => {
     expect(e.code).toBe(d === 'mysql' ? '1054' : 'ORA-01785');
   });
   it('oracle: ORDER BY của câu ghép có tên table đứng trước là ORA-00904', () => {
-    // CHỜ KIỂM TÀI LIỆU: mã Oracle khi ORDER BY của câu ghép viết departments.d. Đang dùng ORA-00904, chưa tìm trang xác nhận.
+    // Đã kiểm trên Oracle XE 21c thật: ORA-00904 "DEPARTMENTS"."D": invalid identifier.
     const e = fail('SELECT department_id d FROM departments UNION SELECT 1 FROM DUAL ORDER BY departments.d', 'oracle');
     expect(e.code).toBe('ORA-00904');
   });
@@ -397,7 +400,7 @@ describe('ghép kết quả', () => {
   each('INTERSECT ALL chưa dạy', (d) => {
     expect(fail('SELECT 1 FROM DUAL INTERSECT ALL SELECT 1 FROM DUAL', d).kind).toBe('unsupported');
   });
-  // CHỜ KIỂM TÀI LIỆU: trang ORA-00928 chỉ nói về CREATE VIEW. Mã này suy ra từ chỗ Oracle chờ chữ SELECT sau UNION.
+  // Đã kiểm trên Oracle XE 21c và 18c thật: ORA-00928 missing SELECT keyword.
   it('oracle: UNION chưa có query sau là ORA-00928', () => {
     expect(fail('SELECT 1 FROM DUAL UNION', 'oracle').code).toBe('ORA-00928');
   });
@@ -456,9 +459,10 @@ describe('WITH', () => {
     expect(e.code).toBe('1066');
     expect(e.dbMessage).toBe("ERROR 1066 (42000): Not unique table/alias: 'a'");
   });
-  it('oracle: hai khối trùng tên cũng báo lỗi', () => {
-    // CHỜ KIỂM TÀI LIỆU: mã Oracle khi hai khối WITH trùng tên. Đang dùng ORA-00955, chưa tìm được trang xác nhận.
-    expect(fail('WITH a AS (SELECT 1 x FROM DUAL), a AS (SELECT 2 x FROM DUAL) SELECT * FROM a', 'oracle').code).toBe('ORA-00955');
+  it('oracle: hai khối trùng tên không báo lỗi, khối đầu thắng và khối sau không chạy', () => {
+    // Đã kiểm trên Oracle XE 21c và 18c thật: WITH a AS (SELECT 1 x ...), a AS (SELECT 2 x ...) cho x = 1, khối sau (kể cả 1/0) không bị chạy.
+    expect(rows('WITH a AS (SELECT 1 x FROM DUAL), a AS (SELECT 2 x FROM DUAL) SELECT * FROM a', 'oracle')).toEqual([[1]]);
+    expect(rows('WITH a AS (SELECT 1 x FROM DUAL), a AS (SELECT 1/0 x FROM DUAL), b AS (SELECT x + 10 y FROM a) SELECT * FROM b', 'oracle')).toEqual([[11]]);
   });
   it('mysql: WITH RECURSIVE chưa dạy', () => {
     expect(fail('WITH RECURSIVE a AS (SELECT 1 x UNION ALL SELECT x + 1 FROM a WHERE x < 3) SELECT * FROM a', 'mysql').kind).toBe('unsupported');

@@ -14,7 +14,7 @@ export const entries: Record<string, GlossaryEntry> = {
   },
   listagg: {
     term: 'LISTAGG',
-    short: 'Function gom của Oracle nối giá trị của mọi row trong nhóm thành một chuỗi. Luôn đi với WITHIN GROUP.',
+    short: 'Function gom của Oracle nối giá trị của mọi row trong nhóm thành một chuỗi. Thường đi với WITHIN GROUP để chọn thứ tự nối.',
     example: 'Ghép tên mọi nhân viên của một phòng vào một ô, xếp theo thứ tự chữ cái.',
   },
   rollup: {

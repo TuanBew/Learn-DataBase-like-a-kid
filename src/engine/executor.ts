@@ -1807,7 +1807,13 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
       const spec = fns[0].over!;
       const added = fns.map((f) => `w${winFns.indexOf(f)}`);
       winKeys.push(...added);
-      cols = [...cols, ...fns.map((f, i) => ({ key: added[i], header: d === 'oracle' ? oracleHeader(src(f.span)) : src(f.span), type: 'expr' as const }))];
+      // Tiêu đề giống tiêu đề mà SELECT sẽ đặt: alias nếu có, nếu không thì chính chữ của function.
+      const head = (f: FnExpr) => {
+        const it = stmt.items.find((x) => x.e === f);
+        if (it?.alias !== undefined) return d === 'oracle' && !it.aliasQuoted ? it.alias.toUpperCase() : it.alias;
+        return d === 'oracle' ? oracleHeader(src(f.span)) : src(f.span);
+      };
+      cols = [...cols, ...fns.map((f, i) => ({ key: added[i], header: head(f), type: 'expr' as const }))];
       for (const u of units) {
         const vals = fns.map((f) => {
           const v = u.cx.win?.get(f) ?? null;

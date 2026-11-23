@@ -10,6 +10,7 @@ export const theaterCopy = {
   stash: (name: string, rows: number, cols: number) => `Kết quả được cất thành table ${name}: ${rows} row, ${cols} column.`,
   noName: 'subquery',
   screens: 'Các màn của query',
+  screenMain: 'query chính',
   screenChip: (n: number, total: number) => `Màn ${n} trên ${total}`,
   stashTable: (name: string) => `table ${name}`,
   written: 'Bạn viết query theo thứ tự này.',

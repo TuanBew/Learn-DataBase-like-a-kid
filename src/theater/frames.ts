@@ -302,7 +302,9 @@ function screenFrames(trace: Trace, screen: Screen): Frame[] {
           push({ phase: 'window', active, boxes, caption: step.orderBy.length > 0 ? T.winOrder(orderText, split) : T.winNoOrder(split), hold: 2400, sfx: [{ name: 'whoosh' }] });
         }
         // Bước 3: column mới hiện ra. Mỗi row nhận thêm một giá trị, row không gộp lại.
-        cols = [...cols, ...toCols(step.columns.filter((c) => newKeys.has(c.key)), 'new')];
+        // Tiêu đề dài như 'RANK() OVER (PARTITION BY ...)' làm column mới bị gập lại: chỉ giữ phần function.
+        const short = (h: string) => h.replace(/\s+OVER\b.*$/i, ' OVER ...');
+        cols = [...cols, ...toCols(step.columns.filter((c) => newKeys.has(c.key)).map((c) => ({ ...c, header: short(c.header) })), 'new')];
         rows = (compact ? rows : arranged).map((r) => ({ ...byId.get(r.id)!, tone: r.tone, stack: r.stack }));
         push({ phase: 'window', active, boxes: compact ? [] : boxes, caption: T.winValues(names, rows.length), hold: 2600, sfx: [{ name: 'pop' }, { name: 'tick', at: 0.5 }] });
         cols = cols.map((c) => ({ ...c, state: 'on' as const }));

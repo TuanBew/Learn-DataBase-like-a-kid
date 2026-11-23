@@ -90,13 +90,13 @@ export const lesson: Lesson = {
           sql: { mysql: topNRow(2, 'job_id', ';'), oracle: topNRow(2, 'job_id', '') },
         },
       ],
-      say: 'Mỗi phòng cho ra đúng ba người, hoặc ít hơn nếu phòng có ít người. Mục thứ hai dùng RANK: phòng Kinh doanh có hai người cùng lương 16 triệu ở hạng 7, nên cả hai cùng vào và phòng đó cho ra 8 row.',
+      say: 'Mỗi phòng cho ra đúng ba người, hoặc ít hơn nếu phòng có ít người. Mục thứ hai dùng RANK. Phòng Kinh doanh có hai người cùng lương 16 triệu ở hạng 7, nên cả hai cùng vào. Phòng đó cho ra 8 row.',
     },
     {
       type: 'text',
       title: 'Chọn ROW_NUMBER hay RANK',
       paragraphs: [
-        'ROW_NUMBER cho đúng N row mỗi nhóm. Hai người bằng nhau ở ranh giới thì một người bị loại, nên bạn thêm column phụ như `employee_id` vào ORDER BY để kết quả cố định.',
+        'ROW_NUMBER cho đúng N row mỗi nhóm. Hai người bằng nhau ở ranh giới thì một người bị loại. Thêm column phụ như `employee_id` vào ORDER BY để kết quả cố định.',
         'RANK giữ cả hai người bằng nhau, nên một nhóm có thể cho ra nhiều hơn N row.',
         'Hỏi người cần báo cáo: "Hai người bằng điểm ở hạng cuối thì sao?" Câu trả lời quyết định function.',
         'WITH làm query dễ đọc hơn: bước một tính hạng, bước hai lọc. Kết quả giống hệt bản subquery.',
@@ -150,7 +150,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Bộ phận kinh doanh cần danh sách 5 khách mua nhiều nhất của mỗi vùng để gọi chăm sóc.',
         'Anh làm báo cáo viết đúng dạng này: tính hạng trong WITH, lọc `rn <= 5` ở query cuối. Anh thêm `customer_id` vào ORDER BY của OVER để danh sách không đổi giữa các lần chạy.',
-        'Dạng query này lặp lại ở nhiều báo cáo: sản phẩm bán chạy mỗi nhóm sản phẩm, đơn lớn nhất mỗi tháng, người chấm công nhiều nhất mỗi phòng.',
+        'Dạng query này lặp lại ở nhiều báo cáo, ví dụ sản phẩm bán chạy nhất mỗi nhóm sản phẩm.',
       ],
     },
     {

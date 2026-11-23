@@ -451,6 +451,19 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+.ex-code {
+  margin: 0;
+  padding: var(--s3);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--r-sm);
+}
 .ex-quizcount {
   background: var(--mango);
 }

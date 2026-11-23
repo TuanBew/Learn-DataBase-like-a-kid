@@ -21,6 +21,7 @@ const ids = (dir) => fs.readdirSync(path.join(root, dir)).filter((f) => /^c\d.*\
     { name: 'trang-hoc-tiep', url: '/hoc-tiep', key: 'trang' },
     { name: 'trang-nguon', url: '/nguon', key: 'trang' },
     { name: 'trang-chung-nhan', url: '/chung-nhan', key: 'trang' },
+    { name: 'trang-tra-cuu', url: '/tra-cuu', key: 'trang' },
   ].filter((p) => !filter || p.key.startsWith(filter) || p.name.includes(filter));
 
   const browser = await chromium.launch();

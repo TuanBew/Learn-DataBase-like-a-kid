@@ -6,19 +6,20 @@ export const exercise: QuizExercise = {
   kind: 'quiz',
   title: 'Đọc query của đồng nghiệp',
   prompt:
-    'Đồng nghiệp để lại query này, và bạn cần hiểu nó trước khi chạy. Query đọc từ trên xuống: ' +
-    '`SELECT d.department_name,` ' +
-    '`COUNT(*) AS headcount,` ' +
-    '`ROUND(AVG(e.salary)) AS avg_salary` ' +
-    '`FROM employees e` ' +
-    '`JOIN departments d ON e.department_id = d.department_id` ' +
-    '`JOIN jobs j ON e.job_id = j.job_id` ' +
-    "`WHERE e.hire_date >= DATE '2020-01-01'` " +
-    '`AND e.commission_pct IS NULL` ' +
-    '`GROUP BY d.department_name` ' +
-    '`HAVING COUNT(*) >= 2` ' +
-    '`ORDER BY avg_salary DESC`. ' +
-    'Đọc FROM và JOIN trước, rồi WHERE, GROUP BY, và cuối cùng SELECT.',
+    'Đồng nghiệp để lại query dưới đây. Bạn cần hiểu nó trước khi chạy. Đọc FROM và JOIN trước, rồi WHERE, GROUP BY, và cuối cùng SELECT.',
+  code: [
+    'SELECT d.department_name,',
+    '       COUNT(*) AS headcount,',
+    '       ROUND(AVG(e.salary)) AS avg_salary',
+    'FROM employees e',
+    'JOIN departments d ON e.department_id = d.department_id',
+    'JOIN jobs j ON e.job_id = j.job_id',
+    "WHERE e.hire_date >= DATE '2020-01-01'",
+    '  AND e.commission_pct IS NULL',
+    'GROUP BY d.department_name',
+    'HAVING COUNT(*) >= 2',
+    'ORDER BY avg_salary DESC',
+  ].join('\n'),
   asks: [],
   items: [
     {

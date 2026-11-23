@@ -5,7 +5,7 @@ export const lesson: Lesson = {
   chapter: 5,
   order: 6,
   title: 'Đổi data type: TO_CHAR, TO_NUMBER, CAST, và đổi ngầm',
-  lead: 'Bạn đổi số thành chữ có dấu phẩy nghìn, đổi chữ thành số, và biết lúc nào database tự đổi thay bạn.',
+  lead: 'Bạn đổi số thành chữ có dấu phẩy nghìn và đổi chữ thành số. Bạn biết lúc nào database tự đổi thay bạn.',
   minutes: 17,
   goals: [
     'Đổi data type bằng CAST ở cả hai dialect',
@@ -145,7 +145,7 @@ export const lesson: Lesson = {
       type: 'text',
       title: 'Database tự đổi: đổi ngầm',
       paragraphs: [
-        '**[[implicit-conversion]]** là lúc database tự đổi data type khi bạn so hoặc tính giữa chữ và số. Bạn không viết CAST.',
+        'Đôi khi database tự đổi data type khi bạn so hoặc tính giữa chữ và số. Bạn không viết CAST. Kiểu đổi này gọi là **[[implicit-conversion]]**.',
         'Khi chuỗi sạch, hai dialect cùng đổi đúng. `salary = \'38000000\'` chạy bình thường: database đổi chuỗi thành số rồi so.',
         'Khi chuỗi không sạch, hai dialect xử lý khác nhau. MySQL đổi tới chỗ đổi được và bỏ phần còn lại. Oracle dừng và báo lỗi ORA-01722.',
         '`\'12abc\' + 0` ở MySQL ra 12, kèm một cảnh báo 1292. Cùng phép tính ở Oracle báo ORA-01722.',
@@ -298,7 +298,7 @@ export const lesson: Lesson = {
     {
       type: 'keypoints',
       items: [
-        'CAST(giá trị AS data type) chạy ở cả hai dialect, nhưng tên data type khác: SIGNED, DECIMAL, CHAR ở MySQL; NUMBER, VARCHAR2 ở Oracle.',
+        'CAST(giá trị AS data type) chạy ở cả hai dialect. Tên data type khác nhau: SIGNED, DECIMAL, CHAR ở MySQL; NUMBER, VARCHAR2 ở Oracle.',
         'Số thành chữ có dấu phẩy nghìn: `FORMAT(n, 0)` ở MySQL, `TO_CHAR(n, \'FM999,999,999\')` ở Oracle. Mẫu ngắn hơn số thì Oracle ra một dãy dấu #.',
         'Đổi ngầm chuỗi không sạch: MySQL im lặng ra số đã đổi được, Oracle báo ORA-01722. Hãy đổi tường minh bằng CAST.',
         'Chuỗi số so từng ký tự, nên `\'10\' < \'9\'`. Đổi sang số trước khi so hoặc sắp xếp.',

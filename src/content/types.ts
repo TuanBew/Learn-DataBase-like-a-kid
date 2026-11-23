@@ -248,6 +248,8 @@ export interface QuizExercise extends ExerciseBase {
   items: Quiz[];
   /** Bi nói khi làm xong hết. */
   why: Rich;
+  /** Khối code nhiều dòng hiện ngay dưới đề (ví dụ query dài cần đọc). */
+  code?: string;
 }
 
 /** Bài tập dựng table: người học viết lệnh tạo table, máy chấm `gradeSchema` so cấu trúc với `spec`. */

@@ -64,7 +64,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'Hai người cùng UPDATE hoặc DELETE một row thì người đến sau chờ.',
         'Người chỉ SELECT không chờ ai. Họ đọc phiên bản đã COMMIT gần nhất của row.',
-        'Với database, đọc là đọc, sửa là sửa. Người đọc không chặn người sửa, và người sửa không chặn người đọc.',
+        'Người đọc không chặn người sửa, và người sửa không chặn người đọc.',
         'Hai người sửa hai row khác nhau cũng không chờ nhau.',
       ],
     },

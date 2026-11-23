@@ -17,7 +17,9 @@ const sizes = [{ w: 1440, h: 900 }, { w: 390, h: 844 }];
     let errs = [];
     page.on('console', (m) => { if (m.type() === 'error') errs.push('console: ' + m.text().slice(0, 200)); });
     page.on('pageerror', (e) => errs.push('pageerror: ' + String(e.message).slice(0, 200)));
-    const targets = [...lessons.map((i) => ['bai', i]), ...exercises.map((i) => ['tap', i])];
+    // ONLY là regex lọc theo `bai/<id>` hoặc `tap/<id>`, để chạy lại một phần.
+    const only = process.env.ONLY ? new RegExp(process.env.ONLY) : null;
+    const targets = [...lessons.map((i) => ['bai', i]), ...exercises.map((i) => ['tap', i])].filter(([k, i]) => !only || only.test(`${k}/${i}`));
     for (const [kind, id] of targets) {
       const url = `${BASE}/${kind}/${id}`;
       errs = [];

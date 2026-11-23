@@ -384,6 +384,7 @@ export function QuizWork({ exercise }: { exercise: QuizExercise }) {
   return (
     <div className="ex-stack">
       <TaskCard exercise={exercise} />
+      {exercise.code && <pre className="ex-code" tabIndex={0}>{exercise.code}</pre>}
       <span className="chip ex-quizcount">{U.quizDone(done.size, exercise.items.length)}</span>
       {exercise.items.map((q, i) => (
         <section key={i} className="ex-work sheet">

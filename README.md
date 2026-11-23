@@ -6,10 +6,15 @@ Website tĩnh dạy database và SQL cho người lớn chưa biết gì về IT
 
 ## Có gì trong site
 
-- 44 bài học xếp theo dàn ý 12 chương (`docs/outline-v2.md`). Hiện có bài ở 11 chương, Chương 9 chưa có bài. Id bài cũ và mới nằm ở `docs/id-map-v2.md`.
-- 58 bài tập. Bài boss nằm ở Chương 1, 2, 3, 4, 5, 6, 7 và 12.
+- 83 bài học xếp theo dàn ý 12 chương (`docs/outline-v2.md`), khoảng 21 giờ học. Id bài cũ và mới nằm ở `docs/id-map-v2.md`.
+- 104 bài tập, gồm 11 bài boss.
+- Database công ty 11 table (Chương 7 trở đi), kèm sơ đồ. Nút "Xem sơ đồ" mở sơ đồ ở mọi bài dùng database này. Cảnh "Tìm đường nối" ở bài c7-b1 cho bạn chọn hai table và đếm số điều kiện nối.
+- Trang Tra cứu (`/tra-cuu`): 127 mục function và từ khóa. Gõ tên để tìm, đổi giữa MySQL và Oracle, bấm Chạy để thấy ví dụ chạy thật. Mỗi mục trỏ về bài dạy nó.
+- Chương 9 dạy window function ở mức dùng cho báo cáo (xếp hạng, top N mỗi nhóm, cộng dồn, LAG, LEAD) và VIEW.
+- Chương 10 dạy sửa dữ liệu an toàn: UPDATE và DELETE theo table khác, transaction, SAVEPOINT, lock, sao lưu bằng CREATE TABLE AS SELECT, MERGE, và sáu bước sửa dữ liệu ở công ty.
+- Chương 11 là Oracle ở công ty: tool và kết nối, schema và user, data dictionary, quyền, index, ngày giờ, và chỗ MySQL khác Oracle.
 - Xưởng dựng table ở Chương 3: gõ lệnh CREATE TABLE hoặc ALTER, bấm Chạy, rồi xem cấu trúc table hiện ra. Các bài dựng table lưu kết quả thành "Database của bạn" trong trình duyệt, và bài sau làm tiếp trên đó. Làm lại một bài đã xong thì database được dựng lại về trạng thái trước bài, không ghi đè.
-- 17 cảnh motion minh họa từng khái niệm.
+- 18 cảnh motion minh họa từng khái niệm.
 - Query Theater diễn lại query từng bước, dựng từ trace của engine.
 - SQL engine tự viết bằng TypeScript, chạy ngay trong browser ở hai dialect (MySQL 8 và Oracle 19c), báo lỗi bằng mã lỗi thật.
 - Hiệu ứng âm thanh Web Audio, không có giọng đọc.
@@ -108,17 +113,23 @@ Mọi script nhận địa chỉ gốc qua biến `BASE`, ví dụ `BASE=http://
 
 ## Trạng thái
 
-Đang ở Mốc 4. Đợt 1 đã xong: Chương 3 "Tạo table từ A đến Z" với xưởng dựng table và "Database của bạn". Ba mốc đầu đã xong từ trước: engine, Query Theater, giao diện tối và lượt kiểm theo mục 13 của `docs/PROMPT.md`.
+Mốc 4 đã xong cả bốn đợt: 12 chương, 83 bài học, 104 bài tập, trang Tra cứu, xưởng dựng table, database công ty với sơ đồ, window function và VIEW, sửa dữ liệu an toàn, Oracle ở công ty. Ba mốc đầu đã xong từ trước: engine, Query Theater, giao diện tối và lượt kiểm theo mục 13 của `docs/PROMPT.md`.
 
-Con số của lượt kiểm sau Đợt 1, chạy ngày 22/11/2026:
+Con số của lượt kiểm gộp sau Mốc 4, chạy ngày 23/11/2026:
 
-- Nội dung: 44 bài học, 58 bài tập, 17 cảnh motion.
-- `npm test`: 1621 test qua. `copy-scan.cjs`: 0 dòng nghi phạm trong 216 file.
-- `crawl.cjs` trên 204 lượt mở trang (102 trang, hai chiều rộng): không lỗi console, không tràn ngang.
-- `axe.cjs` trên 107 trang ở hai chiều rộng, giao diện sáng và tối: 0 vi phạm.
-- `checks-4.cjs`: 15 PASS. `checks-5.cjs`: 136 PASS. `sfx-check.cjs`: 18 PASS.
-- `solve-all.cjs`: 98 lượt giải bài tập trong giao diện thật, tất cả PASS.
-- Lighthouse mobile trên 4 trang (`/`, `/bai/c3-b6`, `/tap/c3-e3`, `/tap/c4-e6`): Performance từ 97 tới 100, Accessibility 100. Trang chủ có một lượt đo 86 khi máy đang bận, hai lượt đo lại cho 99 và 100.
+- Nội dung: 83 bài học, 104 bài tập (11 bài boss), 18 cảnh motion, 127 mục Tra cứu.
+- `npm test`: 2953 test qua. `copy-scan.cjs`: 0 dòng nghi phạm trong 321 file.
+- `crawl.cjs` trên 374 lượt mở trang (187 trang, hai chiều rộng): không lỗi console, không tràn ngang.
+- `axe.cjs` trên 193 trang ở hai chiều rộng, giao diện sáng và tối: 0 vi phạm.
+- `checks-4.cjs`: 15 PASS. `checks-5.cjs`: 142 PASS. `sfx-check.cjs`: 18 PASS.
+- `solve-all.cjs`: 182 lượt giải bài tập trong giao diện thật (kể cả bài dựng table), tất cả PASS.
+- Lighthouse mobile trên 6 trang (`/`, `/bai/c3-b6`, `/bai/c7-b1`, `/bai/c9-b3`, `/tap/c8-boss`, `/tra-cuu`): Performance từ 96 tới 99, Accessibility 100.
+- Mã lỗi 1142 của MySQL (thiếu quyền SELECT) đã đối chiếu trên MySQL 8.0.46 thật: khớp với bài c11-b4.
+
+Con số của lượt kiểm sau Đợt 1 (22/11/2026), để so:
+
+- `npm test`: 1621 test. `crawl.cjs`: 204 lượt. `axe.cjs`: 107 trang. `checks-5.cjs`: 136 PASS. `solve-all.cjs`: 98 lượt.
+- Lighthouse mobile trên 4 trang: Performance từ 97 tới 100, Accessibility 100. Trang chủ có một lượt đo 86 khi máy đang bận, hai lượt đo lại cho 99 và 100.
 - Trang bài tập mở thẳng tải hơn 250 KB JS gzip vì trình soạn SQL (122 KB gzip), tải sau khi trang đã hiện.
 
 ## Những điểm chưa kiểm được
@@ -128,6 +139,7 @@ Các điểm MySQL đã kiểm trên MySQL 8.0.46 thật (xem `docs/dialect-veri
 - Oracle báo mã gì cho dấu `%` (engine báo ORA-00911), cho query rỗng (ORA-00900) và cho chuỗi ngày ISO như `'2026-02-15'` (ORA-01861).
 - Tiêu đề column của biểu thức không alias ở Oracle.
 - Mã lỗi khi gửi hai câu lệnh liền nhau ở Oracle.
+- Nhiều mã lỗi Oracle của phần mở rộng (Chương 9 tới 11) mang comment `CHỜ KIỂM TÀI LIỆU` trong test của engine, vì chưa có Oracle thật để đối chiếu.
 - Vế "tiêu đề kết quả in hoa" ở Oracle, và việc tool Oracle thường chờ COMMIT. Tài liệu SQL Reference xem đây là hành vi của từng tool.
 
 Âm thanh mới được kiểm bằng đo tín hiệu (`scripts/qa/sfx-check.cjs`): cả 15 hiệu ứng có tiếng ở mức nhỏ. Chưa ai nghe bằng tai, vì môi trường dựng site không có loa.

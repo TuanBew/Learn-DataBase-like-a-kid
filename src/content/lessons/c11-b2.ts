@@ -117,7 +117,7 @@ export const lesson: Lesson = {
       type: 'text',
       title: 'Hỏi Oracle: mình là ai, table nào của ai',
       paragraphs: [
-        '`SELECT USER FROM DUAL` cho bạn biết user đang đăng nhập, cũng là tên schema của bạn. **[[dual]]** là table nhỏ có sẵn của Oracle, dùng khi bạn cần SELECT mà không đọc table nào.',
+        '`SELECT USER FROM DUAL` cho bạn biết user đang đăng nhập, cũng là tên schema của bạn. **[[dual]]** là table nhỏ có sẵn của Oracle. Dùng nó khi bạn cần SELECT mà không đọc table nào.',
         '`USER_TABLES` liệt kê table trong schema của bạn.',
         '`ALL_TABLES` liệt kê mọi table bạn được phép đọc, kể cả của schema khác. Column `OWNER` cho biết schema chủ của từng table.',
         'Chạy `SELECT owner, table_name FROM all_tables` là cách nhanh để tìm `EMPLOYEES` nằm ở schema nào.',

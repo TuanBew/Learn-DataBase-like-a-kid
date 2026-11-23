@@ -1,5 +1,6 @@
 import type { Dialect, SqlDate, Value } from './types';
 import { type Span, runtimeError } from './errors';
+import { oracleNumberText } from './numfmt';
 
 export const isDate = (v: Value): v is SqlDate => typeof v === 'object' && v !== null && v.kind === 'date';
 
@@ -143,11 +144,11 @@ export function like(v: Value, pat: Value, d: Dialect): boolean | null {
 
 const escapeRe = (c: string) => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-/** Giá trị thành chữ, đúng như DBMS in ra. */
-export function toText(v: Value): string {
+/** Giá trị thành chữ, đúng như DBMS in ra. Truyền `d` là 'oracle' thì số nhỏ hơn 1 mất số 0 đứng đầu (0.1 thành .1), như Oracle thật. */
+export function toText(v: Value, d?: Dialect): string {
   if (v === null) return 'NULL';
   if (typeof v === 'boolean') return v ? '1' : '0';
-  if (typeof v === 'number') return String(v);
+  if (typeof v === 'number') return d === 'oracle' ? oracleNumberText(v) : String(v);
   if (typeof v === 'string') return v;
   return v.iso;
 }

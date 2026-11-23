@@ -28,7 +28,7 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Tên table và column:** câu "MySQL giữ như lúc viết" chưa đủ. Tên column và alias của column không phân biệt hoa thường. Tên table có phân biệt hay không tùy hệ điều hành và `lower_case_table_names`.
 - **Lưu thay đổi:** tài liệu Oracle không nói tool nào chờ COMMIT, đó là hành vi của từng tool. Tài liệu có nói lệnh DDL như CREATE TABLE tự COMMIT ngầm. Bài về CREATE TABLE ở Mốc 2 sẽ ghi ý này.
 - **So sánh chữ:** nói rõ đây là collation mặc định của MySQL 8 (`utf8mb4_0900_ai_ci`, NO PAD), đổi được bằng COLLATE. Oracle mặc định so sánh binary.
-- **Chưa kiểm được vì tài liệu không nói rõ:** `đ` có bằng `d` ở `utf8mb4_0900_ai_ci` không; tiêu đề column của một biểu thức không có alias; Oracle báo mã gì cho dấu `%`, cho query rỗng và cho hai câu lệnh liền nhau; MySQL báo gì cho hai câu lệnh liền nhau. Các test liên quan vẫn mang comment `CHỜ KIỂM TÀI LIỆU`. Muốn chốt cần chạy trên MySQL và Oracle thật, ví dụ Oracle FreeSQL.
+- **Chưa kiểm được vì tài liệu không nói rõ:** `đ` có bằng `d` ở `utf8mb4_0900_ai_ci` không; tiêu đề column của một biểu thức không có alias; Oracle báo mã gì cho dấu `%`, cho query rỗng và cho hai câu lệnh liền nhau; MySQL báo gì cho hai câu lệnh liền nhau. Phần MySQL đã chốt trên MySQL 8.0.46 thật, phần Oracle đã chốt trên Oracle XE thật (xem mục Oracle ở `docs/dialect-verification.md`).
 
 ## Mạng và cách đọc nguồn
 
@@ -116,7 +116,7 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Tiết kiệm token là ưu tiên.** Chủ dự án nhắc đây là dự án phụ. Mọi phần dựng, kể cả mở rộng engine, giao subagent Sonnet. Phiên chính chỉ viết bản giao việc, chốt kiểu dữ liệu nền và duyệt bằng test.
 - **Đánh lại id một lần theo số của dàn ý v2.** Code đang suy ra bài boss và số chương từ id, nên id phải khớp số chương. Bài cũ đổi sang id mới ngay ở Đợt 1; bài chưa viết thì chưa có file. Danh sách id cũ và id mới nằm ở `docs/id-map-v2.md`.
 - **Phần tự bấm của bài mới dùng khối có sẵn** (khối thử tay ở chế độ giữ database, cạnh một khung hiện cấu trúc table). Dàn ý tả nhiều kiểu kéo thả riêng cho từng bài; bản dựng chỉ làm riêng vài cảnh đáng công nhất, để giữ chi phí thấp.
-- **MySQL 8.0.46 thật trong máy dựng site là trọng tài cho dialect mysql.** Hành vi Oracle theo tài liệu 19c; chỗ chưa kiểm được mang comment `CHỜ KIỂM TÀI LIỆU`.
+- **MySQL 8.0.46 thật trong máy dựng site là trọng tài cho dialect mysql.** Hành vi Oracle trước đó theo tài liệu 19c; nay đã đối chiếu với Oracle thật (mục dưới).
 
 - **Bài học dùng xưởng bắt đầu từ database trống, bài tập mới dựng trên "Database của bạn".** Xưởng trong bài tự chạy ngầm các lệnh của bài trước, nên bài nào cũng mở ra là chạy được. Chuỗi bài tập `c3-e1`, `e3`, `e4`, `e5`, `e6`, `e7` mới là nơi người học dựng dần database Sao Mai của mình.
 - **"Database của bạn" lưu ở localStorage (`ldb:mydb`), không nằm trong mã tiến trình.** Người học đổi máy thì bài tập hiện nút "Dựng theo mẫu" để dựng lại phần của các bài trước.
@@ -139,3 +139,9 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Ba chỗ dàn ý ghi mà bản dựng làm gọn**: đa số phần tự bấm dùng khối thử tay hoặc xưởng thay cho cảnh riêng; bài query chậm chỉ nhắc tên EXPLAIN PLAN; GRANT chỉ dạy đọc hiểu.
 - **Chi phí Mốc 4** (ước theo số liệu của từng subagent): khoảng 7 triệu token Sonnet ở các subagent, chưa kể lượt kiểm gộp. Các lượt mở rộng engine tốn nhất, mỗi lượt từ 200 tới 520 nghìn.
 
+
+## Oracle thật làm trọng tài cho dialect oracle
+
+- **Dùng image `gvenzl/oracle-xe` trên Docker Hub.** Đây là image mặc định của module Oracle trong Testcontainers. Oracle 19c không tải được nếu không có tài khoản Oracle, nên không dùng được. Chỉ kéo hai image: `gvenzl/oracle-xe:21-slim-faststart` (XE 21c) và `gvenzl/oracle-xe:18-slim-faststart` (XE 18c).
+- **Kẹp 19c giữa 18c và 21c.** Điểm nào dính tới thứ có thể mới sau 19c (EXCEPT, LISTAGG, khung window GROUPS, hành vi optimizer) thì chạy cả 18c và 21c. Hai bản cho cùng kết quả thì coi 19c cũng vậy. Hai bản khác nhau thì đọc trang tài liệu 19c để chọn. Mọi điểm lệch tìm thấy đều rơi vào trường hợp đầu, trừ ba chỗ ghi ở `docs/dialect-verification.md`: `EXCEPT` (21c nhận, 18c và 19c không), `LISTAGG(DISTINCT ...)` (18c báo ORA-30482, 19c có theo tài liệu) và `UPDATE ... SET c = (subquery nhiều row)` (21c chạy qua, 18c báo ORA-01427, engine theo 18c).
+- **Bộ đối chiếu nằm ở `src/engine/__tests__/oracle-real.test.ts`**, chỉ chạy khi có `ORACLE_REAL=1`. Mật khẩu của sandbox đọc từ biến môi trường `ORA_PW`, không ghi vào repo.

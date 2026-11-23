@@ -111,7 +111,7 @@ export const lesson: Lesson = {
         'Ba lỗi trong bài này gặp nhiều nhất khi mới tập tạo table.',
         'Thiếu dấu phẩy: MySQL báo 1064 và chỉ vào chữ đứng sau chỗ sai, sau cụm "near". Oracle báo ORA-00907.',
         'Table đã tồn tại: MySQL báo 1050. Oracle báo ORA-00955.',
-        'Data type viết sai: MySQL báo 1064 và chỉ vào chữ viết sai. Oracle báo ORA-00902.',
+        'Data type viết sai: MySQL báo 1064 và chỉ vào chữ viết sai. Oracle báo ORA-00907 khi tên sai có ngoặc theo sau, như `VARCHR2(50)`.',
         'Lỗi thường nằm ngay trước chữ mà MySQL chỉ tới. Bạn tìm ở đó trước.',
       ],
     },
@@ -155,7 +155,7 @@ export const lesson: Lesson = {
           question: 'Bạn viết name VARCHR(50). Bạn thấy gì?',
           options: [
             { text: 'Database hiểu là VARCHAR và tạo table', feedback: 'Database không đoán chữ gõ sai. Data type phải đúng từng chữ.' },
-            { text: 'Database báo lỗi. MySQL chỉ vào VARCHR, Oracle báo ORA-00902', correct: true, feedback: 'Đúng. Đọc lỗi, sửa data type, rồi bấm Chạy lại.' },
+            { text: 'Database báo lỗi. MySQL chỉ vào VARCHR, Oracle báo ORA-00907', correct: true, feedback: 'Đúng. Đọc lỗi, sửa data type, rồi bấm Chạy lại.' },
             { text: 'Table hiện ra nhưng column name để trống', feedback: 'Câu sai thì không có table nào hiện ra.' },
           ],
         },

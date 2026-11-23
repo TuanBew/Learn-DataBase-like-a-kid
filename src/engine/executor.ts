@@ -396,7 +396,7 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
             if (d === 'mysql') throw syntaxError(d, sql, { s: e.span.e - 1, e: e.span.e }, '00909', 'arg-count', { name: e.name, need, got: e.star ? '*' : e.args.length });
             throw runtimeError(d, ['1064', '42000', 'You have an error in your SQL syntax'], '00909', e.span, 'arg-count', { name: e.name, need, got: e.star ? '*' : e.args.length });
           }
-          if (e.name === 'LISTAGG' && !e.within) throw syntaxError(d, sql, { s: e.span.e - 1, e: e.span.e }, '00905', 'listagg-within');
+          // LISTAGG không có WITHIN GROUP vẫn chạy (Oracle 18c, 21c thật và tài liệu 19c: hai phần đi cùng nhau hoặc vắng cùng nhau). Thứ tự nối không được hứa.
           e.args.forEach((x) => check(x, where, 'inside'));
           (e.within ?? []).forEach((o) => check(o.e, where, 'inside'));
           return;
@@ -531,7 +531,7 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
     if (rows.length === 0) return null;
     const sepVal = mysql ? (e.sep ?? ',') : e.args[1] ? ev(e.args[1], { cells: [] }) : '';
     const sep = sepVal === null ? '' : toText(sepVal);
-    const texts = rows.map((r) => r.vals.map(toText).join(''));
+    const texts = rows.map((r) => r.vals.map((v) => toText(v, d)).join(''));
     const enc = new TextEncoder();
     const bytes = (t: string) => enc.encode(t).length;
     if (mysql) {
@@ -660,7 +660,7 @@ export function makeEvaluator(scope: ScopeCol[], db: Database, d: Dialect, sql: 
         }
         const a = ev(e.l, cx);
         const b = ev(e.r, cx);
-        if (e.op === '||') return norm((a === null ? '' : toText(a)) + (b === null ? '' : toText(b)), d);
+        if (e.op === '||') return norm((a === null ? '' : toText(a, d)) + (b === null ? '' : toText(b, d)), d);
         if (e.op === '+' || e.op === '-' || e.op === '*' || e.op === '/' || e.op === '%') {
           // Oracle: ngày cộng trừ một số là cộng trừ số ngày, ngày trừ ngày ra số ngày.
           if (d === 'oracle' && (e.op === '+' || e.op === '-') && (isDate(a) || isDate(b))) {
@@ -931,7 +931,7 @@ function planOuter(stmt: SelectStmt, db: Database, d: Dialect, sql: string, env:
     if (marked.length > 1) throw oraError('syntax', '01468', 'outer-two', ms[1].span);
     const M = marked[0];
     const others = new Set(plainCols(conj).map((c) => E0.resolve(c, 'where clause').qualifier.toLowerCase()));
-    // CHỜ KIỂM TÀI LIỆU: tài liệu 19c ghi `employees.manager_id(+) = employees.employee_id` là không hợp lệ nhưng không nêu mã lỗi.
+    // Đã kiểm trên Oracle XE 21c thật: `employees.manager_id(+) = employees.employee_id` (cùng một table hai vế) báo ORA-01416.
     if (others.has(M)) throw oraError('syntax', '01416', 'outer-cycle', ms[0].span);
     const g = nullGen.get(M) ?? { conjs: [], partners: new Set<string>() };
     g.conjs.push(conj);
@@ -1081,9 +1081,9 @@ function withTables(ctes: Cte[], db: Database, d: Dialect, sql: string, env: FnE
   for (const c of ctes) {
     const key = c.name.toLowerCase();
     if (seen.has(key)) {
-      // CHỜ KIỂM TÀI LIỆU: mã Oracle khi hai khối WITH trùng tên (ở đây dùng ORA-00955).
-      if (d === 'mysql') throw new SqlError('name', '1066', `ERROR 1066 (42000): Not unique table/alias: '${c.name}'`, 'cte-twice', friendly['cte-twice']({ name: c.name }), c.nameSpan);
-      throw new SqlError('name', 'ORA-00955', oraMessage('00955'), 'cte-twice', friendly['cte-twice']({ name: c.name }), c.nameSpan);
+      // Oracle 18c và 21c thật không báo lỗi: khối đầu tiên thắng, khối trùng tên sau nó bị bỏ qua (không chạy).
+      if (d === 'oracle') continue;
+      throw new SqlError('name', '1066', `ERROR 1066 (42000): Not unique table/alias: '${c.name}'`, 'cte-twice', friendly['cte-twice']({ name: c.name }), c.nameSpan);
     }
     seen.add(key);
     if (d === 'oracle') {
@@ -1229,7 +1229,7 @@ function execSet(stmt: SetStmt, db: Database, d: Dialect, sql: string, env: FnEn
       }
       const qual = plainCols(e).find((c) => c.table);
       if (qual) {
-        // CHỜ KIỂM TÀI LIỆU: Oracle báo ORA-00904 khi ORDER BY của câu ghép viết tên table đứng trước column.
+        // Đã kiểm trên Oracle XE 21c thật: ORA-00904 "TABLE"."COLUMN" khi ORDER BY của câu ghép viết tên table đứng trước column.
         if (d === 'mysql') throw new SqlError('name', '1250', `ERROR 1250 (42000): Table '${qual.table}' from one of the SELECTs cannot be used in global ORDER clause`, 'setop-order-qualified', friendly['setop-order-qualified']({ table: qual.table }), qual.span);
         throw unknownColumn(d, `${qual.table}.${qual.name}`, `"${qual.table!.toUpperCase()}"."${qual.name.toUpperCase()}"`, 'order clause', qual.span, 'setop-order-qualified', { table: qual.table });
       }
@@ -1349,8 +1349,10 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
           const l = r ? leftOf(u.name) : undefined;
           if (!l || !r) {
             const p = { name: u.name, table: !r ? `table ${right.name}` : 'các table đứng trước JOIN' };
-            // CHỜ KIỂM TÀI LIỆU: Oracle báo ORA-00904 khi column trong USING không có ở một bên.
-            throw unknownColumn(d, u.name, `"${u.name.toUpperCase()}"`, 'from clause', u.span, 'using-missing', p);
+            // Đã kiểm trên Oracle XE 21c thật: ORA-00904 "bên thiếu"."COLUMN". Bên trái có nhiều table thì Oracle ghi tên nội bộ "from$_subquery$_003", engine bỏ phần đứng trước.
+            const lq = new Set(visible.map((s) => s.qualifier.toLowerCase()));
+            const q = !r ? rightScope[0].qualifier : lq.size === 1 ? visible[0].qualifier : '';
+            throw unknownColumn(d, u.name, q === '' ? `"${u.name.toUpperCase()}"` : `"${q.toUpperCase()}"."${u.name.toUpperCase()}"`, 'from clause', u.span, 'using-missing', p);
           }
           pairs.push({ left: l, right: r });
         }
@@ -1368,7 +1370,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
         }
       }
       // MySQL xếp column gộp theo thứ tự trong table đứng đầu kết quả (bên trái, hoặc bên phải với RIGHT JOIN), không theo thứ tự viết trong USING.
-      // CHỜ KIỂM TÀI LIỆU: Oracle xếp theo thứ tự viết trong USING (theo chuẩn SQL); NATURAL thì theo table bên trái.
+      // Đã kiểm trên Oracle XE 21c thật: Oracle xếp theo thứ tự viết trong USING; NATURAL thì theo table bên trái (kể cả RIGHT JOIN USING).
       if (d === 'mysql' && pairs.length > 1) {
         const rank = (p: { left: ScopeCol; right: ScopeCol }) => (j.kind === 'right' ? p.right.idx : starCols.indexOf(p.left));
         pairs.sort((a, b) => rank(a) - rank(b));
@@ -1738,7 +1740,7 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
     winFns.forEach((f) => E.check(f, 'field list', grouped ? 'yes' : 'no'));
     const order = computeWindows(winFns, units, E.ev, d);
     // Không có ORDER BY thì DBMS trả row theo thứ tự sắp của window cuối cùng.
-    // CHỜ KIỂM TÀI LIỆU: Oracle không hứa thứ tự này. Engine làm giống MySQL (đã kiểm trên MySQL 8.0.46).
+    // Đã kiểm trên MySQL 8.0.46 và Oracle XE 21c thật: cả hai trả row theo thứ tự sắp của window cuối. Oracle không hứa thứ tự này, nên bài tập vẫn phải có ORDER BY.
     if (order && !stmt.orderBy) units = order.map((i) => units[i]);
   }
 
@@ -1760,8 +1762,15 @@ function execSelectInner(stmt: SelectStmt, db: Database, d: Dialect, sql: string
   for (const it of stmt.items) {
     if (!it.e) {
       star = true;
-      for (const c of it.starTable ? scope.filter((x) => !x.virtual) : starCols) {
-        if (it.starTable && c.qualifier.toLowerCase() !== it.starTable.toLowerCase()) continue;
+      const starSrc = (it.starTable ? scope.filter((x) => !x.virtual) : starCols).filter((c) => !it.starTable || c.qualifier.toLowerCase() === it.starTable.toLowerCase());
+      // Oracle 18c và 21c thật: SELECT * trên subquery có hai column cùng tên báo ORA-00918 (MySQL báo từ lúc dựng subquery).
+      if (d === 'oracle') {
+        const dup = starSrc.find((c, i) => starSrc.some((o, j) => j < i && o.qualifier.toLowerCase() === c.qualifier.toLowerCase() && o.def.name.toLowerCase() === c.def.name.toLowerCase()));
+        if (dup) {
+          throw new SqlError('name', 'ORA-00918', oraMessage('00918'), 'ambiguous-anon', friendly['ambiguous-anon']({ name: dup.def.name }), it.span);
+        }
+      }
+      for (const c of starSrc) {
         const gk = grouped ? keyExprs.findIndex((k) => k.t === 'col' && E.resolve(k, 'group statement').idx === c.idx) : -1;
         outCols.push({ key: uniq(gk >= 0 ? `g${gk}` : `c${c.idx}`), header: hdr(c.def, d), label: c.def.label, type: c.def.type });
         getters.push((cx) => cx.cells[c.idx]);

@@ -209,7 +209,7 @@ describe('tiêu đề column', () => {
     expect(ok('SELECT * FROM stores', 'oracle').columns).toEqual(['STORE_ID', 'NAME', 'DISTRICT', 'CITY', 'OPENED_ON']);
   });
 
-  // CHỜ KIỂM TÀI LIỆU: tiêu đề của biểu thức ở Oracle bỏ khoảng trắng và in hoa ('PRICE*2').
+  // Đã kiểm trên Oracle XE 21c thật: tiêu đề của biểu thức ở Oracle bỏ khoảng trắng và in hoa ('PRICE*2', 'COUNT(*)' cho COUNT( * )).
   // Vế MySQL đã kiểm trên MySQL 8.0.46: tiêu đề giữ nguyên chữ gõ, kể cả khoảng trắng và chữ hoa ('price * 2', 'price*2', 'PRICE * 2', 'count( * )').
   it('tiêu đề của biểu thức không có alias', () => {
     expect(ok('SELECT price * 2 FROM products LIMIT 1', 'mysql').columns).toEqual(['price * 2']);
@@ -588,7 +588,7 @@ describe('query rỗng và nhiều câu lệnh', () => {
     expect(ok('SELECT 1;', 'mysql').rows).toEqual([[1]]);
   });
 
-  // CHỜ KIỂM TÀI LIỆU: Oracle báo gì khi gửi câu lệnh rỗng (ORA-00900 hay không báo lỗi gì ở client)
+  // Đã kiểm trên Oracle XE 21c thật qua EXECUTE IMMEDIATE ' ': server báo ORA-00900. Chuỗi rỗng hẳn thì tùy client (PL/SQL báo ORA-06535, OCI báo lỗi độ dài), nên site coi như câu lệnh trắng.
   it('Oracle: query rỗng ra ORA-00900', () => {
     const e = fail('', 'oracle');
     expect(e.code).toBe('ORA-00900');
@@ -604,7 +604,7 @@ describe('query rỗng và nhiều câu lệnh', () => {
     expect(at(sql, e)).toBe('SELECT');
   });
 
-  // CHỜ KIỂM TÀI LIỆU: Oracle với dấu chấm phẩy giữa hai câu lệnh: ORA-00933 hay ORA-00911 tùy client
+  // Đã kiểm trên Oracle XE 21c thật: server nhận cả chuỗi 'SELECT 1 FROM DUAL; SELECT 2 FROM DUAL' (EXECUTE IMMEDIATE, và sqlplus khi hai câu nằm chung một dòng) báo ORA-00933 ở dấu chấm phẩy.
   it('Oracle: hai câu lệnh trong một lần chạy ra ORA-00933', () => {
     const e = fail('SELECT * FROM stores; SELECT * FROM staff', 'oracle');
     expect(e.code).toBe('ORA-00933');

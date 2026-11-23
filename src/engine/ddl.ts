@@ -111,7 +111,7 @@ export function makeDdl(ctx: DdlCtx) {
       if (drop) throw new SqlError('name', '1051', `ERROR 1051 (42S02): Unknown table '${schema.name}.${table}'`, 'unknown-schema', friendly['unknown-schema'](p), schema.span);
       throw new SqlError('name', '1049', `ERROR 1049 (42000): Unknown database '${schema.name}'`, 'unknown-schema', friendly['unknown-schema'](p), schema.span);
     }
-    // CHỜ KIỂM TÀI LIỆU: CREATE TABLE trong schema không có thì Oracle báo ORA-01918 (user does not exist).
+    // Đã kiểm trên Oracle XE 21c thật: CREATE TABLE trong schema không có báo ORA-01918, DROP TABLE báo ORA-00942.
     if (drop) throw new SqlError('name', 'ORA-00942', oraMessage('00942'), 'unknown-schema', friendly['unknown-schema'](p), schema.span);
     throw new SqlError('name', 'ORA-01918', `ORA-01918: user '${upper(schema.name)}' does not exist`, 'unknown-schema', friendly['unknown-schema'](p), schema.span);
   };
@@ -123,8 +123,9 @@ export function makeDdl(ctx: DdlCtx) {
     const w = s.typeName;
     if (s.length !== undefined) {
       const max = my ? (w === 'CHAR' ? 255 : 16383) : w === 'CHAR' ? 2000 : 4000;
-      // CHỜ KIỂM TÀI LIỆU: Oracle VARCHAR2(0) báo ORA-00910.
-      if (s.length > max || (!my && s.length === 0)) {
+      // Oracle 21c thật: độ dài 0 (CHAR, VARCHAR, VARCHAR2) báo ORA-01723, không phải ORA-00910.
+      if (!my && s.length === 0) throw err(['1074', '42000', ''], '01723', 'zero-length', { name: s.name }, s.span);
+      if (s.length > max) {
         throw err(['1074', '42000', `Column length too big for column '${s.name}' (max = ${max}); use BLOB or TEXT instead`], '00910', 'length-too-big', { name: s.name, type: w, max }, s.span);
       }
     }
@@ -354,8 +355,9 @@ export function makeDdl(ctx: DdlCtx) {
         c = { name, type: src.type };
         for (const key of ['sqlType', 'length', 'charLength', 'precision', 'scale', 'label'] as const) if (src[key] !== undefined) (c as unknown as Record<string, unknown>)[key] = src[key];
         // NOT NULL đi theo, primary key kéo theo NOT NULL. Auto-increment, DEFAULT, key thì không đi theo.
-        // CHỜ KIỂM TÀI LIỆU: Oracle chép cả NOT NULL ngầm của primary key (suy từ DESC trên Oracle 19c).
-        if (src.notNull || src.pk) c.notNull = true;
+        // Đã kiểm trên Oracle XE 21c thật: Oracle chỉ chép NOT NULL viết rõ. NOT NULL ngầm của primary key không đi theo.
+        // Engine không phân biệt NOT NULL viết rõ với NOT NULL ngầm trên column primary key, nên coi column primary key là ngầm.
+        if (my ? src.notNull || src.pk : src.notNull && !src.pk) c.notNull = true;
         // MySQL cho column số NOT NULL một DEFAULT 0 (đã kiểm trên MySQL 8.0.46).
         if (my && c.notNull && (c.type === 'int' || c.type === 'decimal')) c.default = '0';
       } else {
@@ -756,7 +758,7 @@ export function makeDdl(ctx: DdlCtx) {
     if (nameTaken(db0, stmt.name)) throw err(['1050', '42S01', ''], '00955', 'name-used', { name: stmt.name }, stmt.nameSpan);
     if (stmt.increment === 0) throw err(['1064', '42000', ''], '04002', 'seq-increment-zero', {}, stmt.incrementSpan ?? stmt.span);
     return atomic((db) => {
-      (db.sequences ??= []).push({ name: stmt.name, start: stmt.start ?? 1, increment: stmt.increment ?? 1 });
+      (db.sequences ??= []).push({ name: stmt.name, start: stmt.start ?? 1, increment: stmt.increment ?? 1, ...(stmt.cache !== undefined ? { cache: stmt.cache } : {}) });
       return result('sequence', stmt.name, undefined, 'create');
     });
   };

@@ -182,7 +182,7 @@ describe('CROSS JOIN', () => {
     const sql = 'SELECT COUNT(*) FROM employees e CROSS JOIN departments d ON e.department_id = d.department_id';
     expect(one(sql, 'mysql')).toBe(24);
     const e = fail(sql, 'oracle');
-    // CHỜ KIỂM TÀI LIỆU: mã ORA-00933 cho CROSS JOIN ... ON theo suy luận từ cú pháp, chưa có nguồn xác nhận.
+    // Đã kiểm trên Oracle XE 21c thật: ORA-00933.
     expect(e.code).toBe('ORA-00933');
     expect(at(sql, e)).toBe('ON');
   });
@@ -261,7 +261,7 @@ describe('JOIN ... USING', () => {
     expect(names.slice(0, 2)).toEqual(['manager_id', 'department_id']);
   });
   it('Oracle: SELECT * thứ tự column gộp theo thứ tự viết trong USING', () => {
-    // CHỜ KIỂM TÀI LIỆU: tài liệu 19c không nói thứ tự column của SELECT *. Theo chuẩn SQL, thứ tự là thứ tự viết trong USING.
+    // Đã kiểm trên Oracle XE 21c thật: thứ tự là thứ tự viết trong USING (DEPARTMENT_ID, MANAGER_ID).
     const names = ok('SELECT * FROM employees JOIN departments USING (department_id, manager_id)', 'oracle').result.columns;
     expect(names.slice(0, 2)).toEqual(['DEPARTMENT_ID', 'MANAGER_ID']);
   });
@@ -271,7 +271,7 @@ describe('JOIN ... USING', () => {
     expect(names.slice(-3)).toEqual(['job_title', 'min_salary', 'max_salary']);
   });
   it('Oracle: RIGHT JOIN USING vẫn để column bên trái trước', () => {
-    // CHỜ KIỂM TÀI LIỆU: thứ tự column của RIGHT JOIN USING ở Oracle theo chuẩn SQL, chưa có nguồn xác nhận.
+    // Đã kiểm trên Oracle XE 21c thật: JOB_ID, JOB_TITLE, MIN_SALARY, MAX_SALARY, rồi các column của employees.
     const names = ok('SELECT * FROM jobs RIGHT JOIN employees USING (job_id)', 'oracle').result.columns;
     expect(names.slice(0, 3)).toEqual(['JOB_ID', 'JOB_TITLE', 'MIN_SALARY']);
   });
@@ -288,7 +288,7 @@ describe('JOIN ... USING', () => {
     expect(m.dbMessage).toBe("ERROR 1054 (42S22): Unknown column 'job_id' in 'from clause'");
     expect(at(sql, m)).toBe('job_id');
     expect(m.friendly).toContain('USING chỉ nhận column có ở cả hai table');
-    // CHỜ KIỂM TÀI LIỆU: ORA-00904 cho column không có trong USING, chưa có nguồn xác nhận.
+    // Đã kiểm trên Oracle XE 21c thật: ORA-00904 "DEPARTMENTS"."JOB_ID": invalid identifier.
     expect(fail(sql, 'oracle').code).toBe('ORA-00904');
   });
   it('column không có ở table bên trái: MySQL 1054', () => {

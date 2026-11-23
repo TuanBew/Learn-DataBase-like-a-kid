@@ -220,7 +220,7 @@ function oracleTypeInfo(c: ColumnDef): [string, number, number | null, number | 
     case 'text': {
       const n = typeNameOf(c);
       if (n === 'TEXT' || n === 'CLOB') return ['CLOB', 4000, null, null];
-      // CHỜ KIỂM TÀI LIỆU: VARCHAR2(n CHAR) có DATA_LENGTH bằng 4n (AL32UTF8), engine dùng 4n.
+      // Đã kiểm trên Oracle XE 21c thật: VARCHAR2(20 CHAR) có DATA_LENGTH 80, tức 4n (AL32UTF8).
       return [n === 'CHAR' ? 'CHAR' : 'VARCHAR2', (c.length ?? 255) * (c.charLength ? 4 : 1), null, null];
     }
     case 'date':
@@ -283,11 +283,17 @@ export function dictionary(db: Database): TableDef[] {
     view('ALL_VIEWS', [V('OWNER'), V('VIEW_NAME'), V('TEXT')], (db.views ?? []).map((v) => [owner, upper(v.name), v.sql])),
     view('USER_CONSTRAINTS', [V('CONSTRAINT_NAME'), V('CONSTRAINT_TYPE'), V('TABLE_NAME'), V('SEARCH_CONDITION'), V('R_CONSTRAINT_NAME'), V('DELETE_RULE')], cons),
     view('USER_CONS_COLUMNS', [V('CONSTRAINT_NAME'), V('TABLE_NAME'), V('COLUMN_NAME'), V('POSITION', 'int')], consCols),
-    // CHỜ KIỂM TÀI LIỆU: LAST_NUMBER thật với CACHE 20 (mặc định) nhảy theo cache. Engine tính như NOCACHE: số kế tiếp sẽ cấp.
+    // Đã kiểm trên Oracle XE 21c thật: LAST_NUMBER là số đầu tiên của lô kế tiếp chưa giữ sẵn. Chưa gọi NEXTVAL thì bằng START WITH.
+    // Mặc định CACHE 20: sau n lần NEXTVAL, LAST_NUMBER = start + ceil(n / cache) * cache * increment. NOCACHE: số kế tiếp sẽ cấp.
+    // Chưa mô phỏng: MINVALUE, MAXVALUE (engine chưa dạy) và sequence ngầm của identity (ISEQ$$_...).
     view(
       'USER_SEQUENCES',
       [V('SEQUENCE_NAME'), V('INCREMENT_BY', 'int'), V('LAST_NUMBER', 'int')],
-      (db.sequences ?? []).map((s) => [upper(s.name), s.increment, s.last === undefined ? s.start : s.last + s.increment]),
+      (db.sequences ?? []).map((s) => {
+        const cache = s.cache ?? 20;
+        const used = s.last === undefined ? 0 : (s.last - s.start) / s.increment + 1;
+        return [upper(s.name), s.increment, used === 0 ? s.start : cache === 0 ? s.last! + s.increment : s.start + Math.ceil(used / cache) * cache * s.increment];
+      }),
     ),
   ];
 }

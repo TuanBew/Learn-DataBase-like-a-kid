@@ -125,7 +125,7 @@ function parseWith(text: string, fmt: string, d: Dialect): SqlDate | null {
   return makeDate(p, withTime);
 }
 
-const text = (f: (s: string, d: Dialect) => Value) => (a: Value[], d: Dialect) => (a[0] === null ? null : f(toText(a[0]), d));
+const text = (f: (s: string, d: Dialect) => Value) => (a: Value[], d: Dialect) => (a[0] === null ? null : f(toText(a[0], d), d));
 const num = (f: (n: number) => number) => (a: Value[], d: Dialect, span: Span) => {
   const n = toNumber(a[0], d, span);
   return n === null ? null : f(n);
@@ -142,7 +142,7 @@ const tidy = (n: number) => Math.round(n * 1e10) / 1e10;
 
 function substr(a: Value[], d: Dialect, span: Span): Value {
   if (a[0] === null || a[1] === null) return null;
-  const s = [...toText(a[0])];
+  const s = [...toText(a[0], d)];
   let pos = toNumber(a[1], d, span)!;
   const len = a.length > 2 ? toNumber(a[2], d, span) : null;
   if (a.length > 2 && len === null) return null;
@@ -340,7 +340,7 @@ function truncDate(v: SqlDate, fmt: string, span: Span): SqlDate {
   if (['MM', 'MON', 'MONTH', 'RM'].includes(f)) return at({ d: 1 });
   if (['YYYY', 'YEAR', 'SYYYY', 'YYY', 'YY', 'Y'].includes(f)) return at({ mo: 1, d: 1 });
   if (f === 'Q') return at({ mo: Math.floor((p.mo - 1) / 3) * 3 + 1, d: 1 });
-  // CHỜ KIỂM TÀI LIỆU: 'DAY' cắt về ngày đầu tuần theo NLS_TERRITORY. Engine dùng kiểu Mỹ: Chủ nhật.
+  // Đã kiểm trên Oracle XE 21c và 18c thật (NLS_TERRITORY AMERICA): 'DAY' cắt về Chủ nhật.
   if (['DAY', 'DY', 'D'].includes(f)) return addDays(at({}), -weekday(p));
   if (['HH', 'HH12', 'HH24'].includes(f)) return makeDate({ ...p, mi: 0, s: 0 }, true);
   if (f === 'MI') return makeDate({ ...p, s: 0 }, true);
@@ -422,8 +422,8 @@ export const FUNCTIONS: Record<string, FnDef> = {
     max: 99,
     arity: { oracle: [2, 2] },
     run: (a, d) => {
-      if (d === 'mysql') return a.some((v) => v === null) ? null : a.map(toText).join('');
-      return a.map((v) => (v === null ? '' : toText(v))).join('');
+      if (d === 'mysql') return a.some((v) => v === null) ? null : a.map((v) => toText(v)).join('');
+      return a.map((v) => (v === null ? '' : toText(v, d))).join('');
     },
   },
   CONCAT_WS: {
@@ -431,7 +431,7 @@ export const FUNCTIONS: Record<string, FnDef> = {
     max: 99,
     only: 'mysql',
     use: "dấu ||, ví dụ a || ', ' || b",
-    run: (a) => (a[0] === null ? null : a.slice(1).filter((v) => v !== null).map(toText).join(toText(a[0]))),
+    run: (a) => (a[0] === null ? null : a.slice(1).filter((v) => v !== null).map((v) => toText(v)).join(toText(a[0]))),
   },
   INSTR: { min: 2, max: 4, arity: { mysql: [2, 2], oracle: [2, 4] }, run: (a, d, span) => (d === 'mysql' ? mysqlLocate(a[1], a[0]) : oracleInstr(a, d, span)) },
   LOCATE: {
@@ -546,8 +546,11 @@ export const FUNCTIONS: Record<string, FnDef> = {
     use: 'IFNULL',
     run: (a, d, span) => {
       const [x, y] = a;
-      // CHỜ KIỂM TÀI LIỆU: engine không biết data type của NULL, nên chỉ bắt lỗi khi expr1 có giá trị số thật.
+      // Đã kiểm trên Oracle XE 21c và 18c thật. Giới hạn đã biết: engine không biết data type của NULL (NVL(cột_số, 'abc') mà cột là NULL
+      // thì Oracle báo ORA-01722, engine trả 'abc'), nên chỉ bắt lỗi khi expr1 có giá trị thật.
       if (typeof x === 'number' && typeof y === 'string') toNumber(y, d, span);
+      if (isDate(x) && typeof y === 'number') throw oraFail('00932', 'inconsistent datatypes: expected DATE got NUMBER', 'inconsistent-types', { want: 'DATE', got: 'NUMBER' }, span);
+      if (typeof x === 'number' && isDate(y)) throw oraFail('00932', 'inconsistent datatypes: expected NUMBER got DATE', 'inconsistent-types', { want: 'NUMBER', got: 'DATE' }, span);
       return x !== null ? x : y;
     },
   },

@@ -220,7 +220,7 @@ export function createSession(source: Database, dialect: Dialect, env: FnEnv = D
             // GENERATED ALWAYS: ghi giá trị nào cũng bị từ chối. Mã ORA-32795: tài liệu lỗi của Oracle.
             if (c.identityMode === 'always') throw fail(['0', '32795'], ['', `ORA-32795: cannot insert into a generated always identity column`], 'identity-always', { column: c.name }, r.span);
             // BY DEFAULT: identity ngầm NOT NULL (tài liệu CREATE TABLE), nên NULL tường minh bị từ chối.
-            // CHỜ KIỂM TÀI LIỆU: tài liệu không ghi rõ mã lỗi là ORA-01400, mã này suy ra từ NOT NULL ngầm định.
+            // Đã kiểm trên Oracle XE 21c thật: INSERT ... VALUES (NULL, ...) vào identity BY DEFAULT báo ORA-01400.
             if (c.identityMode === 'default' && v === null) throw fail(['0', '01400'], ['', `ORA-01400: cannot insert NULL into (${rules.qual(t, c)})`], 'identity-null', { column: c.name }, r.span);
           }
           if (v === null || (d === 'mysql' && v === 0)) row[ci] = nextId(t, ci);

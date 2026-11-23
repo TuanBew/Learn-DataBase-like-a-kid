@@ -331,6 +331,8 @@ export interface CreateSequenceStmt {
   increment?: number;
   /** Vị trí của số INCREMENT BY, để gạch chân khi bằng 0. */
   incrementSpan?: Span;
+  /** CACHE n, hoặc 0 khi viết NOCACHE. Không viết thì Oracle dùng 20. */
+  cache?: number;
   span: Span;
 }
 

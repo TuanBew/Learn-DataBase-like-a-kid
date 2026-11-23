@@ -82,6 +82,8 @@ export interface SequenceDef {
   name: string;
   start: number;
   increment: number;
+  /** Số giá trị Oracle giữ sẵn trong bộ nhớ: 0 là NOCACHE. Không có field này thì là 20, mặc định của Oracle. */
+  cache?: number;
   /** Giá trị NEXTVAL vừa cấp. Chưa ai gọi NEXTVAL thì không có field này. */
   last?: number;
 }

@@ -73,11 +73,24 @@ Dàn ý ở `docs/outline-v2.md`, chủ dự án duyệt ngày 22/11/2026. Làm 
 - Nội dung: bài `c2-b4`, 10 bài Chương 3, 8 bài tập và một bài boss.
 - Kiểm: 1621 test qua, 204 lượt mở trang không lỗi, axe 0 vi phạm ở hai giao diện, 98 lượt giải bài tập đều qua, Lighthouse mobile bốn trang từ 97 tới 100 (trang chủ đo lại hai lần ra 99 và 100 sau một lần 86 lúc máy bận).
 
-### Đợt 2 (đang làm): nhiều table
+### Đợt 2 (đã dựng xong): nhiều table
 
-Engine cho các kiểu JOIN, subquery, UNION, WITH. Database công ty 11 table. Chương 7 và Chương 8.
+- Engine: RIGHT, FULL, CROSS JOIN, USING, NATURAL JOIN, dấu `(+)` của Oracle; subquery ở mọi chỗ, EXISTS, ANY, ALL; UNION, INTERSECT, MINUS và EXCEPT; WITH.
+- Dữ liệu: database công ty 11 table và bản mẫu Sao Mai.
+- Giao diện: sơ đồ database, cảnh tìm đường nối, nút "Xem sơ đồ" trong bài tập và khối thử tay.
+- Nội dung: Chương 7 đủ 9 bài, Chương 8 đủ 7 bài, 23 bài tập và hai bài boss mới.
 
-### Đợt 3: function, gom nhóm mở rộng, trang Tra cứu
+### Đợt 3 (đã dựng xong): function, gom nhóm mở rộng, trang Tra cứu
 
-### Đợt 4: báo cáo nâng cao, sửa dữ liệu, Oracle ở công ty, dự án cuối
+- Engine: khoảng 40 function, GROUP_CONCAT, LISTAGG, ROLLUP, GROUPING.
+- Nội dung: Chương 4 đủ 7 bài, Chương 5 đủ 8 bài, Chương 6 đủ 7 bài, 10 bài tập mới.
+- Trang Tra cứu ở `/tra-cuu`: 139 mục, ví dụ bấm Chạy được.
 
+### Đợt 4 (đã dựng xong): báo cáo nâng cao, sửa dữ liệu, Oracle ở công ty, dự án cuối
+
+- Engine: window function, VIEW, SAVEPOINT, `CREATE TABLE AS SELECT`, MERGE và ON DUPLICATE KEY UPDATE, tên đầy đủ `schema.table`.
+- Nội dung: Chương 9 (5 bài), Chương 10 (7 bài), Chương 11 (8 bài), Chương 12 (3 nhiệm vụ), 18 bài tập mới.
+
+Chủ dự án yêu cầu ngày 23/11/2026: không kiểm riêng từng đợt, dựng xong thì kiểm gộp một lượt. Kết quả lượt kiểm gộp ghi ở mục "Trạng thái" của `README.md`.
+
+Toàn khóa sau Mốc 4: 12 chương, 83 bài học, 104 bài tập.

@@ -126,3 +126,16 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Máy chấm dựng table chấm theo nhóm data type.** NUMBER của Oracle thuộc nhóm số thập phân của engine, nên column mã nhận cả nhóm số nguyên lẫn nhóm số thập phân.
 - **Engine giữ hai chỗ lệch MySQL thật vì test cũ đang dựa vào**: `REFERENCES` viết ở column vẫn được kiểm (MySQL thật bỏ qua), và INSERT thiếu primary key của table mẫu báo 1048 thay vì 1364.
 - **Số giờ học ở trang chủ tính từ tổng số phút của các bài**, không ghi cứng.
+- **Bài tập "trên database của bạn" ở các chương sau chạy trên bản mẫu Sao Mai** (`src/data/saomai.ts`): cùng cấu trúc với database người học đã dựng, nhưng có đủ dữ liệu để luyện query. Database người học tự dựng chỉ có vài row.
+- **Query Theater chỉ diễn phần ngoài cùng** của query có UNION, subquery trong FROM, WITH, subquery phụ thuộc hay window function, và hiện một dòng nói rõ. Kết quả query vẫn đúng. Diễn từng bước cho các loại này tốn nhiều công, chưa đáng.
+- **Sơ đồ database không vẽ foreign key trỏ về chính table** (`employees.manager_id`) và không dùng nó khi tìm đường. Trên điện thoại sơ đồ là danh sách dọc có nhãn bấm được.
+- **Trang Tra cứu nhớ dialect riêng** (`ldb:ref-dialect`). Mọi function engine chạy được đều phải có mục: có test bảo đảm.
+- **Khối thử tay có chế độ `session`** để chạy lệnh xem cấu trúc và data dictionary. Ở chế độ này không mở Query Theater.
+- **Nút thử của xưởng ghi được kết quả mong đợi riêng từng dialect**, vì có lệnh lỗi ở MySQL mà chạy được ở Oracle (ví dụ subquery đọc chính table đang sửa, lỗi 1093).
+- **Bài về lock không có cảnh tương tác.** Engine chỉ có một phiên nên không mô phỏng được hai người. Bài dùng dòng thời gian hai phiên và quiz. Bài về quyền và bài về tool cũng là bài ý tưởng, không chạy lệnh.
+- **Bài về tool chỉ nêu chi tiết đã đọc thấy trong tài liệu chính thức.** Các phím của SQL Developer lấy từ tài liệu Oracle. Tài liệu DBeaver không đọc được từ máy dựng site, nên bài chỉ nhắc tên DBeaver.
+- **`NVL(chữ, số)` ở Oracle không báo lỗi**, theo tài liệu 19c (Oracle đổi số thành chữ). Chỉ `NVL(số, chữ không phải số)` báo ORA-01722.
+- **Chương 11 không có bài boss.** Giấy chứng nhận tính theo các bài boss đang có.
+- **Ba chỗ dàn ý ghi mà bản dựng làm gọn**: đa số phần tự bấm dùng khối thử tay hoặc xưởng thay cho cảnh riêng; bài query chậm chỉ nhắc tên EXPLAIN PLAN; GRANT chỉ dạy đọc hiểu.
+- **Chi phí Mốc 4** (ước theo số liệu của từng subagent): khoảng 9 triệu token Sonnet. Các lượt mở rộng engine tốn nhất, mỗi lượt từ 200 tới 520 nghìn.
+

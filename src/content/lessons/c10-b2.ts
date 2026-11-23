@@ -259,7 +259,7 @@ COMMIT;`,
           },
         },
       ],
-      say: 'Hai nút cuối cùng đi cùng nhau. Nút "Subquery đọc chính table đang sửa" báo lỗi 1093 trên MySQL, còn nút kế tiếp là cách gỡ.',
+      say: 'Hai nút cuối cùng đi cùng nhau. Nút "Subquery đọc chính table đang sửa" báo lỗi 1093 trên MySQL, còn nút kế tiếp là cách gỡ. Với nút "Subquery ra nhiều giá trị", Oracle 18c báo ORA-01427. Oracle 21c chạy qua và báo 5 rows updated. Customer có hai đơn chỉ nhận một trong hai giá trị, và customer chưa có đơn nhận NULL. Mình không biết công ty bạn dùng Oracle bản nào. Hỏi công ty bản Oracle đang dùng trước khi chạy lệnh này. Muốn chạy đúng ở mọi bản, dùng SUM hay MAX để subquery chỉ ra một giá trị.',
     },
     {
       type: 'oracle',

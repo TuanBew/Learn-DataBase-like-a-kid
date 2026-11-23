@@ -144,6 +144,7 @@ Con số của lượt kiểm sau Đợt 1 (22/11/2026), để so:
 MySQL đã kiểm trên MySQL 8.0.46 thật, Oracle trên XE 21c và 18c thật (xem `docs/dialect-verification.md`). Chưa có Oracle 19c, nên điểm nào chỉ khác giữa các bản thì đọc theo tài liệu 19c. Phần còn lại:
 
 - Tiêu đề kết quả in hoa ở Oracle và việc tool Oracle thường chờ COMMIT là hành vi của từng tool, SQL Reference không nói rõ.
+- Ba lệnh cho kết quả khác nhau giữa Oracle 18c và 21c: EXCEPT, LISTAGG(DISTINCT ...) và UPDATE với subquery ra nhiều row. Site không biết công ty bạn dùng Oracle bản nào, nên bài học nêu kết quả của cả hai bản và dặn hỏi công ty trước.
 - Một số vế còn mang comment `CHỜ KIỂM TÀI LIỆU` trong test của engine. Danh sách nằm ở `docs/dialect-verification.md`.
 
 Âm thanh mới được kiểm bằng đo tín hiệu (`scripts/qa/sfx-check.cjs`): cả 15 hiệu ứng có tiếng ở mức nhỏ. Chưa ai nghe bằng tai, vì môi trường dựng site không có loa.

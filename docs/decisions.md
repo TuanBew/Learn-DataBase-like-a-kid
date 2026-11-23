@@ -158,3 +158,4 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **Bài `c5-b3` đổi alias `raw` thành `original`.** RAW là từ dành riêng của Oracle, query cũ báo ORA-00923 trên Oracle thật. Engine chưa có danh sách từ dành riêng.
 - **Trang Tra cứu có 127 mục trong 12 nhóm.** Con số 139 ở báo cáo Mốc 4 đếm nhầm cả 12 nhóm.
 - **Chi phí lượt này** (theo số liệu của từng subagent): khoảng 4 triệu token Sonnet. Soi ảnh 2,1 triệu; đọc soát 0,9 triệu; Oracle 0,33 triệu; sửa bố cục 0,29 triệu; Theater 0,28 triệu; kiểm cuối khoảng 0,2 triệu.
+- **Ba lệnh cho kết quả khác nhau giữa Oracle 18c và 21c** (chủ dự án yêu cầu 23/11/2026): `EXCEPT` (bài `c8-b6`), `LISTAGG(DISTINCT ...)` (bài `c6-b6`) và UPDATE với subquery ra nhiều row (xưởng bài `c10-b2`). Site không biết công ty người học dùng Oracle bản nào. Mỗi bài nêu kết quả của hai bản và dặn người học hỏi công ty bản Oracle đang dùng trước khi chạy. Trang Tra cứu và lời báo lỗi EXCEPT ở Oracle có thêm câu cùng ý.

@@ -84,7 +84,7 @@ export const friendly: Record<string, (p: P) => string> = {
   'sub-one-row': (p) => `Subquery này trả về ${p.n} row, nhưng chỗ này chỉ nhận một giá trị. Dùng IN thay cho dấu =, hoặc sửa subquery để ra một row.`,
   'derived-alias': () => 'MySQL bắt buộc mỗi subquery trong FROM có alias. Viết alias ngay sau dấu ), ví dụ FROM (SELECT ...) t.',
   'derived-dup-column': (p) => `Subquery này có hai column cùng tên ${p.name}. Đặt alias khác nhau cho chúng.`,
-  'except-oracle': () => 'Oracle 19c không có EXCEPT. Muốn lấy các row có ở query đầu mà không có ở query sau, viết MINUS.',
+  'except-oracle': () => 'Tài liệu Oracle 19c không có EXCEPT. Oracle 21c mới nhận EXCEPT. Muốn lấy các row có ở query đầu mà không có ở query sau, viết MINUS.',
   'minus-mysql': () => 'MySQL không có MINUS. Muốn lấy các row có ở query đầu mà không có ở query sau, viết EXCEPT.',
   'setop-columns': (p) => `Hai query ghép với nhau phải có cùng số column. Query bên trái có ${p.left} column, query bên phải có ${p.right}.`,
   'setop-type': (p) => `Column thứ ${p.n} của hai query khác loại: một bên là ${p.a}, một bên là ${p.b}. Oracle không tự đổi, nên dùng TO_CHAR, TO_NUMBER hoặc TO_DATE cho cùng loại.`,

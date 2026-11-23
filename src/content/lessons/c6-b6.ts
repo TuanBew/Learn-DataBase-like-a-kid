@@ -86,7 +86,7 @@ export const lesson: Lesson = {
           },
         },
       ],
-      say: 'Phòng 40 có 5 người nên có 5 tên. Với job_id, phòng 40 hiện FI_ACCOUNT bốn lần. DISTINCT bỏ các giá trị trùng.',
+      say: 'Phòng 40 có 5 người nên có 5 tên. Với job_id, phòng 40 hiện FI_ACCOUNT bốn lần. DISTINCT bỏ các giá trị trùng. Với LISTAGG(DISTINCT ...), Oracle 18c báo ORA-30482. Oracle 21c chạy được và bỏ giá trị trùng. Tài liệu Oracle 19c có ghi DISTINCT. Mình không biết công ty bạn dùng Oracle bản nào. Hỏi công ty bản Oracle đang dùng trước khi chạy lệnh này.',
     },
     {
       type: 'text',

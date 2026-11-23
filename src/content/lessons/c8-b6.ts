@@ -94,9 +94,10 @@ export const lesson: Lesson = {
       type: 'oracle',
       body: [
         'Phép "chỉ có ở bên trái" tên khác nhau. Oracle viết MINUS. MySQL viết EXCEPT.',
-        'Viết nhầm dialect thì báo lỗi. MySQL gặp MINUS báo 1064. Oracle 19c gặp EXCEPT báo ORA-00933.',
+        'Viết nhầm dialect thì báo lỗi. MySQL gặp MINUS báo 1064. Oracle 18c gặp EXCEPT báo ORA-00933.',
         'MySQL chỉ có INTERSECT và EXCEPT từ bản 8.0.31. MySQL 5.7 không có hai phép này.',
         'UNION và UNION ALL chạy ở mọi bản của cả hai dialect. Query dưới đây lấy nước có khách mà chưa có văn phòng.',
+        'Oracle 18c báo ORA-00933 khi gặp EXCEPT. Oracle 21c chạy được và cho kết quả như MINUS. Tài liệu Oracle 19c chỉ có UNION, INTERSECT và MINUS. Mình không biết công ty bạn dùng Oracle bản nào. Hỏi công ty bản Oracle đang dùng trước khi chạy EXCEPT. MINUS chạy ở mọi bản.',
       ],
       mysql:
         'SELECT country_id FROM customers\nEXCEPT\nSELECT country_id FROM locations\nORDER BY country_id;',

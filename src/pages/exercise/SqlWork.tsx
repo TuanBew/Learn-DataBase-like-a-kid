@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { HintLadder } from '../../components/HintLadder';
 import { Icon } from '../../components/Icon';
+import { HangLines } from '../../components/HangLines';
 import { Mascot, Says } from '../../components/Mascot';
 import { ResultCompare } from '../../components/ResultCompare';
 import { ResultTable } from '../../components/ResultTable';
@@ -106,7 +107,7 @@ export function SqlWork({ exercise, db }: { exercise: SqlExercise; db: Database 
         {exercise.kind === 'translate' && exercise.from && (
           <section className="ex-from">
             <h2 className="ex-h ex-h--sm">{U.fromLabel}</h2>
-            <pre tabIndex={0}>{exercise.from}</pre>
+            <pre tabIndex={0}><HangLines text={exercise.from} /></pre>
           </section>
         )}
 

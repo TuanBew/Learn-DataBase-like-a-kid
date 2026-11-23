@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Compartment, EditorState, StateEffect, StateField } from '@codemirror/state';
-import { Decoration, type DecorationSet, EditorView, drawSelection, keymap, lineNumbers } from '@codemirror/view';
+import { Decoration, type DecorationSet, EditorView, WidgetType, drawSelection, keymap, lineNumbers } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { MySQL, PLSQL, sql } from '@codemirror/lang-sql';
 import { autocompletion, closeBrackets, completionKeymap } from '@codemirror/autocomplete';
@@ -20,6 +20,33 @@ const errorField = StateField.define<DecorationSet>({
     return deco;
   },
   provide: (f) => EditorView.decorations.from(f),
+});
+
+/** Thụt treo: dòng gập nối tiếp thụt sâu hơn lề đầu của dòng đó. Lề sâu quá 4 ký tự bị thu lại trên màn hình hẹp. */
+class LeadWidget extends WidgetType {
+  constructor(readonly n: number) {
+    super();
+  }
+  eq(o: LeadWidget) {
+    return o.n === this.n;
+  }
+  toDOM() {
+    const el = document.createElement('span');
+    el.className = 'hang-lead';
+    el.textContent = ' '.repeat(this.n);
+    return el;
+  }
+}
+const hanging = EditorView.decorations.compute(['doc'], (state) => {
+  const out = [];
+  for (let i = 1; i <= state.doc.lines; i++) {
+    const line = state.doc.line(i);
+    const sp = /^ +/.exec(line.text)?.[0].length ?? 0;
+    const lead = /^[ \t]*/.exec(line.text)![0].replace(/\t/g, '  ').length;
+    out.push(Decoration.line({ class: 'hang-cm', attributes: { style: `--lead:${lead}` } }).range(line.from));
+    if (sp > 4) out.push(Decoration.replace({ widget: new LeadWidget(sp) }).range(line.from, line.from + sp));
+  }
+  return Decoration.set(out, true);
 });
 
 const highlight = HighlightStyle.define([
@@ -68,6 +95,7 @@ export default function SqlEditor({ value, onChange, dialect, schema, onRun, err
           syntaxHighlighting(highlight),
           lang.current.of(language(dialect)),
           errorField,
+          hanging,
           keymap.of([
             {
               key: 'Mod-Enter',

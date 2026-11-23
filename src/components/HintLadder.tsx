@@ -1,6 +1,7 @@
 import { Fragment, useState } from 'react';
 import type { ReactNode } from 'react';
 import { play } from '../sfx/sfx';
+import { HangLines } from './HangLines';
 import { Says } from './Mascot';
 import { uiExercise } from '../content/ui-exercise';
 import './hint-ladder.css';
@@ -46,8 +47,8 @@ export function HintLadder({ light, specific, skeleton, solution, onSolution, re
   const bodies: ReactNode[] = [
     <p key="1" className="hlad__text">{renderRich(light)}</p>,
     <p key="2" className="hlad__text">{renderRich(specific)}</p>,
-    <pre key="3" className="hlad__code" tabIndex={0}>{skeleton}</pre>,
-    <pre key="4" className="hlad__code" tabIndex={0}>{solution}</pre>,
+    <pre key="3" className="hlad__code" tabIndex={0}><HangLines text={skeleton} /></pre>,
+    <pre key="4" className="hlad__code" tabIndex={0}><HangLines text={solution} /></pre>,
   ];
 
   return (

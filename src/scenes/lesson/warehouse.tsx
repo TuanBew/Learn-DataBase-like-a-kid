@@ -1,3 +1,4 @@
+import { HangLines } from '../../components/HangLines';
 import { useEffect, useRef, useState } from 'react';
 import * as m from 'motion/react-m';
 import { AnimatePresence, useReducedMotion } from 'motion/react';
@@ -131,7 +132,7 @@ export default function Warehouse() {
       <div className="wh__ask">
         <div className="wh__sql">
           <span className="sk-label">{copy.sqlLabel}</span>
-          <pre className="sk-sql">{slip.sql}</pre>
+          <pre className="sk-sql"><HangLines text={slip.sql} /></pre>
         </div>
         <button type="button" className="btn wh__give" onClick={give} disabled={busy || blocked}>
           {copy.give}

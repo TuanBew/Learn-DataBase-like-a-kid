@@ -2,6 +2,7 @@ import { memo, useDeferredValue, useEffect, useMemo, useRef, useState } from 're
 import { Link } from 'wouter';
 import { DialectToggle, ErrorCard } from '../components/sql/parts';
 import { Mascot } from '../components/Mascot';
+import { HangLines } from '../components/HangLines';
 import { ResultTable } from '../components/ResultTable';
 import { chapters } from '../content/course';
 import { type RefEntry, type RefGroup, refGroups, reference } from '../content/reference';
@@ -100,11 +101,11 @@ const Card = memo(function Card({ entry, dialect, showGroup }: { entry: RefEntry
         <>
           <h4 className="ref-card__label">{T.syntax}</h4>
           <pre className="ref-code" tabIndex={0} aria-label={`${T.syntax} ${entry.title}, ${dName}`}>
-            <code>{form.syntax}</code>
+            <code><HangLines text={form.syntax} /></code>
           </pre>
           <h4 className="ref-card__label">{T.example}</h4>
           <pre className="ref-code" tabIndex={0} aria-label={`${T.example} ${entry.title}, ${dName}`}>
-            <code>{form.example.replace(/; /g, ';\n')}</code>
+            <code><HangLines text={form.example.replace(/; /g, ';\n')} /></code>
           </pre>
           <div className="ref-card__actions">
             <button type="button" className="btn btn--sm" onClick={run} disabled={state.status === 'run'} aria-label={`${T.run} ${T.example.toLowerCase()} ${entry.title}`}>

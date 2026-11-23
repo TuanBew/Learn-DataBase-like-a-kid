@@ -1,3 +1,4 @@
+import { HangLines } from '../HangLines';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { uiApp } from '../../content/ui-app';
 import type { SqlError } from '../../engine';
@@ -79,7 +80,7 @@ export function EditorBox(props: EditorProps) {
     const id = window.requestAnimationFrame(() => window.setTimeout(() => setReady(true), 0));
     return () => window.cancelAnimationFrame(id);
   }, []);
-  const wait = <pre className="ex-editor__wait">{props.value}</pre>;
+  const wait = <pre className="ex-editor__wait"><HangLines text={props.value} /></pre>;
   if (props.readOnly) return wait;
   return <Suspense fallback={wait}>{ready ? <SqlEditor key={props.dialect} {...props} /> : wait}</Suspense>;
 }

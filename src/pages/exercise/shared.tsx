@@ -38,6 +38,7 @@ export function nextExerciseId(id: string): string | null {
 /** Thẻ đề bài: lời Bi, các yêu cầu, và dữ liệu của bài. */
 export function TaskCard({ exercise, db, dialect }: { exercise: Exercise; db?: Database; dialect?: Dialect }) {
   const note = U.kindNote[exercise.kind];
+  const quizMap = db && exercise.kind === 'quiz';
   const tables = db && exercise.kind !== 'quiz' && exercise.kind !== 'build' ? db.tables.filter((t) => exercise.tables.includes(t.name)) : [];
   return (
     <section className="ex-task sheet" aria-labelledby="ex-task">
@@ -60,6 +61,11 @@ export function TaskCard({ exercise, db, dialect }: { exercise: Exercise; db?: D
         </ul>
       )}
       {note && <p className="ex-kindnote pen">{note}</p>}
+      {quizMap && (
+        <div className="ex-data ex-data--map">
+          <SchemaDialogButton db={db} />
+        </div>
+      )}
       {tables.length > 0 && dialect && (
         <div className="ex-data">
           <div className="ex-data__head">

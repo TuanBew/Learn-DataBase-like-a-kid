@@ -18,13 +18,13 @@ export const exercise: SqlExercise = {
   starter: {
     mysql:
       'SELECT employee_id, last_name, department_id, salary,\n' +
-      '       ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY salary DESC) AS rn\n' +
+      '  ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY salary DESC) AS rn\n' +
       'FROM employees\n' +
       'WHERE department_id IN (30, 40, 50) AND rn <= 2\n' +
       'ORDER BY department_id, rn;',
     oracle:
       'SELECT employee_id, last_name, department_id, salary,\n' +
-      '       ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY salary DESC) AS rn\n' +
+      '  ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY salary DESC) AS rn\n' +
       'FROM employees\n' +
       'WHERE department_id IN (30, 40, 50) AND rn <= 2\n' +
       'ORDER BY department_id, rn',
@@ -34,7 +34,7 @@ export const exercise: SqlExercise = {
       'SELECT employee_id, last_name, department_id, salary, rn\n' +
       'FROM (\n' +
       '  SELECT employee_id, last_name, department_id, salary,\n' +
-      '         ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY salary DESC) AS rn\n' +
+      '    ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY salary DESC) AS rn\n' +
       '  FROM employees\n' +
       '  WHERE department_id IN (30, 40, 50)\n' +
       ') t\n' +
@@ -44,7 +44,7 @@ export const exercise: SqlExercise = {
       'SELECT employee_id, last_name, department_id, salary, rn\n' +
       'FROM (\n' +
       '  SELECT employee_id, last_name, department_id, salary,\n' +
-      '         ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY salary DESC) AS rn\n' +
+      '    ROW_NUMBER() OVER (PARTITION BY department_id ORDER BY salary DESC) AS rn\n' +
       '  FROM employees\n' +
       '  WHERE department_id IN (30, 40, 50)\n' +
       ') t\n' +

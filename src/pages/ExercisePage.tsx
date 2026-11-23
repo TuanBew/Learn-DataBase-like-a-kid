@@ -17,7 +17,8 @@ const U = uiApp.exercise;
 export default function ExercisePage({ id }: { id: string }) {
   const exercise = useLoad(exercises[id], `ex:${id}`);
   const sqlEx = exercise && exercise.kind !== 'quiz' && exercise.kind !== 'build' ? exercise : null;
-  const db = useLoad(sqlEx ? databases[sqlEx.database] : undefined, `db:${sqlEx?.database ?? ''}`);
+  const dbId = sqlEx ? sqlEx.database : exercise?.kind === 'quiz' ? exercise.database : undefined;
+  const db = useLoad(dbId ? databases[dbId] : undefined, `db:${dbId ?? ''}`);
   useTitle(exercise?.title);
   const lessonId = lessonOf(id);
   const lesson = chapters.flatMap((c) => c.lessons).find((l) => l.id === lessonId);
@@ -46,7 +47,7 @@ export default function ExercisePage({ id }: { id: string }) {
         </p>
         <h1 className="ex-title">{exercise.title}</h1>
       </header>
-      {exercise.kind === 'quiz' && <QuizWork exercise={exercise} />}
+      {exercise.kind === 'quiz' && <QuizWork exercise={exercise} db={db} />}
       {exercise.kind === 'build' && <BuildWork exercise={exercise} />}
       {sqlEx && !db && <div style={{ minHeight: '60vh' }} />}
       {sqlEx && db && sqlEx.kind === 'order' && <OrderWork exercise={sqlEx} db={db} />}

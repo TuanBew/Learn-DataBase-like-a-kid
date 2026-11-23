@@ -38,7 +38,7 @@ export function SchemaPanel({ view }: { view: SchemaView }) {
   if (state.view !== view) setState({ view, flashed: changedTables(state.view, view), gen: state.gen + 1 });
 
   return (
-    <aside className="sp sheet" aria-label={T.region}>
+    <aside className="sp sheet" aria-label={T.region} tabIndex={0}>
       <h3 className="sp__title">{T.title}</h3>
       <p className="sr-only" role="status">
         {state.flashed.length > 0 ? T.changed(state.flashed) : ''}

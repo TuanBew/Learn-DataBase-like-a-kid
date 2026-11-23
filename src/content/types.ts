@@ -245,6 +245,8 @@ export interface SqlExercise extends ExerciseBase {
 /** Bài tập gồm các câu hỏi nhanh, không cần engine. */
 export interface QuizExercise extends ExerciseBase {
   kind: 'quiz';
+  /** Database mà đề nhắc tới. Có khai thì trang hiện nút "Xem sơ đồ". */
+  database?: SqlExercise['database'];
   items: Quiz[];
   /** Bi nói khi làm xong hết. */
   why: Rich;

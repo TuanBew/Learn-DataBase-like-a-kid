@@ -57,7 +57,7 @@ export const exercise: SqlExercise = {
     mysql:
       'WITH monthly AS (\n' +
       "  SELECT DATE_FORMAT(o.order_date, '%Y-%m') AS ym,\n" +
-      '         SUM(oi.quantity * oi.unit_price) AS revenue\n' +
+      '    SUM(oi.quantity * oi.unit_price) AS revenue\n' +
       '  FROM orders o\n' +
       '  JOIN order_items oi ON oi.order_id = o.order_id\n' +
       "  WHERE o.status <> 'cancelled' AND o.order_date >= '2025-01-01' AND o.order_date < '2026-01-01'\n" +
@@ -69,7 +69,7 @@ export const exercise: SqlExercise = {
     oracle:
       'WITH monthly AS (\n' +
       "  SELECT TO_CHAR(o.order_date, 'YYYY-MM') AS ym,\n" +
-      '         SUM(oi.quantity * oi.unit_price) AS revenue\n' +
+      '    SUM(oi.quantity * oi.unit_price) AS revenue\n' +
       '  FROM orders o\n' +
       '  JOIN order_items oi ON oi.order_id = o.order_id\n' +
       "  WHERE o.status <> 'cancelled' AND o.order_date >= DATE '2025-01-01' AND o.order_date < DATE '2026-01-01'\n" +

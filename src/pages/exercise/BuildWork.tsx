@@ -109,7 +109,7 @@ export function BuildWork({ exercise }: { exercise: BuildExercise }) {
               <Rich text={exercise.prompt} />
             </Says>
           </div>
-          <p className="ex-kindnote pen">{U.kindNote.build}</p>
+          {missing.length === 0 && <p className="ex-kindnote pen">{U.kindNote.build}</p>}
           {doneBefore && <p className="chip bw-before">{B.alreadyDone(uiApp.dialects[dialect])}</p>}
           {practice && missing.length === 0 && <p className="ex-note pen bw-practice">{B.practice}</p>}
         </section>

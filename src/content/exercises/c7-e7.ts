@@ -4,6 +4,7 @@ export const exercise: QuizExercise = {
   id: 'c7-e7',
   chapter: 7,
   kind: 'quiz',
+  database: 'company',
   title: 'Đọc sơ đồ database công ty',
   prompt: 'Ba câu hỏi nhanh trên sơ đồ database công ty. Bạn tìm column nối hai table, và đếm số table ở giữa một đường nối.',
   asks: [],

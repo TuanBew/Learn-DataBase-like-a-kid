@@ -223,10 +223,17 @@
   min-height: 44px;
   line-height: 36px;
 }
+.sm__col:has(.sm__jump) {
+  flex-wrap: wrap;
+  row-gap: 0;
+}
 .sm__jump {
-  min-height: 44px;
-  margin-left: auto;
-  padding: 0 8px;
+  flex: 0 0 calc(100% - 21px);
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  margin-left: 21px;
+  padding: 0 8px 0 0;
   font-family: var(--font-mono);
   font-size: 0.74rem;
   font-weight: 700;
@@ -238,7 +245,7 @@
   touch-action: manipulation;
   max-width: 100%;
   overflow-wrap: anywhere;
-  text-align: right;
+  text-align: left;
 }
 @media (max-width: 1000px) {
   .sm__board {

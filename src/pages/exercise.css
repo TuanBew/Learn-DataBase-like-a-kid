@@ -21,10 +21,13 @@
 .ex-kicker {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px 12px;
+  gap: 6px 14px;
+  margin-bottom: var(--s3);
+  line-height: 1.5;
   align-items: baseline;
 }
 .ex-kicker__lesson {
+  line-height: 1.5;
   font-family: var(--font-body);
   font-weight: 600;
   color: var(--ink);
@@ -71,6 +74,33 @@
   display: flex;
   gap: var(--s3);
   align-items: flex-start;
+}
+/* Đề bài dài: Bi nằm trên, bong bóng dùng hết bề ngang cột. */
+.ex-task__say > .says {
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--s2);
+}
+.ex-task__say > .says .mascot,
+.ex-task__say > .says > :first-child {
+  align-self: flex-start;
+}
+.ex-task__say > .says .says__bubble {
+  max-width: none;
+  margin-bottom: 0;
+  border-bottom-left-radius: var(--r-md);
+}
+.ex-task__say > .says .says__bubble::before {
+  left: 22px;
+  top: -8px;
+  bottom: auto;
+  transform: rotate(45deg);
+  border-left: var(--line);
+  border-top: var(--line);
+  border-bottom: 0;
+  border-bottom-left-radius: 0;
 }
 .ex-asks {
   margin: 0;
@@ -480,4 +510,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--s2);
+}
+
+.ex-data--map .btn {
+  justify-self: start;
 }

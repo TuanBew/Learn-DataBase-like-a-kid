@@ -48,7 +48,7 @@ export type { Query, SetStmt } from './ast';
 export type { Warning } from './values';
 export type { ResultSet, Trace, TraceStep, TraceClause, TraceCol, TraceRow } from './trace';
 export type { Database, Dialect, Value, TableDef, ColumnDef, ColumnType, ConstraintDef, SequenceDef, ViewDef } from './types';
-export { show, showQuoted, toText } from './values';
+export { columnFormatter, show, showQuoted, toText } from './values';
 
 /** Một function mà engine chạy được. `max` null nghĩa là không giới hạn số tham số. */
 export interface FunctionInfo {

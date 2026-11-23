@@ -4,6 +4,23 @@ import './sources.css';
 import { useTitle } from '../lib/useTitle';
 import { uiApp } from '../content/ui-app';
 
+/** Giữ mỗi tên giấy phép trên một dòng. */
+function Lic({ children }: { children: string }) {
+  return (
+    <>
+      {children.split(/(CC BY-NC-SA(?: 4\.0)?|SIL OFL 1\.1)/).map((part, i) =>
+        i % 2 === 1 ? (
+          <span key={i} className="src-nb">
+            {part}
+          </span>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+}
+
 function Ext({ href, children }: { href: string; children: string }) {
   return (
     <a href={href} target="_blank" rel="noreferrer">
@@ -40,7 +57,7 @@ export default function SourcesPage() {
                 <tr key={s.name}>
                   <th scope="row">{'href' in s && s.href ? <Ext href={s.href}>{s.name}</Ext> : s.name}</th>
                   <td data-label={T.cols.usedFor}>{s.usedFor}</td>
-                  <td data-label={T.cols.note}>{s.note}</td>
+                  <td data-label={T.cols.note}><Lic>{s.note}</Lic></td>
                 </tr>
               ))}
             </tbody>
@@ -51,7 +68,7 @@ export default function SourcesPage() {
       <section className="sheet src-license" aria-labelledby="src-license">
         <h2 id="src-license">{T.license.title}</h2>
         {T.license.body.map((p) => (
-          <p key={p}>{p}</p>
+          <p key={p}><Lic>{p}</Lic></p>
         ))}
         <p>
           <Ext href={T.license.href}>{T.license.linkText}</Ext>
@@ -60,7 +77,7 @@ export default function SourcesPage() {
 
       <section aria-labelledby="src-dataset">
         <h2 id="src-dataset">{T.dataset.title}</h2>
-        <p className="src__lead">{T.dataset.body}</p>
+        <p className="src__lead"><Lic>{T.dataset.body}</Lic></p>
         <p>
           <Ext href={T.dataset.href}>{T.dataset.linkText}</Ext>
         </p>
@@ -84,7 +101,7 @@ export default function SourcesPage() {
       <section aria-labelledby="src-fonts">
         <h2 id="src-fonts">{T.fonts.title}</h2>
         <p className="src__lead">
-          {T.fonts.lead} <Ext href={T.fonts.href}>{T.fonts.linkText}</Ext>
+          <Lic>{T.fonts.lead}</Lic> <Ext href={T.fonts.href}>{T.fonts.linkText}</Ext>
         </p>
         <div className="src__scroll">
           <table className="src-table src-table--stack">
@@ -100,7 +117,7 @@ export default function SourcesPage() {
                 <tr key={f.name}>
                   <th scope="row">{f.name}</th>
                   <td data-label={T.fonts.cols.usedFor}>{f.usedFor}</td>
-                  <td data-label={T.fonts.cols.license}>{f.license}</td>
+                  <td data-label={T.fonts.cols.license}><Lic>{f.license}</Lic></td>
                 </tr>
               ))}
             </tbody>
@@ -125,7 +142,7 @@ export default function SourcesPage() {
                 <tr key={l.name}>
                   <th scope="row">{l.href ? <Ext href={l.href}>{l.name}</Ext> : l.name}</th>
                   <td data-label={T.libs.cols.usedFor}>{l.usedFor}</td>
-                  <td data-label={T.libs.cols.license}>{l.license}</td>
+                  <td data-label={T.libs.cols.license}><Lic>{l.license}</Lic></td>
                 </tr>
               ))}
             </tbody>

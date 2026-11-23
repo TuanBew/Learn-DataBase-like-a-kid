@@ -41,7 +41,7 @@ export const lesson: Lesson = {
       title: 'Ba bẫy của báo cáo doanh thu',
       paragraphs: [
         "Bẫy một: đơn hủy. Đơn có `status` là 'cancelled' không tính doanh thu. Nhớ lọc chúng trong WHERE.",
-        'Bẫy hai: khoảng thời gian. Ngày đặt có cả giờ và phút. Viết `order_date >= 2025-01-01 AND order_date < 2026-01-01` để không bỏ sót ngày cuối năm.',
+        'Bẫy hai: khoảng thời gian. Ngày đặt có cả giờ và phút. Viết `order_date >= DATE '2025-01-01' AND order_date < DATE '2026-01-01'` để không bỏ sót ngày cuối năm.',
         'Bẫy ba: đơn chưa ghi nhân viên bán. Column `sales_rep_id` của các đơn này là NULL. INNER JOIN với `employees` bỏ chúng đi, nên tổng của hai báo cáo có thể lệch nhau.',
       ],
     },

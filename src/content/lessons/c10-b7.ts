@@ -205,7 +205,7 @@ SELECT staff_id, full_name, dept_name, salary FROM staff ORDER BY staff_id;`,
         },
         {
           kind: 'match',
-          question: 'Nối mỗi bước với việc bạn làm.',
+          question: 'Nối mỗi bước với thứ bạn làm.',
           pairs: [
             { left: 'Bước 2', right: 'SELECT với đúng WHERE và đếm row' },
             { left: 'Bước 3', right: 'Sao lưu các row sắp sửa' },

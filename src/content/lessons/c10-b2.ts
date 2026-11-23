@@ -264,7 +264,7 @@ COMMIT;`,
       type: 'oracle',
       body: [
         'MySQL có cú pháp UPDATE JOIN: viết `UPDATE a JOIN b ON ... SET ...`. Oracle không có cú pháp này.',
-        'Ở Oracle, dùng subquery như bài này. Oracle còn có lệnh MERGE cho việc sửa nhiều column từ table khác.',
+        'Ở Oracle, dùng subquery như bài này. Oracle còn có lệnh MERGE để sửa nhiều column từ table khác.',
         'Mỗi UPDATE hoặc DELETE ở Oracle xong, nhớ COMMIT để lưu hẳn. Chưa COMMIT thì phiên của người khác chưa thấy thay đổi.',
         'Lỗi 1093 chỉ có ở MySQL. Cùng câu lệnh đó, Oracle chạy bình thường.',
       ],
@@ -292,7 +292,7 @@ COMMIT;`,
           options: [
             { text: 'MySQL báo lỗi 1093 vì subquery đọc chính table đang sửa', correct: true, feedback: 'Đúng. Bọc phần đọc trong một subquery ở FROM và đặt tên cho nó là cách gỡ.' },
             { text: 'MySQL sửa các row và báo số row đã đổi', feedback: 'MySQL không cho table vừa bị sửa vừa bị đọc trong cùng lệnh.' },
-            { text: 'MySQL bỏ qua subquery và sửa mọi row', feedback: 'MySQL không bỏ qua gì cả. Nó báo lỗi và không sửa row nào.' },
+            { text: 'MySQL bỏ qua subquery và sửa mọi row', feedback: 'MySQL không bỏ qua gì cả. MySQL báo lỗi và không sửa row nào.' },
           ],
         },
         {

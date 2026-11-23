@@ -24,7 +24,7 @@ export const exercise: SqlExercise = {
   asks: [
     'Bước `rep_rev` (viết bằng WITH): mỗi nhân viên một row với `revenue` là tổng `quantity * unit_price`.',
     "Chỉ lấy đơn đặt trong quý 4 năm 2025, bỏ đơn 'cancelled' và đơn không có `sales_rep_id`.",
-    'Hiện `employee_name` (họ và tên đệm, dấu cách, tên gọi), `revenue` và `rank_no` bằng RANK, doanh thu cao nhất là hạng 1.',
+    'Hiện `employee_name` (`first_name`, dấu cách, rồi `last_name`), `revenue` và `rank_no` bằng RANK, doanh thu cao nhất là hạng 1.',
     'Xếp theo `rank_no`, rồi `employee_name`.',
   ],
   database: 'company',
@@ -35,7 +35,7 @@ export const exercise: SqlExercise = {
   check: { orderMatters: true, aliasMatters: true },
   why: 'Bước `rep_rev` tính doanh thu một lần cho mỗi nhân viên. INNER JOIN với `employees` loại luôn các đơn có `sales_rep_id` NULL. RANK xếp hạng trên kết quả đó.',
   hints: {
-    light: 'Tách hai việc. Việc một: doanh thu mỗi nhân viên trong quý 4. Việc hai: xếp hạng các nhân viên đó bằng RANK.',
+    light: 'Tách hai phần. Phần một: doanh thu mỗi nhân viên trong quý 4. Phần hai: xếp hạng các nhân viên đó bằng RANK.',
     specific:
       'Trong `rep_rev`, GROUP BY `o.sales_rep_id` và lọc `order_date` từ 2025-10-01 tới trước 2026-01-01. Ngoài WITH, nối `rep_rev` với `employees`, rồi thêm `RANK() OVER (ORDER BY r.revenue DESC)`.',
     skeleton: {

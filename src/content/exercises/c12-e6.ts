@@ -93,7 +93,7 @@ export const exercise: BuildExercise = {
       },
     ],
   },
-  why: 'Sau khi sửa, database nhận thêm được foreign key và CHECK. Hai luật này chỉ thêm được khi mọi row hiện có đã đúng. Đơn lỗi đã sạch, và năm đơn còn lại giữ nguyên.',
+  why: 'Sau khi sửa, database nhận thêm được foreign key và CHECK. Hai luật này chỉ thêm được khi mọi row hiện có đã đúng. Đơn lỗi đã sạch, và còn đủ năm đơn.',
   hints: {
     light: 'Có hai lỗi, nên cần hai lệnh. Một lệnh xóa đơn trỏ tới khách không có. Một lệnh sửa số tiền âm.',
     specific:

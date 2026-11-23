@@ -10,7 +10,7 @@ export const exercise: QuizExercise = {
   items: [
     {
       kind: 'choice',
-      question: 'Bạn chạy `CREATE VIEW active_staff AS SELECT ... FROM employees WHERE ...`. VIEW này lưu gì?',
+      question: 'Bạn chạy `CREATE VIEW active_staff AS SELECT ... FROM employees WHERE ...` và nhận về một VIEW. VIEW này lưu gì?',
       options: [
         { text: 'Câu SELECT, và chạy lại câu đó mỗi lần bạn đọc VIEW', correct: true, feedback: 'Đúng. VIEW giống một câu SELECT được đặt tên. VIEW không giữ bản sao của các row.' },
         { text: 'Một bản sao các row tại lúc tạo', feedback: 'Chưa đúng. VIEW không chép row. Nếu chép thì dữ liệu sẽ cũ dần, và VIEW không bị vậy.' },

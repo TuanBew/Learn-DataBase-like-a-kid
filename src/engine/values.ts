@@ -169,6 +169,21 @@ export function show(v: Value): string {
   return toText(v);
 }
 
+/**
+ * Định dạng theo cả column: một column số hoặc chấm ngăn nghìn cho mọi số nguyên từ 1.000 trở lên,
+ * hoặc không chấm số nào. Chỉ đổi chữ hiện ra, không đổi giá trị.
+ */
+export function columnFormatter(values: readonly Value[]): (v: Value) => string {
+  const big = values.filter((v): v is number => typeof v === 'number' && Number.isInteger(v) && Math.abs(v) >= 1000);
+  const dots = big.some((v) => Math.abs(v) >= 10000) || (big.length > 0 && big.every((v) => v % 500 === 0));
+  return (v: Value) => {
+    if (typeof v === 'number') {
+      return dots && Number.isInteger(v) && Math.abs(v) >= 1000 ? String(v).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : String(v);
+    }
+    return toText(v);
+  };
+}
+
 /** Giá trị trong câu giải thích: chuỗi có nháy đơn. */
 export function showQuoted(v: Value): string {
   if (typeof v === 'string') return `'${v}'`;

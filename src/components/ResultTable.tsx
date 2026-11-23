@@ -1,5 +1,6 @@
 import type { ResultSet } from '../engine';
-import { show } from '../engine';
+import { columnFormatter } from '../engine';
+import { useMemo } from 'react';
 import { uiExercise } from '../content/ui-exercise';
 import { ScrollHint, useOverflowX } from './ScrollHint';
 import './result-table.css';
@@ -19,6 +20,7 @@ export function ResultTable({ result, caption, rowMarks, emptyText, maxRows }: R
   const total = result.rows.length;
   const shown = maxRows !== undefined && maxRows >= 0 ? Math.min(total, maxRows) : total;
   const rows = result.rows.slice(0, shown);
+  const fmts = useMemo(() => result.columns.map((_, i) => columnFormatter(result.rows.map((r) => r[i]))), [result]);
   const isNum = result.types.map((t) => t === 'int' || t === 'decimal');
   const title = caption ?? T.defaultCaption;
   const [scrollRef, overflows] = useOverflowX<HTMLDivElement>();
@@ -47,7 +49,7 @@ export function ResultTable({ result, caption, rowMarks, emptyText, maxRows }: R
                     return (
                       <td key={i} className={cls || undefined}>
                         {i === 0 && mark && <span className="sr-only">{mark === 'extra' ? T.markExtra : T.markMissing} </span>}
-                        {v === null ? T.nullText : show(v)}
+                        {v === null ? T.nullText : fmts[i](v)}
                       </td>
                     );
                   })}

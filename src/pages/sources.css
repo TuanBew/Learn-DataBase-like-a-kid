@@ -122,3 +122,7 @@
 .src-defs dd {
   margin: 0;
 }
+
+.src-nb {
+  white-space: nowrap;
+}

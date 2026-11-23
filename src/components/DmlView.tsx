@@ -1,7 +1,7 @@
 import * as m from 'motion/react-m';
 import { AnimatePresence, useReducedMotion } from 'motion/react';
 import type { DmlTrace } from '../engine';
-import { show } from '../engine/values';
+import { columnFormatter } from '../engine/values';
 import { ScrollHint, useOverflowX } from './ScrollHint';
 import './dml-view.css';
 
@@ -22,6 +22,7 @@ export function DmlView({ dml, labels }: { dml: DmlTrace; labels: { more: (n: nu
   const rows = ordered.slice(0, MAX);
   const rest = source.length - rows.length;
   const cols = dml.columns.map((c) => c.key);
+  const fmts = cols.map((_, i) => columnFormatter([...source, ...dml.after].map((r) => r.cells[i])));
   const [scrollRef, overflows] = useOverflowX<HTMLDivElement>();
 
   return (
@@ -54,8 +55,8 @@ export function DmlView({ dml, labels }: { dml: DmlTrace; labels: { more: (n: nu
                       const changed = hit && dml.op === 'update' && dml.changed.includes(cols[i]) && old !== undefined;
                       return (
                         <td key={i} className={`${typeof v === 'number' ? 'is-num' : ''} ${changed ? 'is-changed' : ''} ${v === null ? 'is-null' : ''}`}>
-                          {changed && <s title={labels.old}>{show(old[i])}</s>}
-                          <span>{show(v)}</span>
+                          {changed && <s title={labels.old}>{fmts[i](old[i])}</s>}
+                          <span>{fmts[i](v)}</span>
                         </td>
                       );
                     })}

@@ -104,17 +104,22 @@
 }
 .sp-tag {
   display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 0 7px;
+  align-items: flex-start;
+  gap: 4px;
+  max-width: 100%;
+  padding: 2px 9px;
   font-size: var(--text-xs);
   font-weight: 600;
-  line-height: 1.6;
+  line-height: 1.45;
   color: var(--ink-2);
   background: var(--paper-2);
   border: 1px solid var(--ink-line);
-  border-radius: 999px;
+  border-radius: 12px;
   overflow-wrap: anywhere;
+}
+.sp-tag > svg {
+  flex: none;
+  margin-top: 0.1em;
 }
 .sp-tag--pk {
   background: var(--mango-soft);
@@ -138,4 +143,18 @@
 .sp-checks code {
   font-family: var(--font-mono);
   overflow-wrap: anywhere;
+}
+
+/* Khung có trần chiều cao, cuộn bên trong. Từ 900px thì dính dưới header. */
+.sp {
+  max-height: 22rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+@media (min-width: 900px) {
+  .sp {
+    position: sticky;
+    top: 5rem;
+    max-height: calc(100vh - 6.5rem);
+  }
 }

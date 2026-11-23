@@ -14,7 +14,7 @@ import type { QuizExercise, SqlExercise } from '../../content/types';
 import { uiApp } from '../../content/ui-app';
 import { type DmlTrace, type ResultSet, type Session, type SqlError, type Trace, createSession, run } from '../../engine';
 import type { Database, Dialect, Value } from '../../engine/types';
-import { show } from '../../engine/values';
+import { columnFormatter, show } from '../../engine/values';
 import { markExercise } from '../../lib/progress';
 import { play } from '../../sfx/sfx';
 import { Theater } from '../../theater/Theater';
@@ -71,8 +71,9 @@ export function PredictWork({ exercise, db }: { exercise: SqlExercise; db: Datab
     const r = run(`SELECT * FROM ${exercise.tables[0]}`, db, dialect);
     return r.ok ? r.result : null;
   }, [exercise, db, dialect]);
+  const pickFmts = useMemo(() => (base ? base.columns.map((_, j) => columnFormatter(base.rows.map((r) => r[j]))) : []), [base]);
   // Mỗi column rộng theo nội dung dài nhất của nó, để tên món không bị cắt khi còn chỗ.
-  const pickWidths = useMemo(() => (base ? base.columns.map((c, j) => Math.min(24, Math.max(5, c.length, ...base.rows.map((r) => show(r[j]).length)))) : []), [base]);
+  const pickWidths = useMemo(() => (base ? base.columns.map((c, j) => Math.min(24, Math.max(5, c.length, ...base.rows.map((r) => pickFmts[j](r[j]).length)))) : []), [base]);
   const pickCols = `28px ${pickWidths.map((n) => `minmax(0, ${n}fr)`).join(' ')}`;
   const pickMin = 48 + pickWidths.reduce((a, n) => a + n * 8 + 8, 0);
   const [pickRef, pickOverflows] = useOverflowX<HTMLDivElement>();
@@ -133,7 +134,7 @@ export function PredictWork({ exercise, db }: { exercise: SqlExercise; db: Datab
                   {picked.has(base.rowIds[i]) && <Icon name="check" size={14} />}
                 </span>
                 {r.map((v: Value, j: number) => (
-                  <span key={j}>{show(v)}</span>
+                  <span key={j}>{pickFmts[j](v)}</span>
                 ))}
               </button>
             ))}
@@ -371,7 +372,7 @@ export function RehearsalWork({ exercise, db }: { exercise: SqlExercise; db: Dat
 
 /* ---------- Nhóm câu hỏi nhanh ---------- */
 
-export function QuizWork({ exercise }: { exercise: QuizExercise }) {
+export function QuizWork({ exercise, db }: { exercise: QuizExercise; db?: Database | null }) {
   const [done, setDone] = useState<Set<number>>(new Set());
   const finish = (i: number) =>
     setDone((d) => {
@@ -383,7 +384,7 @@ export function QuizWork({ exercise }: { exercise: QuizExercise }) {
   const all = done.size === exercise.items.length;
   return (
     <div className="ex-stack">
-      <TaskCard exercise={exercise} />
+      <TaskCard exercise={exercise} db={db ?? undefined} />
       {exercise.code && <pre className="ex-code" tabIndex={0}>{exercise.code}</pre>}
       <span className="chip ex-quizcount">{U.quizDone(done.size, exercise.items.length)}</span>
       {exercise.items.map((q, i) => (

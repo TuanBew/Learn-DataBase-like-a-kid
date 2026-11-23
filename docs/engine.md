@@ -16,7 +16,7 @@ API: `run(sql, db, dialect)` cho SELECT. `createSession(db, dialect).run(sql)` c
 - Function gom trong WHERE: MySQL 1111, Oracle ORA-00934.
 - `ORDER BY` nhiều biểu thức, ASC, DESC, theo alias, theo số thứ tự column. Oracle có `NULLS FIRST`, `NULLS LAST`.
 - MySQL: `LIMIT n`, `LIMIT m, n`, `LIMIT n OFFSET m`. Oracle: `FETCH FIRST n ROWS ONLY`, `OFFSET m ROWS FETCH NEXT n ROWS ONLY`, và `ROWNUM` trong WHERE (ROWNUM được gán trước ORDER BY).
-- Subquery, ghép kết quả và WITH: xem các mục "Subquery", "Ghép kết quả" và "WITH" bên dưới. Chưa có: window function, WITH RECURSIVE.
+- Subquery, ghép kết quả và WITH: xem các mục "Subquery", "Ghép kết quả" và "WITH" bên dưới. Window function: xem mục "Window function". Chưa có: WITH RECURSIVE.
 - `CASE WHEN ... THEN ... ELSE ... END`, `CASE x WHEN ...`.
 - Phép tính `+ - * /`. MySQL có `%` và `MOD`; Oracle chỉ có `MOD(a, b)`. Chia cho 0: MySQL ra NULL, Oracle báo ORA-01476.
 
@@ -81,7 +81,7 @@ Function chỉ có ở một dialect: dialect kia báo lỗi kèm lời chỉ sa
 | Chữ hoa, chữ thường | UPPER, LOWER | UPPER, LOWER, INITCAP |
 | Độ dài | LENGTH (đếm byte), CHAR_LENGTH (đếm ký tự) | LENGTH (đếm ký tự) |
 | Cắt chuỗi | SUBSTR, SUBSTRING, LEFT, RIGHT | SUBSTR |
-| Bỏ dấu cách, thay chữ | TRIM, LTRIM, RTRIM, REPLACE | TRIM, LTRIM, RTRIM, REPLACE |
+| Bỏ dấu cách, thay chữ | TRIM, LTRIM, RTRIM, REPLACE(s, x, y). `TRIM(LEADING \| TRAILING \| BOTH 'x' FROM s)`: x có thể dài nhiều ký tự (cắt cả cụm). LTRIM, RTRIM một tham số (hai tham số là 1582) | TRIM, REPLACE(s, x, y). `REPLACE(s, x)` và `REPLACE(s, x, '')` xóa x khỏi s, kết quả rỗng là NULL. `LTRIM(s, set)`, `RTRIM(s, set)` cắt mọi ký tự nằm trong set. `TRIM(LEADING \| TRAILING \| BOTH 'x' FROM s)`: x phải dài đúng 1 ký tự (ORA-30001) |
 | Nối chuỗi | CONCAT(a, b, c...), CONCAT_WS(sep, a, b...). CONCAT có NULL thì ra NULL, CONCAT_WS bỏ qua NULL. `\|\|` là OR | `a \|\| b`. CONCAT chỉ nhận 2 tham số. NULL coi như chuỗi rỗng |
 | Tìm chuỗi con | INSTR(s, sub), LOCATE(sub, s [, vị trí]), POSITION(sub IN s). Không phân biệt hoa thường, có phân biệt dấu (`INSTR('á', 'a')` ra 0) | INSTR(s, sub [, vị trí [, lần thứ]]), phân biệt hoa thường. Vị trí âm là tìm ngược |
 | Đệm chuỗi | LPAD(s, n, pad), RPAD (cần đủ 3 tham số). n âm ra NULL | LPAD(s, n [, pad]), RPAD. Pad rỗng hay n = 0 ra NULL |
@@ -91,13 +91,13 @@ Function chỉ có ở một dialect: dialect kia báo lỗi kèm lời chỉ sa
 | Làm tròn, cắt số | ROUND(n, d), TRUNCATE(n, d). d âm làm tròn tới chục, trăm. Số .5 làm tròn ra xa số 0 | ROUND(n, d), TRUNC(n, d), cùng luật |
 | So lớn nhỏ | GREATEST, LEAST (từ 2 tham số). Có NULL thì ra NULL. Có một chuỗi thì so tất cả như chuỗi (`GREATEST(10, '9')` ra '9') | GREATEST, LEAST. Có NULL thì ra NULL. Kiểu tham số đầu quyết định cách so |
 | Định dạng số | FORMAT(n, d): `FORMAT(1234567.891, 2)` ra `1,234,567.89` | TO_CHAR(n, 'mẫu'): 9, 0, dấu phẩy, G, dấu chấm, D, FM. `TO_CHAR(1234, '999,999,999')` ra `'       1,234'` (có ô dấu và đệm trái), `'FM999,999,999'` ra `'1,234'`. Số dài hơn mẫu ra `####`. Mẫu lạ: ORA-01481 |
-| Thay NULL | IFNULL, COALESCE, NULLIF, IF(dk, a, b) | NVL, NVL2(x, a, b), COALESCE (từ 2 tham số), NULLIF, DECODE(x, v1, r1, ..., mặc định) |
+| Thay NULL | IFNULL, COALESCE, NULLIF, IF(dk, a, b) | NVL (số kèm chữ không phải số: ORA-01722; chữ kèm số không lỗi, theo tài liệu 19c), NVL2(x, a, b), COALESCE (từ 2 tham số), NULLIF, DECODE(x, v1, r1, ..., mặc định) |
 | Đổi data type | CAST(x AS SIGNED, UNSIGNED, DECIMAL(p,s), CHAR(n), DATE, DATETIME, DOUBLE), CONVERT(x, type). Type khác (INT, NUMBER, VARCHAR) báo 1064 | CAST(x AS NUMBER, NUMBER(p,s), INTEGER, VARCHAR2(n), DATE, TIMESTAMP), TO_NUMBER(s). Type của MySQL báo ORA-00902 |
 | Đổi chuỗi sang số, ngầm | Dễ tính: `'12abc'` thành 12 kèm cảnh báo 1292, `'abc'` thành 0, `'1e2'` thành 100 | Chặt: ORA-01722 khi chuỗi không phải số |
 | Bây giờ | NOW(), CURDATE(), CURRENT_DATE | SYSDATE, SYSTIMESTAMP, CURRENT_DATE (viết không ngoặc). SYSTIMESTAMP chỉ có ngày giờ như SYSDATE, không có phần lẻ giây và múi giờ |
 | Định dạng ngày | DATE_FORMAT(d, '%Y-%m-%d %H:%i'): %Y %y %m %c %d %e %D %j %w %H %k %h %I %l %i %s %f %p %r %T %M %b %W %a. Chưa có %U %u %V %v %X %x | TO_CHAR(d, 'YYYY-MM-DD HH24:MI'): YYYY RRRR YY RR MM DD DDD Q HH HH12 HH24 MI SS AM PM A.M. P.M. MON MONTH DY DAY FM. MONTH và DAY đệm cho đủ 9 chữ, trừ khi có FM (FM bật rồi tắt mỗi lần gặp) |
 | Chuỗi thành ngày | STR_TO_DATE(s, '%d/%m/%Y'), hoặc so thẳng với chuỗi ISO. Chuỗi ngày dễ tính: `'2026-3-9'`, `'20260309'`. Ngày không có thật (30 tháng 2) hay chuỗi lạ ra NULL kèm cảnh báo | TO_DATE(s, 'DD/MM/YYYY'), `DATE '2026-03-02'`, TO_DATE(s) với `'09-MAR-26'`. So ngày với chuỗi báo ORA-01861 |
-| Cắt phần giờ | DATE(d) | TRUNC(d), TRUNC(d, 'DD' \| 'MM' \| 'MON' \| 'MONTH' \| 'YYYY' \| 'YEAR' \| 'Q' \| 'HH' \| 'MI'). Mẫu lạ: ORA-01899. TRUNC(d, 'DAY') chưa có |
+| Cắt phần giờ | DATE(d) | TRUNC(d), TRUNC(d, 'DD' \| 'MM' \| 'MON' \| 'MONTH' \| 'YYYY' \| 'YEAR' \| 'Q' \| 'HH' \| 'MI' \| 'DAY'). Mẫu lạ: ORA-01899. 'DAY' cắt về Chủ nhật đầu tuần (kiểu Mỹ, NLS_TERRITORY mặc định) |
 | Lấy một phần | YEAR, MONTH, DAY, HOUR, EXTRACT(YEAR FROM d), DAYNAME, MONTHNAME, DAYOFWEEK (Chủ nhật là 1), WEEKDAY (thứ Hai là 0), QUARTER | EXTRACT(YEAR FROM d), TO_CHAR |
 | Cộng trừ ngày | DATE_ADD(d, INTERVAL n unit), DATE_SUB, `d + INTERVAL n unit`, `d - INTERVAL n unit`, `INTERVAL n unit + d`. unit: SECOND, MINUTE, HOUR, DAY, WEEK, MONTH, QUARTER, YEAR. Cộng tháng vào ngày 31 lùi về cuối tháng. Unit lạ: 1064 | `d + 7`, `d - 7`, ADD_MONTHS(d, n) (ngày cuối tháng giữ là ngày cuối tháng), `d1 - d2` ra số ngày. `d1 + d2` báo ORA-00975 |
 | Khoảng cách | DATEDIFF(a, b) ra số ngày, TIMESTAMPDIFF(unit, a, b) ra số đơn vị trọn vẹn | `a - b` ra số ngày, MONTHS_BETWEEN(a, b) (phần lẻ tính trên tháng 31 ngày) |
@@ -115,6 +115,18 @@ Giới hạn vì engine dùng số của JavaScript: `CAST(12 AS DECIMAL(5,2))` 
 
 Mọi lỗi dưới đây có lời tiếng Việt trong `messages.vi.ts`. MySQL: 1690 (POWER vượt trần), 1064 (CAST sang data type lạ, INTERVAL sai, dạng gọi sai, ROLLUP(...) kiểu Oracle), 1056 (GROUP BY alias của function gom), 3602 (GROUPING nhận column ngoài GROUP BY), 1111 (GROUPING không có GROUP BY). Oracle: ORA-01428 (SQRT số âm, INSTR lần thứ < 1, POWER không tính được), ORA-01426, ORA-01481, ORA-01846, ORA-01899, ORA-00932 (CAST số sang DATE), ORA-00975, ORA-01438 (CAST NUMBER(p,s) tràn), ORA-01489 (LISTAGG dài hơn 4000 byte), ORA-00902 (CAST sang data type của MySQL), ORA-00905 (LISTAGG thiếu WITHIN GROUP, chưa có nguồn xác nhận), ORA-00933 (`WITH ROLLUP`, chưa có nguồn xác nhận).
 
+## Window function
+
+- `ROW_NUMBER()`, `RANK()`, `DENSE_RANK()`, `LAG(x [, n [, mặc định]])`, `LEAD(...)`, và `SUM`, `AVG`, `COUNT` (kể cả `COUNT(*)`), `MIN`, `MAX`, kèm `OVER ([PARTITION BY ...] [ORDER BY ...])`. Dùng được trong danh sách SELECT, trong ORDER BY, và trong biểu thức (`salary - AVG(salary) OVER (PARTITION BY dept)`). Tính sau WHERE, GROUP BY và HAVING, nên đọc được kết quả gom nhóm (`RANK() OVER (ORDER BY SUM(salary) DESC)`).
+- Có ORDER BY trong OVER thì SUM, AVG, COUNT, MIN, MAX tính cộng dồn theo khung mặc định của SQL: các row có cùng giá trị ORDER BY nhận cùng kết quả. Không có ORDER BY thì tính trên cả partition. Khung viết rõ chỉ nhận đúng một dạng: `ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` (cộng từng row một). `RANGE`, `GROUPS`, `ROWS` dạng khác, `DISTINCT` trong window, window đặt tên (`OVER w`), GROUP_CONCAT và LISTAGG kèm OVER: "khóa học chưa dạy tới".
+- NULL khi sắp: nhỏ nhất ở MySQL, lớn nhất ở Oracle (như ORDER BY). NULL trong PARTITION BY là một nhóm riêng.
+- Query không có ORDER BY ngoài thì row ra theo thứ tự sắp của window đứng cuối trong SELECT, như MySQL 8.0.46. Oracle không hứa thứ tự này (CHỜ KIỂM TÀI LIỆU). Bài tập nên luôn có ORDER BY.
+- Dùng trong WHERE, ON, GROUP BY, HAVING: MySQL 3593, Oracle ORA-30483. Lời giải thích chỉ cách tính trong subquery ở FROM rồi lọc ở query ngoài.
+- ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD không có OVER: MySQL 1064 (ở chữ sau dấu `)`), Oracle ORA-30484. Function thường kèm OVER: MySQL 1064, Oracle ORA-30484. Oracle: ranking, LAG, LEAD thiếu ORDER BY trong OVER là ORA-30485 (MySQL cho qua). MySQL: số row của LAG, LEAD phải là số nguyên không âm viết thẳng, sai là 1064.
+- Tiêu đề column của MySQL giữ nguyên chữ viết, gồm cả phần `OVER (...)`.
+- Trace của query có window function đặt `partial: true`: các bước FROM, WHERE, SELECT vẫn diễn lại, riêng phần tính window thì chỉ có kết quả. Column của window hiện như column tính toán.
+- `COUNT(DISTINCT a, b)`: MySQL đếm các cặp khác nhau (bỏ cặp có NULL). Oracle báo ORA-00909.
+
 ## Gom nhóm mở rộng
 
 - `GROUP_CONCAT([DISTINCT] a [, b...] [ORDER BY x [ASC|DESC], ...] [SEPARATOR 'chuỗi'])` (MySQL). Chuỗi nối mặc định là dấu phẩy. Row có NULL ở bất kỳ tham số nào bị bỏ. Không còn row nào thì ra NULL. Kết quả dài hơn 1024 byte bị cắt kèm cảnh báo 1260.
@@ -129,6 +141,10 @@ Mọi lỗi dưới đây có lời tiếng Việt trong `messages.vi.ts`. MySQL
 
 - `INSERT INTO t [(columns)] VALUES (...)`. MySQL nhận nhiều row trong một câu; Oracle 19c thì không (ORA-00933). `INSERT INTO t [(columns)] SELECT ...` chép row từ một câu SELECT. Từ khóa `DEFAULT` đứng thay một giá trị trong VALUES và trong `UPDATE ... SET c = DEFAULT`.
 - `UPDATE t SET c = biểu thức [, ...] [WHERE ...]`, `DELETE FROM t [WHERE ...]`. DELETE làm theo `ON DELETE CASCADE` và `ON DELETE SET NULL` của foreign key. Không ghi gì thì chặn.
+- `INSERT ... ON DUPLICATE KEY UPDATE c = VALUES(c)` và dạng alias `INSERT ... VALUES (...) AS new ON DUPLICATE KEY UPDATE c = new.c` (MySQL, cả với INSERT ... SELECT). Row mới trùng primary key hoặc UNIQUE với một row đang có thì sửa row đó. Có alias mà viết column không kèm tên, trùng tên giữa table và alias, thì 1052. Chưa có: danh sách column sau alias (`AS new(a, b)`), cảnh báo 1287 của `VALUES()`. Oracle gặp ON DUPLICATE: ORA-00933 ở chữ ON, lời giải thích chỉ sang MERGE.
+- `MERGE INTO t [alias] USING (table hoặc subquery) [alias] ON (...) WHEN MATCHED THEN UPDATE SET ... WHEN NOT MATCHED THEN INSERT [(columns)] VALUES (...)` (Oracle). Được chỉ viết một trong hai nhánh, hai thứ tự đều nhận. Hai row nguồn cùng khớp một row đích: ORA-30926. Sửa column nằm trong ON: ORA-38104. `WHERE` và `DELETE` trong MERGE, `DEFAULT` trong SET hay VALUES: "khóa học chưa dạy tới". `DmlTrace.op` là `'merge'`, `touched` gồm cả row sửa lẫn row thêm. MySQL gặp MERGE: 1064 ở chữ MERGE, lời giải thích chỉ sang INSERT ... ON DUPLICATE KEY UPDATE.
+- `SAVEPOINT ten`, `ROLLBACK TO [SAVEPOINT] ten`. `ROLLBACK TO` đưa dữ liệu về lúc đặt savepoint, giữ savepoint đó, bỏ savepoint đặt sau nó, và transaction vẫn mở. Đặt lại savepoint cùng tên thì savepoint cũ mất. COMMIT, ROLLBACK, lệnh DDL (tự COMMIT) xóa mọi savepoint. MySQL: chỉ có nghĩa sau `START TRANSACTION` (ngoài đó SAVEPOINT không báo lỗi nhưng không giữ lại). Oracle: dùng ngay được, không cần lệnh mở transaction. Savepoint không có: 1305 (MySQL), ORA-01086 (Oracle). Kết quả là `{ kind: 'tx', op: 'savepoint' | 'rollback-to' }`.
+- INSERT, UPDATE, DELETE, MERGE trên view: "khóa học chưa dạy tới".
 - `COMMIT`, `ROLLBACK`. MySQL tự lưu sau mỗi lệnh, trừ khi đã `START TRANSACTION` hoặc `BEGIN`. Oracle giữ thay đổi ở trạng thái chờ tới khi COMMIT.
 - Lỗi constraint: trùng primary key hoặc UNIQUE (1062, ORA-00001), NULL vào column NOT NULL (1048, ORA-01400, ORA-01407), INSERT bỏ qua column NOT NULL không có DEFAULT (MySQL 1364, Oracle ORA-01400), sai CHECK (3819, ORA-02290), foreign key trỏ vào row không có (1452, ORA-02291), xóa row đang có row khác trỏ tới (1451, ORA-02292), sai số giá trị (1136, ORA-00947, ORA-00913).
 - Độ dài và độ chính xác: chữ dài quá VARCHAR(n) là 1406 (MySQL, đếm ký tự) và ORA-12899 (Oracle, đếm byte, trừ khi viết `VARCHAR2(n CHAR)`). Số vượt DECIMAL(p,s), TINYINT, SMALLINT, INT là 1264; vượt NUMBER(p,s) là ORA-01438. Số lẻ vào column số nguyên hoặc vượt scale thì làm tròn.
@@ -151,7 +167,23 @@ Kết quả là `{ ok: true, kind: 'ddl', op, object, table, columns }`. `op` l�
 - `ON DELETE CASCADE`, `ON DELETE SET NULL`. MySQL còn nhận `RESTRICT` và `NO ACTION` (bằng mặc định). Chưa có `ON UPDATE CASCADE`.
 - Lỗi lúc tạo: tên column trùng (1060, ORA-00957), hai primary key (1068, ORA-02260), column không có trong constraint (1072, ORA-00904), tên constraint trùng (1826, 3822, 1061, ORA-02264), foreign key sai (MySQL 1824, 3734, 1822, 3780, 1239, 1830; Oracle ORA-00942, ORA-00904, ORA-02270, ORA-02267, ORA-02256), AUTO_INCREMENT không phải key (1075).
 - Table mẫu viết constraint bằng cờ `pk`, `unique`, `fk`, `checks`. Session tự dựng danh sách `constraints` từ các cờ đó, nên ALTER và DROP chạy được trên cả table mẫu.
-- Chưa có: CREATE TABLE ... AS SELECT, CREATE INDEX, VIEW, thêm column AUTO_INCREMENT hoặc IDENTITY bằng ALTER, `ALTER TABLE ... CHANGE`, `FIRST` và `AFTER`.
+- `CREATE TABLE t AS SELECT ...` (MySQL còn nhận `CREATE TABLE t SELECT ...`): chép column (data type, NOT NULL) và row. Không chép primary key, foreign key, UNIQUE, CHECK, AUTO_INCREMENT, identity, DEFAULT. Column NOT NULL kiểu số ở MySQL nhận `DEFAULT 0`, như MySQL thật. Column là biểu thức: data type suy từ giá trị (số nguyên là INT hoặc NUMBER, số lẻ là DECIMAL(20,s) hoặc NUMBER, chữ là VARCHAR(255) hoặc VARCHAR2(4000)), chỉ gần đúng so với DBMS thật. Hai column trùng tên: 1060, ORA-00957. Oracle: biểu thức không có alias là ORA-00998. Chưa có: `CREATE TABLE t (a, b) AS SELECT`. Tự COMMIT như mọi DDL.
+- Chưa có: CREATE INDEX, thêm column AUTO_INCREMENT hoặc IDENTITY bằng ALTER, `ALTER TABLE ... CHANGE`, `FIRST` và `AFTER`.
+
+### VIEW
+
+- `CREATE [OR REPLACE] VIEW v AS SELECT ...`, `DROP VIEW [IF EXISTS] v` (Oracle 19c không có IF EXISTS). Cả hai tự COMMIT. View chỉ lưu câu SELECT (`Database.views: { name, sql }[]`) và chạy lại mỗi lần đọc, nên luôn thấy dữ liệu mới. `SELECT *` trong view cũng bung lại mỗi lần (DBMS thật bung một lần lúc tạo).
+- SELECT và JOIN trên view như một table. Trace của query dùng view là `partial` (view như một table đã có row). Tạo view thì chạy thử câu SELECT, nên lỗi table, column hiện ngay lúc tạo.
+- Tên view và tên table dùng chung một chỗ: trùng thì 1050 (MySQL), ORA-00955 (Oracle). View đã có mà không viết OR REPLACE: cùng mã đó. DROP VIEW trên table: 1347 (MySQL), ORA-00942 (Oracle). DROP TABLE trên view và DROP VIEW không có: 1051, ORA-00942.
+- View mất table nền: 1356 (MySQL), ORA-04063 (Oracle).
+- Chưa có: danh sách column sau tên view, `WITH CHECK OPTION`, `WITH READ ONLY`, `DESC view`, `SHOW CREATE VIEW`.
+
+### Tên đầy đủ schema.table
+
+- Mỗi database có một tên schema: tên database (`congty` ở MySQL, `CONGTY` ở Oracle). Viết `schema.table` ở SELECT (FROM, JOIN, subquery), INSERT, UPDATE, DELETE, MERGE, CREATE TABLE, CREATE VIEW, ALTER, DROP, TRUNCATE, DESC. Đúng schema thì chạy như thường. Chưa có `schema.table.column`.
+- MySQL phân biệt hoa thường ở tên schema (`CONGTY.employees` là 1049). Oracle không phân biệt, trừ khi nằm trong nháy kép.
+- Schema khác: MySQL 1049 (`Unknown database`), riêng DROP TABLE và DROP VIEW là 1051, TRUNCATE là 1146. Oracle ORA-00942, riêng CREATE là ORA-01918 (CHỜ KIỂM TÀI LIỆU) và DESC là ORA-04043.
+- Oracle: `SELECT USER FROM DUAL` trả tên schema. `ALL_TABLES`, `ALL_TAB_COLUMNS`, `ALL_VIEWS` có column `OWNER` bằng tên đó. `USER_VIEWS` có `VIEW_NAME`, `TEXT`. MySQL: `SHOW TABLES` gồm cả view, `SHOW FULL TABLES` thêm column `Table_type` (`BASE TABLE` hay `VIEW`).
 
 ### ALTER TABLE
 
@@ -207,7 +239,7 @@ Các lệnh này chạy qua `createSession` và trả `kind: 'select'`, nên gia
 
 ### `session.schema()`
 
-Trả `SchemaView` cho giao diện vẽ khung cấu trúc: `{ dialect, tables, sequences }`. Mỗi table có `name`, `rows` (số row), `columns` (`name`, `type`, `nullable`, `pk`, `unique`, `identity`, `default?`, `fk?`), `checks` (`name?`, `expr`) và `primaryKey?` (chỉ khi gồm từ hai column). `type` viết theo dialect của session: `VARCHAR(50)` ở MySQL, `VARCHAR2(50)` ở Oracle. Cùng một database nạp vào session khác dialect thì data type đổi cách viết.
+Trả `SchemaView` cho giao diện vẽ khung cấu trúc: `{ dialect, tables, sequences, views }`. Mỗi view có `name` và `sql` (câu SELECT nguyên văn). Mỗi table có `name`, `rows` (số row), `columns` (`name`, `type`, `nullable`, `pk`, `unique`, `identity`, `default?`, `fk?`), `checks` (`name?`, `expr`) và `primaryKey?` (chỉ khi gồm từ hai column). `type` viết theo dialect của session: `VARCHAR(50)` ở MySQL, `VARCHAR2(50)` ở Oracle. Cùng một database nạp vào session khác dialect thì data type đổi cách viết.
 
 ## Lưu và nạp database
 

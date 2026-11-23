@@ -86,12 +86,20 @@ export interface SequenceDef {
   last?: number;
 }
 
+/** View: câu SELECT đặt tên. Chạy lại mỗi lần có người đọc view. */
+export interface ViewDef {
+  name: string;
+  /** Nguyên văn câu SELECT sau chữ AS. */
+  sql: string;
+}
+
 export interface Database {
   /** Tên database, ví dụ 'trasua'. Hiện trong thông báo lỗi của MySQL. */
   name: string;
   tables: TableDef[];
   /** Sequence (Oracle). */
   sequences?: SequenceDef[];
+  views?: ViewDef[];
   /** Bộ đếm đặt tên SYS_C00... cho luật không có tên ở Oracle. */
   sysName?: number;
 }

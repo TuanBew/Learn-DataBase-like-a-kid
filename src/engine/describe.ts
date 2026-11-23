@@ -2,6 +2,7 @@ import type { ColumnDef, ConstraintDef, Database, Dialect, RawValue, TableDef, V
 import { SqlError, oraMessage, type Span } from './errors';
 import { friendly } from './messages.vi';
 import { tokenize } from './tokenizer';
+import { checkSchema, schemaMatches } from './executor';
 import { type FkDef, columnsIn, constraintsOf, findTableIn, pkOf, sameName, typeNameOf, upper } from './catalog';
 import type { ResultSet, Trace, TraceCol } from './trace';
 
@@ -229,7 +230,7 @@ function oracleTypeInfo(c: ColumnDef): [string, number, number | null, number | 
   }
 }
 
-const DICT_RE = /\b(USER|ALL)_(TABLES|TAB_COLUMNS|CONSTRAINTS|CONS_COLUMNS|SEQUENCES)\b/i;
+const DICT_RE = /\b(USER|ALL)_(TABLES|TAB_COLUMNS|CONSTRAINTS|CONS_COLUMNS|SEQUENCES|VIEWS)\b/i;
 
 /** Có nhắc tới view data dictionary không. */
 export const mentionsDictionary = (sql: string): boolean => DICT_RE.test(sql);
@@ -278,6 +279,8 @@ export function dictionary(db: Database): TableDef[] {
     view('ALL_TABLES', [V('OWNER'), V('TABLE_NAME')], tables.map((n) => [owner, n])),
     view('USER_TAB_COLUMNS', colDefs, colRows(true)),
     view('ALL_TAB_COLUMNS', [V('OWNER'), ...colDefs], colRows(false)),
+    view('USER_VIEWS', [V('VIEW_NAME'), V('TEXT')], (db.views ?? []).map((v) => [upper(v.name), v.sql])),
+    view('ALL_VIEWS', [V('OWNER'), V('VIEW_NAME'), V('TEXT')], (db.views ?? []).map((v) => [owner, upper(v.name), v.sql])),
     view('USER_CONSTRAINTS', [V('CONSTRAINT_NAME'), V('CONSTRAINT_TYPE'), V('TABLE_NAME'), V('SEARCH_CONDITION'), V('R_CONSTRAINT_NAME'), V('DELETE_RULE')], cons),
     view('USER_CONS_COLUMNS', [V('CONSTRAINT_NAME'), V('TABLE_NAME'), V('COLUMN_NAME'), V('POSITION', 'int')], consCols),
     // CHỜ KIỂM TÀI LIỆU: LAST_NUMBER thật với CACHE 20 (mặc định) nhảy theo cache. Engine tính như NOCACHE: số kế tiếp sẽ cấp.
@@ -316,6 +319,22 @@ export function toolCommand(sql: string, db: Database, d: Dialect): Sel | { ok: 
   toks = toks.filter((t) => t.type !== 'eof');
   if (toks.at(-1)?.text === ';') toks.pop();
   if (toks.some((t) => t.text === ';') || toks.length === 0) return undefined;
+  // DESC schema.table: kiểm schema rồi bỏ nó đi, phần còn lại chạy như DESC table.
+  const first = toks[0].type === 'word' ? toks[0].value : '';
+  if (['DESC', 'DESCRIBE'].includes(first) && toks.length === 4 && toks[2].text === '.' && toks[1].type !== 'op' && toks[3].type !== 'op') {
+    const sch = { name: toks[1].type === 'qident' ? toks[1].value : toks[1].text, quoted: toks[1].type === 'qident' };
+    if (!schemaMatches(db, d, sch)) {
+      const whole = { s: toks[1].s, e: toks[3].e };
+      // Oracle: DESC báo ORA-04043 (object does not exist), không phải ORA-00942.
+      if (d === 'oracle') return { ok: false, error: noTable(d, db, `${upper(sch.name)}.${upper(toks[3].text)}`, whole) };
+      try {
+        checkSchema(db, d, { ...sch, span: { s: toks[1].s, e: toks[1].e } }, toks[3].text, whole);
+      } catch (e) {
+        return { ok: false, error: e as SqlError };
+      }
+    }
+    toks = [toks[0], toks[3]];
+  }
   const w = toks.map((t) => (t.type === 'word' ? t.value : ''));
   const named = (i: number) => toks.length === i + 1 && (toks[i].type === 'word' || toks[i].type === 'qident');
   const span = (i: number): Span => ({ s: toks[i].s, e: toks[i].e });
@@ -332,9 +351,11 @@ export function toolCommand(sql: string, db: Database, d: Dialect): Sel | { ok: 
   };
 
   if (d === 'mysql') {
-    if (w[0] === 'SHOW' && w[1] === 'TABLES' && toks.length === 2) {
-      const names = db.tables.map((t) => t.name).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-      return table(sql, d, 'tables', [`Tables_in_${db.name}`], names.map((n) => [n]));
+    const full = w[0] === 'SHOW' && w[1] === 'FULL' && w[2] === 'TABLES' && toks.length === 3;
+    if ((w[0] === 'SHOW' && w[1] === 'TABLES' && toks.length === 2) || full) {
+      const names = [...db.tables.map((t) => ({ n: t.name, v: false })), ...(db.views ?? []).map((v) => ({ n: v.name, v: true }))].sort((a, b) => a.n.toLowerCase().localeCompare(b.n.toLowerCase()));
+      if (full) return table(sql, d, 'tables', [`Tables_in_${db.name}`, 'Table_type'], names.map((x) => [x.n, x.v ? 'VIEW' : 'BASE TABLE']));
+      return table(sql, d, 'tables', [`Tables_in_${db.name}`], names.map((x) => [x.n]));
     }
     if ((w[0] === 'DESCRIBE' || w[0] === 'DESC') && named(1)) return want(1, (t) => mysqlDescribe(t, sql));
     if (w[0] === 'SHOW' && (w[1] === 'COLUMNS' || w[1] === 'FIELDS') && (w[2] === 'FROM' || w[2] === 'IN') && named(3)) return want(3, (t) => mysqlDescribe(t, sql));

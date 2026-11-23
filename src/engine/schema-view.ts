@@ -37,10 +37,17 @@ export interface SchemaSequence {
   last?: number;
 }
 
+export interface SchemaViewDef {
+  name: string;
+  /** Câu SELECT sau chữ AS, nguyên văn. */
+  sql: string;
+}
+
 export interface SchemaView {
   dialect: Dialect;
   tables: SchemaTable[];
   sequences: SchemaSequence[];
+  views: SchemaViewDef[];
 }
 
 export function schemaView(db: Database, d: Dialect): SchemaView {
@@ -71,5 +78,6 @@ export function schemaView(db: Database, d: Dialect): SchemaView {
       return { name: t.name, rows: t.rows.length, columns, checks, ...(pk && pk.columns.length > 1 ? { primaryKey: [...pk.columns] } : {}) };
     }),
     sequences: (db.sequences ?? []).map((s) => ({ name: s.name, start: s.start, increment: s.increment, ...(s.last !== undefined ? { last: s.last } : {}) })),
+    views: (db.views ?? []).map((v) => ({ name: v.name, sql: v.sql })),
   };
 }

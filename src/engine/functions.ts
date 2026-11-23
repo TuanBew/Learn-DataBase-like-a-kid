@@ -27,6 +27,10 @@ export { addDays, dateParts, diffDays, makeDate } from './dates';
 export interface FnEnv {
   /** "Bây giờ" của khóa học, cố định để kết quả không đổi theo ngày. */
   now: SqlDate;
+  /** Tên schema đang đăng nhập, in hoa (Oracle USER). */
+  user?: string;
+  /** MySQL INSERT ... ON DUPLICATE KEY UPDATE: row định thêm, cho VALUES(column). */
+  incoming?: { columns: { name: string }[]; cells: Value[] };
   /** Sequence của Oracle. Session cấp hai hàm này. Không có thì mọi sequence đều không tồn tại. */
   seq?: {
     next(name: string, span: Span): number;
@@ -302,6 +306,31 @@ function timestampDiff(a: Value[], d: Dialect, span: Span, _env: FnEnv, unit = '
 
 const DAY_KEYS = DAYS.map((n) => n.toUpperCase());
 
+/** Cắt các chữ trong `set` ở đầu hoặc cuối chuỗi (LTRIM, RTRIM của Oracle). */
+function trimSet(a: Value[], dir: 'LEADING' | 'TRAILING'): Value {
+  if (a[0] === null) return null;
+  if (a.length > 1 && a[1] === null) return null;
+  const set = a.length > 1 ? new Set([...toText(a[1])]) : new Set([' ']);
+  let chars = [...toText(a[0])];
+  if (dir === 'LEADING') while (chars.length > 0 && set.has(chars[0])) chars.shift();
+  else while (chars.length > 0 && set.has(chars[chars.length - 1])) chars.pop();
+  return chars.join('');
+}
+
+/** TRIM(s) và TRIM(LEADING | TRAILING | BOTH x FROM s). Oracle chỉ cho x dài đúng một chữ, MySQL cho x dài hơn (cắt cả cụm). */
+function trimFn(a: Value[], d: Dialect, span: Span, _env: FnEnv, unit?: string): Value {
+  if (a[0] === null) return null;
+  if (!unit) return toText(a[0]).trim();
+  if (a.length > 1 && a[1] === null) return null;
+  const x = a.length > 1 ? toText(a[1]) : ' ';
+  if (d === 'oracle' && [...x].length !== 1) throw oraFail('30001', 'trim set should have only one character', 'trim-one-char', {}, span);
+  let s = toText(a[0]);
+  if (x === '') return s;
+  if (unit !== 'TRAILING') while (s.startsWith(x)) s = s.slice(x.length);
+  if (unit !== 'LEADING') while (s.endsWith(x)) s = s.slice(0, s.length - x.length);
+  return s;
+}
+
 /** TRUNC(ngày, mẫu) của Oracle. */
 function truncDate(v: SqlDate, fmt: string, span: Span): SqlDate {
   const p = dateParts(v);
@@ -311,6 +340,8 @@ function truncDate(v: SqlDate, fmt: string, span: Span): SqlDate {
   if (['MM', 'MON', 'MONTH', 'RM'].includes(f)) return at({ d: 1 });
   if (['YYYY', 'YEAR', 'SYYYY', 'YYY', 'YY', 'Y'].includes(f)) return at({ mo: 1, d: 1 });
   if (f === 'Q') return at({ mo: Math.floor((p.mo - 1) / 3) * 3 + 1, d: 1 });
+  // CHỜ KIỂM TÀI LIỆU: 'DAY' cắt về ngày đầu tuần theo NLS_TERRITORY. Engine dùng kiểu Mỹ: Chủ nhật.
+  if (['DAY', 'DY', 'D'].includes(f)) return addDays(at({}), -weekday(p));
   if (['HH', 'HH12', 'HH24'].includes(f)) return makeDate({ ...p, mi: 0, s: 0 }, true);
   if (f === 'MI') return makeDate({ ...p, s: 0 }, true);
   throw oraFail('01899', 'bad precision specifier', 'bad-trunc-unit', { text: fmt }, span);
@@ -366,10 +397,25 @@ export const FUNCTIONS: Record<string, FnDef> = {
       return n === 0 ? '' : [...toText(a[0])].slice(-n).join('');
     },
   },
-  TRIM: { min: 1, max: 1, run: text((s) => s.trim()) },
-  LTRIM: { min: 1, max: 1, run: text((s) => s.trimStart()) },
-  RTRIM: { min: 1, max: 1, run: text((s) => s.trimEnd()) },
-  REPLACE: { min: 3, max: 3, run: (a) => (a.some((v) => v === null) ? null : toText(a[0]).split(toText(a[1])).join(toText(a[2]))) },
+  // TRIM(s), hoặc TRIM(LEADING | TRAILING | BOTH 'x' FROM s): đơn vị `unit` là hướng, tham số thứ hai là chuỗi cần cắt.
+  TRIM: { min: 1, max: 2, syntax: true, run: trimFn },
+  LTRIM: { min: 1, max: 1, arity: { oracle: [1, 2] }, run: (a) => trimSet(a, 'LEADING') },
+  RTRIM: { min: 1, max: 1, arity: { oracle: [1, 2] }, run: (a) => trimSet(a, 'TRAILING') },
+  // Oracle: bỏ tham số thứ ba, hoặc để '' (là NULL), thì xóa chuỗi tìm ra khỏi chuỗi gốc.
+  REPLACE: {
+    min: 3,
+    max: 3,
+    syntax: true,
+    arity: { oracle: [2, 3] },
+    run: (a, d) => {
+      if (a[0] === null) return null;
+      if (d === 'oracle') {
+        if (a[1] === null) return a[0];
+        return toText(a[0]).split(toText(a[1])).join(a[2] === undefined || a[2] === null ? '' : toText(a[2]));
+      }
+      return a.some((v) => v === null) ? null : toText(a[0]).split(toText(a[1])).join(toText(a[2]));
+    },
+  },
   INITCAP: { min: 1, max: 1, only: 'oracle', use: 'UPPER hoặc LOWER', run: text((s) => s.toLowerCase().replace(/(^|[^\p{L}\p{N}])(\p{L})/gu, (_m, a: string, b: string) => a + b.toUpperCase())) },
   CONCAT: {
     min: 1,
@@ -492,7 +538,20 @@ export const FUNCTIONS: Record<string, FnDef> = {
   /* NULL và rẽ nhánh */
   COALESCE: { min: 1, max: 99, syntax: true, arity: { mysql: [1, 99], oracle: [2, 99] }, run: (a) => a.find((v) => v !== null) ?? null },
   IFNULL: { min: 2, max: 2, only: 'mysql', use: 'NVL', run: (a) => (a[0] !== null ? a[0] : a[1]) },
-  NVL: { min: 2, max: 2, only: 'oracle', use: 'IFNULL', run: (a) => (a[0] !== null ? a[0] : a[1]) },
+  // Tài liệu 19c: expr1 là chữ thì expr2 đổi sang chữ. expr1 là số thì expr2 đổi sang số (chữ không phải số: ORA-01722).
+  NVL: {
+    min: 2,
+    max: 2,
+    only: 'oracle',
+    use: 'IFNULL',
+    run: (a, d, span) => {
+      const [x, y] = a;
+      // CHỜ KIỂM TÀI LIỆU: engine không biết data type của NULL, nên chỉ bắt lỗi khi expr1 có giá trị số thật.
+      if (typeof x === 'number' && typeof y === 'string') toNumber(y, d, span);
+      return x !== null ? x : y;
+    },
+  },
+  USER: { min: 0, max: 0, only: 'oracle', use: 'DATABASE()', bare: ['oracle'], bareOnly: ['oracle'], run: (_a, _d, _s, env) => env.user ?? null },
   NVL2: { min: 3, max: 3, only: 'oracle', use: 'IF(x IS NOT NULL, a, b)', run: (a) => (a[0] !== null ? a[1] : a[2]) },
   NULLIF: { min: 2, max: 2, run: (a, d, span) => (a[0] !== null && a[1] !== null && compare(a[0], a[1], d, span) === 0 ? null : a[0]) },
   IF: { min: 3, max: 3, syntax: true, only: 'mysql', use: 'CASE WHEN ... THEN ... ELSE ... END, hoặc DECODE', run: (a, d, span) => (truthy(a[0], d, span) ? a[1] : a[2]) },

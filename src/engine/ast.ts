@@ -38,6 +38,8 @@ export type Expr =
       /** GROUP_CONCAT và LISTAGG: ORDER BY trong ngoặc, và chuỗi nối. */
       within?: OrderItem[];
       sep?: string;
+      /** Window function: phần OVER (...). */
+      over?: WindowSpec;
       span: Span;
       nameSpan: Span;
     }
@@ -48,6 +50,15 @@ export type Expr =
   | { t: 'seq'; seq: string; which: 'NEXTVAL' | 'CURRVAL'; span: Span; seqSpan: Span }
   /** Từ khóa DEFAULT đứng thay một giá trị trong INSERT hay UPDATE. */
   | { t: 'default'; span: Span };
+
+/** `OVER ([PARTITION BY ...] [ORDER BY ...] [ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW])`. */
+export interface WindowSpec {
+  partition: Expr[];
+  orderBy: OrderItem[];
+  /** Khung viết rõ: cộng dồn từng row. Không có thì dùng khung mặc định của SQL. */
+  rows?: boolean;
+  span: Span;
+}
 
 /** Data type đích của CAST. */
 export interface CastType {
@@ -82,6 +93,8 @@ export interface TableRef {
   /** Subquery trong FROM: `FROM (SELECT ...) alias`. */
   sub?: Query;
   quoted?: boolean;
+  /** `schema.table`: tên schema đứng trước dấu chấm. */
+  schema?: { name: string; quoted: boolean; span: Span };
   alias?: string;
   /** MySQL: chữ FULL đứng ngay sau table, trước JOIN, bị đọc thành alias. */
   fullAlias?: boolean;
@@ -158,6 +171,19 @@ export interface InsertStmt {
   rows: { values: Expr[]; span: Span }[];
   /** INSERT ... SELECT: lấy row từ một câu SELECT thay cho VALUES. */
   select?: Query;
+  /** MySQL: `[AS alias] ON DUPLICATE KEY UPDATE c = ...`. */
+  onDup?: { alias?: string; sets: { name: string; span: Span; e: Expr }[]; span: Span };
+  span: Span;
+}
+
+/** Oracle: MERGE INTO t USING src ON (...) WHEN MATCHED ... WHEN NOT MATCHED .... */
+export interface MergeStmt {
+  t: 'merge';
+  table: TableRef;
+  using: TableRef;
+  on: Expr;
+  matched?: { sets: { name: string; span: Span; e: Expr }[]; span: Span };
+  notMatched?: { columns?: { name: string; span: Span }[]; values: Expr[]; span: Span };
   span: Span;
 }
 
@@ -178,6 +204,35 @@ export interface DeleteStmt {
 
 export interface TxStmt {
   t: 'commit' | 'rollback' | 'begin';
+  span: Span;
+}
+
+/** SAVEPOINT ten, hoặc ROLLBACK TO [SAVEPOINT] ten. */
+export interface SavepointStmt {
+  t: 'savepoint' | 'rollback-to';
+  name: string;
+  nameSpan: Span;
+  span: Span;
+}
+
+export interface CreateViewStmt {
+  t: 'createview';
+  name: string;
+  nameSpan: Span;
+  schema?: TableRef['schema'];
+  orReplace: boolean;
+  /** Nguyên văn câu SELECT sau chữ AS. */
+  select: string;
+  query: Query;
+  span: Span;
+}
+
+export interface DropViewStmt {
+  t: 'dropview';
+  name: string;
+  nameSpan: Span;
+  schema?: TableRef['schema'];
+  ifExists: boolean;
   span: Span;
 }
 
@@ -224,7 +279,10 @@ export interface CreateTableStmt {
   t: 'create';
   name: string;
   nameSpan: Span;
+  schema?: TableRef['schema'];
   ifNotExists?: boolean;
+  /** CREATE TABLE ... AS SELECT: chép column và row từ query. `columns` rỗng. */
+  asSelect?: Query;
   /** MySQL: AUTO_INCREMENT=n sau dấu ngoặc. */
   autoInc?: number;
   columns: ColumnSpec[];
@@ -290,6 +348,10 @@ export type Statement =
   | UpdateStmt
   | DeleteStmt
   | TxStmt
+  | SavepointStmt
+  | MergeStmt
+  | CreateViewStmt
+  | DropViewStmt
   | CreateTableStmt
   | AlterTableStmt
   | DropTableStmt
@@ -301,3 +363,8 @@ export type Statement =
 export const RUN_ORDER: ClauseKind[] = ['FROM', 'WHERE', 'GROUP BY', 'HAVING', 'SELECT', 'ORDER BY', 'LIMIT', 'FETCH'];
 
 export const AGGREGATES = new Set(['COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'GROUP_CONCAT', 'LISTAGG']);
+
+/** Window function chỉ có nghĩa khi có OVER. */
+export const RANKING = new Set(['ROW_NUMBER', 'RANK', 'DENSE_RANK', 'LAG', 'LEAD']);
+/** Aggregate dùng được với OVER. */
+export const WINDOW_AGGS = new Set(['COUNT', 'SUM', 'AVG', 'MIN', 'MAX']);

@@ -458,7 +458,7 @@ describe('phép chia và chia lấy dư', () => {
 describe('phần engine chưa dạy ra kind unsupported', () => {
   const cases: [string, string][] = [
     ['INTERSECT ALL', 'SELECT name FROM products INTERSECT ALL SELECT name FROM stores'],
-    ['window function', 'SELECT name, ROW_NUMBER() OVER (ORDER BY price) FROM products'],
+    ['khung RANGE của window function', 'SELECT name, SUM(price) OVER (ORDER BY price RANGE BETWEEN 1 PRECEDING AND CURRENT ROW) FROM products'],
     ['ngoặc quanh JOIN trong FROM', 'SELECT * FROM (products p JOIN order_items i ON i.product_id = p.product_id)'],
   ];
   for (const [name, sql] of cases) {

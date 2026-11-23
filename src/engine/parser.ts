@@ -12,6 +12,12 @@ import {
   type Cte,
   type CreateSequenceStmt,
   type CreateTableStmt,
+  type CreateViewStmt,
+  type DropViewStmt,
+  type MergeStmt,
+  type SavepointStmt,
+  type WindowSpec,
+  RANKING,
   type DeleteStmt,
   type DropSequenceStmt,
   type DropTableStmt,
@@ -45,6 +51,8 @@ const CLAUSE_WORDS = new Set(['SELECT', 'FROM', 'WHERE', 'GROUP', 'HAVING', 'ORD
 const JOIN_WORDS = new Set(['JOIN', 'INNER', 'LEFT', 'RIGHT', 'FULL', 'CROSS', 'NATURAL']);
 /** Chữ dùng được như một giá trị mà không cần ngoặc. */
 const BARE = new Set(['SYSDATE', 'SYSTIMESTAMP', 'CURRENT_DATE', 'CURRENT_TIMESTAMP', 'ROWNUM']);
+/** Chữ chỉ là function không ngoặc ở Oracle (ở MySQL nó có thể là tên column). */
+const BARE_ORACLE = new Set(['USER']);
 
 const INTERVAL_UNITS = new Set(['SECOND', 'MINUTE', 'HOUR', 'DAY', 'WEEK', 'MONTH', 'QUARTER', 'YEAR']);
 const INTERVAL_OTHER = new Set(['MICROSECOND', 'SECOND_MICROSECOND', 'MINUTE_MICROSECOND', 'MINUTE_SECOND', 'HOUR_MICROSECOND', 'HOUR_SECOND', 'HOUR_MINUTE', 'DAY_MICROSECOND', 'DAY_SECOND', 'DAY_MINUTE', 'DAY_HOUR', 'YEAR_MONTH']);
@@ -74,7 +82,7 @@ const TYPES: Record<string, { type: ColumnType; only?: Dialect; use?: string }> 
   DATETIME: { type: 'datetime', only: 'mysql', use: 'DATE hoặc TIMESTAMP' },
   TIMESTAMP: { type: 'datetime' },
 };
-const OUTSIDE = new Set(['GRANT', 'REVOKE', 'MERGE', 'EXPLAIN', 'SHOW', 'DESCRIBE', 'DESC', 'USE', 'SET', 'CALL']);
+const OUTSIDE = new Set(['GRANT', 'REVOKE', 'EXPLAIN', 'SHOW', 'DESCRIBE', 'DESC', 'USE', 'SET', 'CALL']);
 const COMPARE = new Set(['=', '<>', '<', '<=', '>', '>=']);
 const SET_WORDS = new Set(['UNION', 'INTERSECT', 'MINUS', 'EXCEPT']);
 
@@ -168,6 +176,7 @@ class Parser {
     }
     const other = this.other();
     if (other) {
+      // INSERT ... ON DUPLICATE KEY UPDATE ở Oracle: lạc ở chữ ON.
       this.end();
       return other;
     }
@@ -220,7 +229,7 @@ class Parser {
     const hasFrom = this.isW('FROM');
     if (!hasFrom) {
       const t = this.tok;
-      const done = t.type === 'eof' || this.isOp(';') || (t.type === 'word' && SET_WORDS.has(t.value));
+      const done = t.type === 'eof' || this.isOp(';') || (t.type === 'word' && (SET_WORDS.has(t.value) || (t.value === 'ON' && this.d === 'mysql')));
       const clause = t.type === 'word' && ['WHERE', 'GROUP', 'HAVING', 'ORDER', 'LIMIT'].includes(t.value);
       // MySQL cho SELECT không có FROM, kể cả khi còn WHERE, ORDER BY, LIMIT.
       if (!(this.d === 'mysql' && (done || clause || this.isOp(')')))) {
@@ -878,7 +887,7 @@ class Parser {
         this.i++;
         if (this.isOp('(') && this.isOp('+', this.peek()) && this.isOp(')', this.peek(2))) return this.markOuter({ t: 'col', name: t.text, span });
         if (this.isOp('(')) return this.call(t);
-        if (BARE.has(w) && !this.isOp('.')) return { t: 'fn', name: w, args: [], bare: true, span, nameSpan: span };
+        if ((BARE.has(w) || (this.d === 'oracle' && BARE_ORACLE.has(w))) && !this.isOp('.')) return { t: 'fn', name: w, args: [], bare: true, span, nameSpan: span };
         if (this.isOp('.')) {
           this.i++;
           const c = this.tok;
@@ -960,6 +969,24 @@ class Parser {
       if (!this.eatOp(')')) throw shape(form);
       return { t: 'fn', name, args: [a, b], unit: u.value, span: done(), nameSpan };
     }
+    if (name === 'TRIM' && this.trimFrom()) {
+      // TRIM([LEADING | TRAILING | BOTH] [chuỗi] FROM giá trị)
+      let dir: string | undefined = 'BOTH';
+      if (this.tok.type === 'word' && ['LEADING', 'TRAILING', 'BOTH'].includes(this.tok.value)) {
+        dir = this.tok.value;
+        this.i++;
+      }
+      let chars: Expr | undefined;
+      if (!this.isW('FROM')) {
+        this.ctx = 'TRIM(';
+        chars = this.add();
+      }
+      this.needW('FROM', '00905');
+      this.ctx = 'FROM';
+      const str = this.expr();
+      if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+      return { t: 'fn', name, args: chars ? [str, chars] : [str], unit: dir, span: done(), nameSpan };
+    }
     const args: Expr[] = [];
     let star = false;
     let distinct = false;
@@ -1001,8 +1028,75 @@ class Parser {
       within = this.orderList();
       if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
     }
-    if (this.isW('OVER')) throw unsupported('window function', this.at());
+    if (this.isW('OVER')) {
+      if (distinct) throw unsupported('DISTINCT trong window function', this.at());
+      if (name === 'GROUP_CONCAT' || name === 'LISTAGG' || name === 'GROUPING') throw unsupported(`${name} kèm OVER`, this.at());
+      if (this.d === 'mysql' && (name === 'LAG' || name === 'LEAD') && args[1] && !(args[1].t === 'num' && Number.isInteger(args[1].v))) {
+        throw syntaxError(this.d, this.sql, args[1].span, '00933', 'lag-offset', { name });
+      }
+      const over = this.windowSpec();
+      return { t: 'fn', name, args, star: star || undefined, over, span: { s: nameTok.s, e: this.prev.e }, nameSpan };
+    }
+    // ROW_NUMBER, RANK... đứng một mình thì thiếu OVER. MySQL lạc ở chữ đứng sau dấu ), Oracle gạch chân tên function.
+    if (RANKING.has(name)) {
+      if (this.d === 'oracle') throw syntaxError(this.d, this.sql, nameSpan, '30484', 'over-missing', { name });
+      throw this.fail('00933', 'over-missing', { name });
+    }
     return { t: 'fn', name, args, star: star || undefined, distinct: distinct || undefined, within, span: { s: nameTok.s, e: this.prev.e }, nameSpan };
+  }
+
+  /** TRIM(... FROM ...): có chữ FROM trước dấu ) đóng của chính nó. */
+  private trimFrom(): boolean {
+    let depth = 0;
+    for (let k = this.i; k < this.toks.length; k++) {
+      const t = this.toks[k];
+      if (t.type === 'eof') return false;
+      if (t.type === 'op' && t.value === '(') depth++;
+      else if (t.type === 'op' && t.value === ')') {
+        if (depth === 0) return false;
+        depth--;
+      } else if (depth === 0 && t.type === 'word' && t.value === 'FROM') return true;
+      else if (depth === 0 && t.type === 'word' && k === this.i && ['LEADING', 'TRAILING', 'BOTH'].includes(t.value)) return true;
+    }
+    return false;
+  }
+
+  /** `OVER ([PARTITION BY ...] [ORDER BY ...] [ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW])`. */
+  private windowSpec(): WindowSpec {
+    const o = this.tok;
+    this.i++;
+    if (!this.isOp('(')) {
+      if (this.tok.type === 'word') throw unsupported('window đặt tên (OVER w, WINDOW w AS ...)', this.at());
+      throw this.fail('00906', 'missing-keyword', { kw: '(' });
+    }
+    this.i++;
+    const spec: WindowSpec = { partition: [], orderBy: [], span: { s: o.s, e: o.e } };
+    if (this.eatW('PARTITION')) {
+      this.needW('BY', '00924');
+      for (;;) {
+        this.ctx = 'PARTITION BY';
+        spec.partition.push(this.expr());
+        if (!this.eatOp(',')) break;
+      }
+    }
+    if (this.isW('ORDER')) {
+      this.i++;
+      this.needW('BY', '00924');
+      this.ctx = 'ORDER BY';
+      spec.orderBy = this.orderList();
+    }
+    if (this.isW('ROWS') || this.isW('RANGE') || this.isW('GROUPS')) {
+      const f = this.tok;
+      const shape = ['ROWS', 'BETWEEN', 'UNBOUNDED', 'PRECEDING', 'AND', 'CURRENT', 'ROW'];
+      for (const w of shape) {
+        if (!this.isW(w)) throw unsupported(f.value === 'ROWS' ? 'khung ROWS dạng khác ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW' : `khung ${f.value}`, this.at(f));
+        this.i++;
+      }
+      spec.rows = true;
+    }
+    if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+    spec.span = { s: o.s, e: this.prev.e };
+    return spec;
   }
 
   /** Số trong ngoặc của data type: `(p)` hay `(p, s)`. */
@@ -1114,7 +1208,16 @@ class Parser {
       if (!(tt.type === 'qident' || (tt.type === 'word' && !STOP.has(tt.value)))) throw this.fail('00903', 'no-table', {}, tt);
       this.i++;
       ref = { table: tt.type === 'word' ? tt.text : tt.value, quoted: tt.type === 'qident', span: { s: tt.s, e: tt.e } };
-      if (this.isOp('.')) throw unsupported('tên table có dấu chấm', this.at());
+      if (this.isOp('.')) {
+        // schema.table
+        const sch = { name: ref.table, quoted: !!ref.quoted, span: ref.span };
+        this.i++;
+        const t2 = this.tok;
+        if (!(t2.type === 'qident' || (t2.type === 'word' && !STOP.has(t2.value)))) throw this.fail('00903', t2.type === 'eof' ? 'unexpected-end' : 'missing-expression', { after: '.' }, t2);
+        this.i++;
+        ref = { table: t2.type === 'word' ? t2.text : t2.value, quoted: t2.type === 'qident', schema: sch, span: { s: tt.s, e: t2.e } };
+        if (this.isOp('.')) throw unsupported('tên table có hai dấu chấm', this.at());
+      }
     }
     if (!alias) return ref;
     if (this.isW('AS')) {
@@ -1153,6 +1256,7 @@ class Parser {
       case 'CREATE': {
         const next = this.peek();
         if (this.isW('TABLE', next)) return this.createTable();
+        if (this.isW('VIEW', next) || (this.isW('OR', next) && this.isW('REPLACE', this.peek(2)) && this.isW('VIEW', this.peek(3)))) return this.createView();
         // Sequence chỉ có ở Oracle. MySQL đọc tới chữ SEQUENCE thì báo lỗi cú pháp.
         if (this.isW('SEQUENCE', next) && this.d === 'oracle') return this.createSequence();
         if (this.isW('SEQUENCE', next)) {
@@ -1167,6 +1271,7 @@ class Parser {
       case 'DROP': {
         const next = this.peek();
         if (this.isW('TABLE', next)) return this.dropTable();
+        if (this.isW('VIEW', next)) return this.dropView();
         if (this.isW('SEQUENCE', next) && this.d === 'oracle') return this.dropSequence();
         if (this.isW('SEQUENCE', next)) {
           this.i++;
@@ -1177,10 +1282,26 @@ class Parser {
       case 'TRUNCATE':
         return this.truncate();
       case 'COMMIT':
-      case 'ROLLBACK':
+      case 'ROLLBACK': {
         this.i++;
         this.eatW('WORK');
+        if (t.value === 'ROLLBACK' && this.isW('TO')) {
+          this.i++;
+          this.eatW('SAVEPOINT');
+          const n = this.name('TO');
+          return { t: 'rollback-to', name: n.text, nameSpan: n.span, span: { s: t.s, e: this.prev.e } } satisfies SavepointStmt;
+        }
         return { t: t.value === 'COMMIT' ? 'commit' : 'rollback', span };
+      }
+      case 'SAVEPOINT': {
+        this.i++;
+        const n = this.name('SAVEPOINT');
+        return { t: 'savepoint', name: n.text, nameSpan: n.span, span: { s: t.s, e: this.prev.e } } satisfies SavepointStmt;
+      }
+      case 'MERGE':
+        // MySQL không có MERGE: nó lạc ngay ở chữ đầu.
+        if (this.d === 'mysql') throw this.fail('00900', 'merge-mysql');
+        return this.merge();
       case 'BEGIN':
       case 'START':
         if (this.d === 'oracle') return null;
@@ -1209,7 +1330,9 @@ class Parser {
     }
     if (this.isW('SELECT') || this.isW('WITH')) {
       const select = this.queryExpr();
-      return { t: 'insert', table, columns, rows: [], select, span: { s, e: this.prev.e } };
+      const stmt: InsertStmt = { t: 'insert', table, columns, rows: [], select, span: { s, e: this.prev.e } };
+      this.onDuplicate(stmt);
+      return stmt;
     }
     this.needW('VALUES', '00926');
     const rows: InsertStmt['rows'] = [];
@@ -1230,7 +1353,147 @@ class Parser {
       if (this.d === 'oracle') throw this.fail('00933', 'insert-multi-oracle');
       this.i++;
     }
-    return { t: 'insert', table, columns, rows, span: { s, e: this.prev.e } };
+    const stmt: InsertStmt = { t: 'insert', table, columns, rows, span: { s, e: this.prev.e } };
+    this.onDuplicate(stmt);
+    return stmt;
+  }
+
+  /** MySQL: `[AS alias] ON DUPLICATE KEY UPDATE c = ...` sau VALUES hoặc SELECT. Oracle không có: lạc ở chữ ON. */
+  private onDuplicate(stmt: InsertStmt): void {
+    if (this.d === 'oracle') {
+      if (this.isW('ON') && this.isW('DUPLICATE', this.peek())) throw this.fail('00933', 'on-duplicate-oracle');
+      return;
+    }
+    let alias: string | undefined;
+    if (this.isW('AS') && !stmt.select) {
+      this.i++;
+      alias = this.name('AS').text;
+      if (this.isOp('(')) throw unsupported('danh sách column sau alias của INSERT', this.at());
+    }
+    if (!this.isW('ON')) return;
+    const os = this.tok.s;
+    this.i++;
+    if (!this.eatW('DUPLICATE')) throw this.fail('00905', 'missing-keyword', { kw: 'DUPLICATE' });
+    this.needW('KEY');
+    this.needW('UPDATE');
+    const sets = this.setList('UPDATE');
+    stmt.onDup = { alias, sets, span: { s: os, e: this.prev.e } };
+    stmt.span.e = this.prev.e;
+  }
+
+  /** `a = expr, b = expr`: phần sau SET, hoặc sau ON DUPLICATE KEY UPDATE. */
+  private setList(first: string): UpdateStmt['sets'] {
+    const sets: UpdateStmt['sets'] = [];
+    for (;;) {
+      const n = this.name(sets.length === 0 ? first : ',');
+      if (this.isOp('.')) {
+        this.i++;
+        const c = this.name('.');
+        n.text = c.text;
+        n.span = { s: n.span.s, e: c.span.e };
+      }
+      if (!this.eatOp('=')) throw this.fail('00927', 'missing-keyword', { kw: '=' });
+      this.ctx = '=';
+      sets.push({ name: n.text, span: n.span, e: this.valueOrDefault() });
+      if (!this.eatOp(',')) break;
+    }
+    return sets;
+  }
+
+  /** Oracle: MERGE INTO t [alias] USING (table hoặc subquery) [alias] ON (...) WHEN [NOT] MATCHED THEN ... */
+  private merge(): MergeStmt {
+    const s = this.tok.s;
+    this.i++;
+    this.needW('INTO', '00925');
+    const table = this.tableRef(true);
+    this.needW('USING', '00905');
+    const using = this.tableRef(true, true);
+    this.needW('ON', '00905');
+    if (!this.isOp('(')) throw this.fail('00906', 'missing-keyword', { kw: '(' });
+    this.ctx = 'ON';
+    const on = this.expr();
+    const stmt: MergeStmt = { t: 'merge', table, using, on, span: { s, e: this.prev.e } };
+    if (!this.isW('WHEN')) throw this.fail('00905', 'missing-keyword', { kw: 'WHEN' });
+    while (this.isW('WHEN')) {
+      const ws = this.tok.s;
+      this.i++;
+      const not = this.eatW('NOT');
+      this.needW('MATCHED');
+      this.needW('THEN');
+      if (!not) {
+        if (stmt.matched) throw this.fail('00933', 'clause-twice', { tok: 'WHEN MATCHED' });
+        this.needW('UPDATE');
+        this.needW('SET', '00971');
+        const sets = this.setList('SET');
+        if (this.isW('WHERE') || this.isW('DELETE')) throw unsupported(`${this.tok.value} trong MERGE`, this.at());
+        stmt.matched = { sets, span: { s: ws, e: this.prev.e } };
+      } else {
+        if (stmt.notMatched) throw this.fail('00933', 'clause-twice', { tok: 'WHEN NOT MATCHED' });
+        this.needW('INSERT', '00928');
+        let columns: { name: string; span: Span }[] | undefined;
+        if (this.isOp('(')) columns = this.columnList();
+        this.needW('VALUES', '00926');
+        if (!this.eatOp('(')) throw this.fail('00906', 'missing-keyword', { kw: '(' });
+        const values: Expr[] = [];
+        this.ctx = 'VALUES (';
+        for (;;) {
+          values.push(this.valueOrDefault());
+          this.ctx = ',';
+          if (!this.eatOp(',')) break;
+        }
+        if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
+        if (this.isW('WHERE')) throw unsupported('WHERE trong MERGE', this.at());
+        stmt.notMatched = { columns, values, span: { s: ws, e: this.prev.e } };
+      }
+    }
+    stmt.span.e = this.prev.e;
+    return stmt;
+  }
+
+  private createView(): CreateViewStmt {
+    const s = this.tok.s;
+    this.i++;
+    let orReplace = false;
+    if (this.eatW('OR')) {
+      this.needW('REPLACE');
+      orReplace = true;
+    }
+    this.needW('VIEW');
+    let n = this.name('VIEW');
+    let schema: CreateViewStmt['schema'];
+    if (this.isOp('.')) {
+      this.i++;
+      schema = { name: n.text, quoted: n.quoted, span: n.span };
+      n = this.name('.');
+    }
+    if (this.isOp('(')) throw unsupported('danh sách column sau tên view', this.at());
+    this.needW('AS');
+    if (!this.isW('SELECT') && !this.isW('WITH') && !this.isOp('(')) throw this.fail('00928', this.tok.type === 'eof' ? 'unexpected-end' : 'missing-keyword', { kw: 'SELECT', after: 'AS' });
+    const qs = this.tok.s;
+    const query = this.queryExpr();
+    return { t: 'createview', name: n.text, nameSpan: n.span, schema, orReplace, select: this.sql.slice(qs, this.prev.e), query, span: { s, e: this.prev.e } };
+  }
+
+  private dropView(): DropViewStmt {
+    const s = this.tok.s;
+    this.i += 2;
+    let ifExists = false;
+    if (this.isW('IF') && this.isW('EXISTS', this.peek())) {
+      if (this.d === 'oracle') {
+        this.i++;
+        throw this.fail('00933', 'if-exists-oracle', { stmt: 'DROP VIEW' });
+      }
+      this.i += 2;
+      ifExists = true;
+    }
+    let n = this.name('VIEW');
+    let schema: DropViewStmt['schema'];
+    if (this.isOp('.')) {
+      this.i++;
+      schema = { name: n.text, quoted: n.quoted, span: n.span };
+      n = this.name('.');
+    }
+    return { t: 'dropview', name: n.text, nameSpan: n.span, schema, ifExists, span: { s, e: this.prev.e } };
   }
 
   /** Một giá trị trong VALUES hoặc SET. Từ khóa DEFAULT đứng một mình nghĩa là lấy giá trị mặc định của column. */
@@ -1248,20 +1511,7 @@ class Parser {
     this.i++;
     const table = this.tableRef();
     if (!this.eatW('SET')) throw this.fail('00971', 'missing-keyword', { kw: 'SET' });
-    const sets: UpdateStmt['sets'] = [];
-    for (;;) {
-      const n = this.name(sets.length === 0 ? 'SET' : ',');
-      if (this.isOp('.')) {
-        this.i++;
-        const c = this.name('.');
-        n.text = c.text;
-        n.span = { s: n.span.s, e: c.span.e };
-      }
-      if (!this.eatOp('=')) throw this.fail('00927', 'missing-keyword', { kw: '=' });
-      this.ctx = '=';
-      sets.push({ name: n.text, span: n.span, e: this.valueOrDefault() });
-      if (!this.eatOp(',')) break;
-    }
+    const sets = this.setList('SET');
     const stmt: UpdateStmt = { t: 'update', table, sets, span: { s, e: this.prev.e } };
     if (this.eatW('WHERE')) {
       this.ctx = 'WHERE';
@@ -1396,7 +1646,19 @@ class Parser {
       this.needW('EXISTS');
       ifNotExists = true;
     }
-    const n = this.name('TABLE');
+    let n = this.name('TABLE');
+    let schema: CreateTableStmt['schema'];
+    if (this.isOp('.')) {
+      this.i++;
+      schema = { name: n.text, quoted: n.quoted, span: n.span };
+      n = this.name('.');
+    }
+    if (this.isW('AS') || (this.d === 'mysql' && (this.isW('SELECT') || this.isW('WITH')))) {
+      this.eatW('AS');
+      if (!this.isW('SELECT') && !this.isW('WITH') && !this.isOp('(')) throw this.fail('00928', this.tok.type === 'eof' ? 'unexpected-end' : 'missing-keyword', { kw: 'SELECT', after: 'AS' });
+      const asSelect = this.queryExpr();
+      return { t: 'create', name: n.text, nameSpan: n.span, schema, ifNotExists, asSelect, columns: [], constraints: [], span: { s, e: this.prev.e } };
+    }
     if (!this.eatOp('(')) throw this.fail('00906', 'missing-keyword', { kw: '(' });
     const columns: ColumnSpec[] = [];
     const constraints: ConstraintSpec[] = [];
@@ -1411,7 +1673,7 @@ class Parser {
       if (!this.eatOp(',')) break;
     }
     if (!this.eatOp(')')) throw this.fail('00907', 'missing-paren');
-    const stmt: CreateTableStmt = { t: 'create', name: n.text, nameSpan: n.span, ifNotExists, columns, constraints, span: { s, e: this.prev.e } };
+    const stmt: CreateTableStmt = { t: 'create', name: n.text, nameSpan: n.span, schema, ifNotExists, columns, constraints, span: { s, e: this.prev.e } };
     if (this.d === 'mysql') this.tableOptions(stmt);
     return stmt;
   }

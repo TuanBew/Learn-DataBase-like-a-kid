@@ -159,7 +159,7 @@ export const lesson: Lesson = {
     },
     {
       type: 'text',
-      title: 'Cả hai cần một cách nhận ra row đã có',
+      title: 'Cả hai cần cách nhận ra row đã có',
       paragraphs: [
         'MERGE so theo điều kiện ON. ON DUPLICATE KEY so theo primary key hoặc UNIQUE của table.',
         'Table không có primary key và không có UNIQUE thì ON DUPLICATE KEY không có gì để so. Row nào cũng bị coi là mới và được thêm.',
@@ -251,7 +251,7 @@ ON DUPLICATE KEY UPDATE price = 47000;`,
           question: 'MySQL dựa vào đâu để biết một row mới là "đã có"?',
           options: [
             { text: 'Row mới trùng primary key hoặc UNIQUE với một row có sẵn', correct: true, feedback: 'Đúng. Không có primary key hay UNIQUE thì MySQL không có gì để so.' },
-            { text: 'Tên món giống nhau', feedback: 'MySQL không tự so tên. Nó chỉ so primary key và UNIQUE.' },
+            { text: 'Tên món giống nhau', feedback: 'MySQL không tự so tên. MySQL chỉ so primary key và UNIQUE.' },
             { text: 'Giá giống nhau', feedback: 'Giá không dùng để nhận ra row.' },
           ],
         },

@@ -130,6 +130,7 @@ export const lesson: Lesson = {
       database: 'company',
       tables: ['employees'],
       dialects: ['oracle'],
+      session: true,
       sql: {
         oracle: 'SELECT USER FROM DUAL',
       },
@@ -147,7 +148,7 @@ export const lesson: Lesson = {
           },
         },
       ],
-      say: 'Giá trị USER và cột OWNER trùng nhau, vì table này nằm trong schema của bạn.',
+      say: 'Giá trị USER và column OWNER trùng nhau, vì table này nằm trong schema của bạn.',
     },
     {
       type: 'workshop',
@@ -175,7 +176,7 @@ export const lesson: Lesson = {
           },
         },
         {
-          label: 'Tên schema và table viết thường',
+          label: 'Chỉ lấy tên món (Oracle: viết thường vẫn chạy)',
           sql: {
             mysql: 'SELECT item_name FROM saomai.menu_items;',
             oracle: 'SELECT item_name FROM saomai.menu_items;',
@@ -214,7 +215,7 @@ export const lesson: Lesson = {
           options: [
             { text: 'Tìm schema chủ của table, rồi gõ lại bằng tên đầy đủ schema.table', correct: true, feedback: 'Đúng. Gõ tên table không kèm schema thì Oracle chỉ tìm trong schema của bạn.' },
             { text: 'Tạo lại table EMPLOYEES', feedback: 'Tạo lại là tạo thêm một table khác, và dữ liệu thật vẫn nằm ở chỗ cũ.' },
-            { text: 'Gõ ROLLBACK', feedback: 'ROLLBACK không liên quan tới việc table nằm ở schema nào.' },
+            { text: 'Gõ ROLLBACK', feedback: 'ROLLBACK không nói gì về schema chứa table.' },
           ],
         },
         {

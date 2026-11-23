@@ -32,10 +32,13 @@ const readSteps = `-- Bước 2: đếm row theo đúng WHERE. Phải ra 3.
 SELECT COUNT(*) AS so_row FROM staff
 WHERE dept_name = 'Kinh doanh';
 
--- Bước 3: ghi lại giá trị cũ của các row sắp sửa.
-SELECT staff_id, full_name, salary AS luong_cu FROM staff
-WHERE dept_name = 'Kinh doanh'
-ORDER BY staff_id;`;
+-- Bước 3: sao lưu. Chép các row sắp sửa sang table mới.
+CREATE TABLE staff_bak_20261123 AS
+SELECT * FROM staff
+WHERE dept_name = 'Kinh doanh';
+
+-- Đếm table sao lưu. Cũng phải ra 3.
+SELECT COUNT(*) AS so_row_bak FROM staff_bak_20261123;`;
 
 export const lesson: Lesson = {
   id: 'c10-b7',
@@ -80,7 +83,7 @@ export const lesson: Lesson = {
       paragraphs: [
         'ROLLBACK chỉ cứu được thay đổi chưa COMMIT. COMMIT xong thì ROLLBACK không đòi lại được gì.',
         'Một **[[backup]]** nhỏ là bản chép các row sắp sửa, giữ ở một table riêng. Có bản chép, bạn còn khôi phục được giá trị cũ khi phát hiện lỗi muộn.',
-        'Cách thường dùng là `CREATE TABLE ... AS SELECT`. Lệnh này tạo table mới từ kết quả của một SELECT. Tên table sao lưu nên có ngày, như `staff_bak_20261123`.',
+        'Cách thường dùng là `CREATE TABLE ... AS SELECT`. Lệnh này tạo table mới từ kết quả của một SELECT. Tên table sao lưu nên có ngày, như `staff_bak_20261123`. Xưởng bên dưới chạy thật lệnh này.',
         'Ở nhiều công ty, người quản trị không cho tạo table tùy ý. Khi đó hỏi họ chỗ lưu bản sao lưu, hoặc xuất kết quả SELECT ra file.',
       ],
     },
@@ -110,7 +113,7 @@ export const lesson: Lesson = {
     {
       type: 'workshop',
       title: 'Xưởng: đi đủ sáu bước',
-      intro: 'Table staff có 6 người, 3 người ở phòng Kinh doanh. Bấm Chạy để làm bước 2 và bước 3. Rồi bấm từng nút thử, theo thứ tự từ trên xuống. Ở nút cuối bạn cố ý làm sai rồi ROLLBACK.',
+      intro: 'Table staff có 6 người, 3 người ở phòng Kinh doanh. Bấm Chạy để đếm row (bước 2) và sao lưu bằng CREATE TABLE ... AS SELECT (bước 3). Rồi bấm từng nút thử, theo thứ tự từ trên xuống. Ở nút cuối bạn cố ý làm sai rồi ROLLBACK.',
       start: 'empty',
       setup: { mysql: setupMysql, oracle: setupOracle },
       dialects: ['mysql', 'oracle'],
@@ -145,6 +148,19 @@ ORDER BY staff_id;`,
           sql: { mysql: 'COMMIT;', oracle: 'COMMIT;' },
         },
         {
+          label: 'Đọc giá cũ từ bản sao lưu',
+          sql: {
+            mysql: `SELECT s.staff_id, s.full_name, b.salary AS luong_cu, s.salary AS luong_moi
+FROM staff s
+JOIN staff_bak_20261123 b ON b.staff_id = s.staff_id
+ORDER BY s.staff_id;`,
+            oracle: `SELECT s.staff_id, s.full_name, b.salary AS luong_cu, s.salary AS luong_moi
+FROM staff s
+JOIN staff_bak_20261123 b ON b.staff_id = s.staff_id
+ORDER BY s.staff_id;`,
+          },
+        },
+        {
           label: 'Làm sai: quên WHERE',
           sql: {
             mysql: `START TRANSACTION;
@@ -167,7 +183,7 @@ SELECT staff_id, full_name, dept_name, salary FROM staff ORDER BY staff_id;`,
           },
         },
       ],
-      say: 'Ở nút "Làm sai", database báo 6 row đã đổi, trong khi bước 2 đếm 3. Hai số lệch nhau, nên bạn ROLLBACK.',
+      say: 'Ở nút "Đọc giá cũ", bản sao lưu giữ lương trước khi tăng. Ở nút "Làm sai", database báo 6 row đã đổi, trong khi bước 2 đếm 3. Hai số lệch nhau, nên bạn ROLLBACK.',
     },
     {
       type: 'oracle',

@@ -1,15 +1,37 @@
 import type { Lesson } from '../types';
 
+const setupMysql = `CREATE TABLE orders_today (
+  order_id INT PRIMARY KEY,
+  item_name VARCHAR(40) NOT NULL,
+  qty INT NOT NULL
+);`;
+
+const setupOracle = `CREATE TABLE orders_today (
+  order_id NUMBER PRIMARY KEY,
+  item_name VARCHAR2(40) NOT NULL,
+  qty NUMBER NOT NULL
+);`;
+
+const countOrders = 'SELECT COUNT(*) AS so_don FROM orders_today;';
+
+const firstSteps = (begin: string) => `${begin}INSERT INTO orders_today (order_id, item_name, qty) VALUES (1, 'Trà đào', 2);
+SAVEPOINT sau_don_1;
+INSERT INTO orders_today (order_id, item_name, qty) VALUES (2, 'Trà sữa', 1);
+INSERT INTO orders_today (order_id, item_name, qty) VALUES (3, 'Cà phê sữa', 3);
+
+${countOrders}`;
+
 export const lesson: Lesson = {
   id: 'c10-b3',
   chapter: 10,
   order: 3,
-  title: 'Transaction, COMMIT, ROLLBACK',
+  title: 'Transaction, COMMIT, ROLLBACK, SAVEPOINT',
   lead: 'Bạn gom nhiều thay đổi thành một gói, rồi lưu hẳn hoặc bỏ cả gói.',
-  minutes: 16,
+  minutes: 18,
   goals: [
     'Hiểu transaction là một gói thay đổi làm trọn gói',
     'Dùng COMMIT để lưu và ROLLBACK để bỏ',
+    'Đặt SAVEPOINT và quay về mốc đó bằng ROLLBACK TO',
     'Biết MySQL tự COMMIT sau mỗi lệnh còn tool Oracle thường chờ COMMIT',
     'Biết lệnh như CREATE TABLE tự COMMIT ở Oracle',
   ],
@@ -67,6 +89,87 @@ export const lesson: Lesson = {
         'UPDATE products SET price = 48000 WHERE product_id = 2;\nROLLBACK;\n-- giá về như cũ',
     },
     {
+      type: 'text',
+      title: 'SAVEPOINT: một mốc giữa giỏ',
+      paragraphs: [
+        'ROLLBACK bỏ cả giỏ. Đôi khi bạn chỉ muốn bỏ vài thay đổi cuối và giữ phần trước.',
+        '**[[savepoint]]** là một mốc bạn đặt giữa transaction. Lệnh là `SAVEPOINT ten_moc`.',
+        '`ROLLBACK TO ten_moc` đưa dữ liệu về lúc đặt mốc. Mọi thay đổi sau mốc bị bỏ. Mọi thay đổi trước mốc còn nguyên.',
+        'Transaction vẫn mở sau `ROLLBACK TO`. Bạn làm tiếp, rồi COMMIT hoặc ROLLBACK như thường.',
+        'COMMIT và ROLLBACK (không có chữ TO) xóa mọi mốc. Lệnh DDL ở Oracle tự COMMIT nên cũng xóa mốc.',
+        'MySQL chỉ giữ mốc sau khi bạn gõ `START TRANSACTION`. Oracle dùng được ngay.',
+      ],
+    },
+    {
+      type: 'workshop',
+      title: 'Xưởng: đặt mốc rồi quay về',
+      intro:
+        'Table orders_today còn trống. Bấm Chạy để ghi 3 đơn, với một mốc sau đơn đầu tiên. Rồi bấm từng nút thử, theo thứ tự từ trên xuống.',
+      start: 'empty',
+      setup: { mysql: setupMysql, oracle: setupOracle },
+      dialects: ['mysql', 'oracle'],
+      sql: { mysql: firstSteps('START TRANSACTION;\n'), oracle: firstSteps('') },
+      tries: [
+        {
+          label: 'ROLLBACK TO: về mốc sau đơn 1',
+          sql: {
+            mysql: `ROLLBACK TO sau_don_1;\n\n${countOrders}`,
+            oracle: `ROLLBACK TO sau_don_1;\n\n${countOrders}`,
+          },
+        },
+        {
+          label: 'Làm tiếp: đặt mốc thứ hai',
+          sql: {
+            mysql: `INSERT INTO orders_today (order_id, item_name, qty) VALUES (4, 'Bánh flan', 1);
+SAVEPOINT sau_don_4;
+INSERT INTO orders_today (order_id, item_name, qty) VALUES (5, 'Matcha đá xay', 2);
+ROLLBACK TO sau_don_4;
+
+SELECT order_id, item_name FROM orders_today ORDER BY order_id;`,
+            oracle: `INSERT INTO orders_today (order_id, item_name, qty) VALUES (4, 'Bánh flan', 1);
+SAVEPOINT sau_don_4;
+INSERT INTO orders_today (order_id, item_name, qty) VALUES (5, 'Matcha đá xay', 2);
+ROLLBACK TO sau_don_4;
+
+SELECT order_id, item_name FROM orders_today ORDER BY order_id;`,
+          },
+        },
+        {
+          label: 'Quay về mốc chưa từng đặt',
+          expect: 'error',
+          sql: {
+            mysql: '-- MySQL báo lỗi 1305: SAVEPOINT does not exist.\nROLLBACK TO moc_khong_co;',
+            oracle: '-- Oracle báo ORA-01086: savepoint never established in this session.\nROLLBACK TO moc_khong_co;',
+          },
+        },
+        {
+          label: 'ROLLBACK cả giỏ',
+          sql: {
+            mysql: `ROLLBACK;\n\n${countOrders}`,
+            oracle: `ROLLBACK;\n\n${countOrders}`,
+          },
+        },
+        {
+          label: 'COMMIT xong thì mốc mất',
+          expect: 'error',
+          sql: {
+            mysql: `START TRANSACTION;
+INSERT INTO orders_today (order_id, item_name, qty) VALUES (6, 'Trà đào', 1);
+SAVEPOINT moc_a;
+COMMIT;
+-- COMMIT đã xóa mốc moc_a, nên lệnh dưới báo lỗi 1305.
+ROLLBACK TO moc_a;`,
+            oracle: `INSERT INTO orders_today (order_id, item_name, qty) VALUES (6, 'Trà đào', 1);
+SAVEPOINT moc_a;
+COMMIT;
+-- COMMIT đã xóa mốc moc_a, nên lệnh dưới báo ORA-01086.
+ROLLBACK TO moc_a;`,
+          },
+        },
+      ],
+      say: 'Sau ROLLBACK TO, còn 1 đơn. Đơn 2 và 3 nằm sau mốc nên bị bỏ.',
+    },
+    {
       type: 'quiz',
       title: 'Kiểm tra nhanh',
       items: [
@@ -89,6 +192,15 @@ export const lesson: Lesson = {
           ],
         },
         {
+          kind: 'choice',
+          question: 'Bạn ghi đơn 1, đặt SAVEPOINT a, ghi đơn 2, rồi gõ ROLLBACK TO a. Còn gì trong table?',
+          options: [
+            { text: 'Đơn 1, và transaction vẫn mở', correct: true, feedback: 'Đúng. Đơn 2 nằm sau mốc nên bị bỏ. Đơn 1 nằm trước mốc nên còn, chưa COMMIT.' },
+            { text: 'Không còn đơn nào', feedback: 'Đó là kết quả của ROLLBACK không có chữ TO. ROLLBACK TO chỉ về mốc.' },
+            { text: 'Cả hai đơn', feedback: 'Đơn 2 nằm sau mốc. ROLLBACK TO bỏ nó.' },
+          ],
+        },
+        {
           kind: 'match',
           question: 'Nối mỗi thuật ngữ với ý của nó.',
           pairs: [
@@ -96,8 +208,9 @@ export const lesson: Lesson = {
             { left: 'ROLLBACK', right: 'Bỏ mọi thay đổi trong giỏ' },
             { left: 'autocommit', right: 'Mỗi lệnh tự COMMIT ngay' },
             { left: 'START TRANSACTION', right: 'MySQL: mở một giỏ mới' },
+            { left: 'SAVEPOINT', right: 'Mốc giữa giỏ, để ROLLBACK TO quay về' },
           ],
-          done: 'Đúng hết. Bốn thuật ngữ này đủ để đọc mọi đoạn code về transaction.',
+          done: 'Đúng hết. Năm thuật ngữ này đủ để đọc mọi đoạn code về transaction.',
         },
       ],
     },
@@ -116,6 +229,8 @@ export const lesson: Lesson = {
         'ROLLBACK chỉ cứu được thay đổi chưa COMMIT.',
         'MySQL tự COMMIT sau mỗi lệnh. Tool Oracle thường chờ bạn gõ COMMIT.',
         'Ở Oracle, lệnh DDL như CREATE TABLE tự COMMIT.',
+        'SAVEPOINT đặt một mốc giữa transaction. ROLLBACK TO mốc bỏ phần sau mốc, giữ phần trước, và transaction vẫn mở.',
+        'COMMIT và ROLLBACK xóa mọi SAVEPOINT. MySQL chỉ giữ SAVEPOINT sau START TRANSACTION.',
       ],
     },
     {
@@ -125,6 +240,8 @@ export const lesson: Lesson = {
         { name: 'MySQL 8.0 Reference Manual, START TRANSACTION, COMMIT, and ROLLBACK', url: 'https://dev.mysql.com/doc/refman/8.0/en/commit.html' },
         { name: 'MySQL 8.0 Reference Manual, autocommit, Commit, and Rollback', url: 'https://dev.mysql.com/doc/refman/8.0/en/innodb-autocommit-commit-rollback.html' },
         { name: 'Oracle Database 19c SQL Language Reference, COMMIT', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/COMMIT.html' },
+        { name: 'MySQL 8.0 Reference Manual, SAVEPOINT, ROLLBACK TO SAVEPOINT, and RELEASE SAVEPOINT', url: 'https://dev.mysql.com/doc/refman/8.0/en/savepoint.html' },
+        { name: 'Oracle Database 19c SQL Language Reference, SAVEPOINT', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/SAVEPOINT.html' },
         { name: 'Oracle Database 19c SQL Language Reference, ROLLBACK', url: 'https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/ROLLBACK.html' },
       ],
     },

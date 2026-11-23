@@ -141,7 +141,10 @@ export const chapters: Chapter[] = [
     lessons: [
       { id: 'c10-b1', title: 'INSERT, UPDATE, DELETE', minutes: 16 },
       { id: 'c10-b2', title: 'UPDATE và DELETE dựa vào table khác', minutes: 15 },
-      { id: 'c10-b3', title: 'transaction, COMMIT, ROLLBACK', minutes: 16 },
+      { id: 'c10-b3', title: 'Transaction, COMMIT, ROLLBACK, SAVEPOINT', minutes: 18 },
+      { id: 'c10-b4', title: 'Hai người cùng sửa một row: lock và query bị treo', minutes: 13 },
+      { id: 'c10-b5', title: 'Sao lưu trước khi sửa: CREATE TABLE AS SELECT', minutes: 13 },
+      { id: 'c10-b6', title: 'Có thì sửa, chưa có thì thêm: MERGE và ON DUPLICATE KEY UPDATE', minutes: 14 },
       { id: 'c10-b7', title: 'Sáu bước sửa dữ liệu ở công ty', minutes: 14 },
     ],
   },
@@ -151,6 +154,7 @@ export const chapters: Chapter[] = [
     about: 'Index làm query nhanh hơn, và MySQL với Oracle khác nhau ở vài chỗ.',
     lessons: [
       { id: 'c11-b1', title: 'Tool và kết nối: SQL Developer, DBeaver, worksheet, nút COMMIT', minutes: 13 },
+      { id: 'c11-b2', title: 'schema, user và tên đầy đủ HR.EMPLOYEES', minutes: 14 },
       { id: 'c11-b3', title: 'Tìm table và column trong database lạ: data dictionary, DESC', minutes: 15 },
       { id: 'c11-b4', title: 'Quyền: vì sao mình chỉ đọc được', minutes: 12 },
       { id: 'c11-b5', title: 'index và query chậm', minutes: 17 },

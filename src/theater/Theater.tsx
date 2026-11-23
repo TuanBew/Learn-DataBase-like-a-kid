@@ -11,7 +11,7 @@ import { type Frame, type Phase, buildFrames, firstFrameOf } from './frames';
 import { Stage } from './Stage';
 import './theater.css';
 
-const MOOD: Record<Phase, Mood> = { written: 'idle', run: 'wow', from: 'happy', where: 'think', group: 'wow', having: 'think', select: 'idle', order: 'think', limit: 'idle', done: 'cheer' };
+const MOOD: Record<Phase, Mood> = { written: 'idle', run: 'wow', from: 'happy', setop: 'happy', where: 'think', group: 'wow', having: 'think', window: 'wow', select: 'idle', order: 'think', limit: 'idle', stash: 'happy', done: 'cheer' };
 const SPEEDS = [0.5, 1, 2];
 
 const TONE: Record<ClauseKind, string> = {

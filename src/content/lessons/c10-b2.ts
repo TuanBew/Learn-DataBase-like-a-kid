@@ -322,7 +322,7 @@ COMMIT;`,
         'Subquery ở vế phải của SET phải ra đúng một giá trị cho mỗi row. Không có row thì ra NULL.',
         'Chép WHERE sang SELECT COUNT(*), đếm, rồi so với số row UPDATE hoặc DELETE báo.',
         'MySQL báo 1093 khi subquery đọc chính table đang sửa. Bọc nó trong subquery ở FROM để gỡ.',
-        'Oracle không có UPDATE JOIN và nhớ COMMIT sau khi sửa.',
+        'Oracle không có UPDATE JOIN. Nhớ COMMIT sau khi sửa.',
       ],
     },
     {

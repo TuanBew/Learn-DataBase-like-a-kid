@@ -171,7 +171,7 @@ export const exercise: BuildExercise = {
     },
     {
       failed: 'assignments:pk',
-      hint: 'Mỗi cặp nhân viên và dự án chỉ được ghi một lần, nên primary key gồm hai column cùng nhau. Khi cặp hai column mới là mã riêng, bạn khai chúng trong một cặp ngoặc: PRIMARY KEY (a, b).',
+      hint: 'Mỗi cặp nhân viên và dự án chỉ được ghi một lần, nên primary key gồm hai column cùng nhau. Bạn khai cả hai column trong một cặp ngoặc: PRIMARY KEY (a, b).',
     },
     {
       failed: 'end-open',

@@ -85,7 +85,7 @@ export const lesson: Lesson = {
         'Bước 1: tìm row lỗi bằng SELECT. Chưa sửa gì.',
         'Bước 2: đếm số row lỗi và ghi lại. Con số này để so sau khi sửa.',
         'Bước 3: sao lưu. Chạy `CREATE TABLE orders_backup AS SELECT * FROM orders_new`. Lệnh này tự COMMIT, nên làm trước khi mở transaction.',
-        'Bước 4: sửa trong một [[transaction]]. MySQL mở bằng `START TRANSACTION`. Oracle tự mở khi bạn chạy lệnh sửa đầu tiên.',
+        'Bước 4: sửa trong một **[[transaction]]**. MySQL mở bằng `START TRANSACTION`. Oracle tự mở khi bạn chạy lệnh sửa đầu tiên.',
         'Đặt một **[[savepoint]]** trước khi sửa. Nếu một lệnh sai, `ROLLBACK TO` quay về điểm đó và các lệnh trước vẫn còn.',
         'Bước 5: kiểm lại. Chạy lại query ở bước 1. Query phải ra 0 row.',
         'Bước 6: nếu số đúng, chạy `COMMIT`. Nếu sai, chạy `ROLLBACK`. Oracle không lưu gì cho tới khi bạn COMMIT.',

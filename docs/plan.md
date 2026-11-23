@@ -84,7 +84,7 @@ Dàn ý ở `docs/outline-v2.md`, chủ dự án duyệt ngày 22/11/2026. Làm 
 
 - Engine: khoảng 40 function, GROUP_CONCAT, LISTAGG, ROLLUP, GROUPING.
 - Nội dung: Chương 4 đủ 7 bài, Chương 5 đủ 8 bài, Chương 6 đủ 7 bài, 10 bài tập mới.
-- Trang Tra cứu ở `/tra-cuu`: 139 mục, ví dụ bấm Chạy được.
+- Trang Tra cứu ở `/tra-cuu`: 127 mục trong 12 nhóm, ví dụ bấm Chạy được.
 
 ### Đợt 4 (đã dựng xong): báo cáo nâng cao, sửa dữ liệu, Oracle ở công ty, dự án cuối
 

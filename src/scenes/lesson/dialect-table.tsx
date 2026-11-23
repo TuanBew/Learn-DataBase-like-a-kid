@@ -1,3 +1,4 @@
+import { HangLines } from '../../components/HangLines';
 import { useEffect, useRef, useState } from 'react';
 import { useReducedMotion } from 'motion/react';
 import { Says, type Mood } from '../../components/Mascot';
@@ -76,7 +77,7 @@ function Pane({
   return (
     <section className={`dlt-pane dlt-pane--${dialect}`} aria-label={copy[dialect]}>
       <h4 className="dlt-pane__name">{copy[dialect]}</h4>
-      <pre className="dlt-code">{sql}</pre>
+      <pre className="dlt-code"><HangLines text={sql} /></pre>
       {out && (
         <div className="dlt-out">
           {out.ok ? (

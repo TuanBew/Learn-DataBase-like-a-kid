@@ -179,3 +179,38 @@
     padding: 8px 10px;
   }
 }
+
+/* Dòng code có thụt treo: dòng gập thụt sâu hơn lề của chính dòng đó (xem HangLines.tsx, SqlEditor.tsx).
+   --lead là số khoảng trắng đầu dòng, --ex là phần treo thêm. Màn hình hẹp thu lề về --cap ký tự. */
+:root {
+  --cap: 99;
+}
+@media (max-width: 480px) {
+  :root {
+    --cap: 4;
+  }
+}
+.hang-line,
+.cm-line.hang-cm {
+  --eff: min(var(--lead, 0), var(--cap));
+  --hang: calc((var(--eff) + var(--ex, 2)) * 1ch);
+  text-indent: calc(-1 * var(--hang));
+}
+.hang-line {
+  display: block;
+  min-height: 1lh;
+  padding-left: var(--hang);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.hang-lead {
+  display: inline-block;
+  width: calc(var(--eff) * 1ch);
+  height: 1lh;
+  overflow: hidden;
+  vertical-align: top;
+  white-space: pre;
+}
+.cm-line.hang-cm {
+  padding-left: calc(6px + var(--hang)) !important;
+}

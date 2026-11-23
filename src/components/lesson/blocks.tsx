@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { LessonBlock, Source } from '../../content/types';
 import { uiLesson } from '../../content/ui-lesson';
 import { Rich } from '../Rich';
+import { HangLines } from '../HangLines';
 import './blocks.css';
 
 type Of<T extends LessonBlock['type']> = Omit<Extract<LessonBlock, { type: T }>, 'type'>;
@@ -109,7 +110,7 @@ export function OracleCard({ body, mysql, oracle }: Of<'oracle'>) {
             <figure className="lb-code">
               <figcaption className="lb-code__cap">{uiLesson.oracleMysql}</figcaption>
               <pre className="lb-code__pre" tabIndex={0}>
-                <code>{mysql}</code>
+                <code><HangLines text={mysql} /></code>
               </pre>
             </figure>
           )}
@@ -117,7 +118,7 @@ export function OracleCard({ body, mysql, oracle }: Of<'oracle'>) {
             <figure className="lb-code lb-code--oracle">
               <figcaption className="lb-code__cap">{uiLesson.oracleOracle}</figcaption>
               <pre className="lb-code__pre" tabIndex={0}>
-                <code>{oracle}</code>
+                <code><HangLines text={oracle} /></code>
               </pre>
             </figure>
           )}

@@ -61,13 +61,15 @@
 }
 .acode__find {
   justify-self: start;
-  padding: 0 8px;
+  max-width: 100%;
+  padding: 2px 12px;
   font-family: var(--font-mono);
   font-weight: 800;
   font-size: 0.85rem;
+  line-height: 1.5;
   background: var(--mango);
   border: 1.5px solid var(--ink);
-  border-radius: 999px;
+  border-radius: 14px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }

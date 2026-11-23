@@ -1,3 +1,4 @@
+import { HangLines } from '../../components/HangLines';
 import { useMemo, useRef, useState } from 'react';
 import * as m from 'motion/react-m';
 import { AnimatePresence, useReducedMotion } from 'motion/react';
@@ -256,7 +257,7 @@ export default function TxCart() {
       {last && (
         <div className="txc__sql">
           <span className="sk-label">{copy.lastSql}</span>
-          <pre className="sk-sql">{last}</pre>
+          <pre className="sk-sql"><HangLines text={last} /></pre>
         </div>
       )}
 

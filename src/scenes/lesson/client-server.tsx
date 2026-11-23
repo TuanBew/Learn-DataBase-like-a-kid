@@ -1,3 +1,4 @@
+import { HangLines } from '../../components/HangLines';
 import { useEffect, useRef, useState } from 'react';
 import * as m from 'motion/react-m';
 import { useReducedMotion } from 'motion/react';
@@ -144,7 +145,7 @@ export default function ClientServer() {
       {step >= 2 && (
         <div className="cs__sql">
           <span className="sk-label">{copy.sqlLabel}</span>
-          <pre className="sk-sql">{copy.sql}</pre>
+          <pre className="sk-sql"><HangLines text={copy.sql} /></pre>
         </div>
       )}
 

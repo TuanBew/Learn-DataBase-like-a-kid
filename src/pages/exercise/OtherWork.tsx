@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { DmlView } from '../../components/DmlView';
 import { HintLadder } from '../../components/HintLadder';
 import { Icon } from '../../components/Icon';
+import { HangLines } from '../../components/HangLines';
 import { Says } from '../../components/Mascot';
 import { OrderPieces } from '../../components/OrderPieces';
 import { ChoiceQuiz } from '../../components/quiz/ChoiceQuiz';
@@ -115,7 +116,7 @@ export function PredictWork({ exercise, db }: { exercise: SqlExercise; db: Datab
       />
       <section className="ex-from">
         <h2 className="ex-h ex-h--sm">{U.queryLabel}</h2>
-        <pre tabIndex={0}>{sql}</pre>
+        <pre tabIndex={0}><HangLines text={sql} /></pre>
       </section>
 
       {base && (
@@ -384,7 +385,7 @@ export function QuizWork({ exercise }: { exercise: QuizExercise }) {
   return (
     <div className="ex-stack">
       <TaskCard exercise={exercise} />
-      {exercise.code && <pre className="ex-code" tabIndex={0}>{exercise.code}</pre>}
+      {exercise.code && <pre className="ex-code" tabIndex={0}><HangLines text={exercise.code} /></pre>}
       <span className="chip ex-quizcount">{U.quizDone(done.size, exercise.items.length)}</span>
       {exercise.items.map((q, i) => (
         <section key={i} className="ex-work sheet">

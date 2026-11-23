@@ -18,9 +18,11 @@
   border-radius: 6px;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
+  /* Giữ khoảng trắng, để ' nv 7' và 'nv 7' nhìn khác nhau. */
+  white-space: pre-wrap;
 }
 .rich-code--short {
-  white-space: nowrap;
+  white-space: pre;
 }
 .lb-link {
   color: var(--ink);

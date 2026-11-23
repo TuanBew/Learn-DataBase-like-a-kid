@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { HintLadder } from '../../components/HintLadder';
 import { Icon } from '../../components/Icon';
+import { HangLines } from '../../components/HangLines';
 import { Says } from '../../components/Mascot';
 import { Rich } from '../../components/Rich';
 import { SchemaPanel } from '../../components/SchemaPanel';
@@ -157,7 +158,7 @@ export function BuildWork({ exercise }: { exercise: BuildExercise }) {
             {baseSql && (
               <>
                 <pre className="hlad__code" tabIndex={0}>
-                  {baseSql}
+                  <HangLines text={baseSql} />
                 </pre>
                 <div className="ex-verdict__actions">
                   <button type="button" className="btn btn--sm" onClick={() => fresh(dialect, true)}>

@@ -1,3 +1,4 @@
+import { HangLines } from '../../components/HangLines';
 import { useMemo, useRef, useState } from 'react';
 import { DmlView } from '../../components/DmlView';
 import { Says, type Mood } from '../../components/Mascot';
@@ -115,7 +116,7 @@ export default function DmlRehearsal() {
         </div>
         <div className="dmr__sql">
           <span className="sk-label">{copy.sqlLabel}</span>
-          <pre className="sk-sql">{preset.sql}</pre>
+          <pre className="sk-sql"><HangLines text={preset.sql} /></pre>
           <button type="button" className="btn dmr__run" onClick={run}>
             {copy.run}
           </button>

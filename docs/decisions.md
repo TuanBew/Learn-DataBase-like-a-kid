@@ -137,5 +137,5 @@ Kết quả đầy đủ, kèm link và câu trích, nằm ở `docs/dialect-ver
 - **`NVL(chữ, số)` ở Oracle không báo lỗi**, theo tài liệu 19c (Oracle đổi số thành chữ). Chỉ `NVL(số, chữ không phải số)` báo ORA-01722.
 - **Chương 11 không có bài boss.** Giấy chứng nhận tính theo các bài boss đang có.
 - **Ba chỗ dàn ý ghi mà bản dựng làm gọn**: đa số phần tự bấm dùng khối thử tay hoặc xưởng thay cho cảnh riêng; bài query chậm chỉ nhắc tên EXPLAIN PLAN; GRANT chỉ dạy đọc hiểu.
-- **Chi phí Mốc 4** (ước theo số liệu của từng subagent): khoảng 9 triệu token Sonnet. Các lượt mở rộng engine tốn nhất, mỗi lượt từ 200 tới 520 nghìn.
+- **Chi phí Mốc 4** (ước theo số liệu của từng subagent): khoảng 7 triệu token Sonnet ở các subagent, chưa kể lượt kiểm gộp. Các lượt mở rộng engine tốn nhất, mỗi lượt từ 200 tới 520 nghìn.
 
